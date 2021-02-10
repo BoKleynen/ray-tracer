@@ -75,9 +75,9 @@ impl CuboidBuilder {
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::math::homogeneous::{Ray, Vector};
     use crate::shape::Intersectable;
-    use super::*;
 
     #[test]
     fn non_intersecting_ray() {
