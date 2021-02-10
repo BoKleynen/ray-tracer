@@ -1,58 +1,50 @@
 use super::Transformable;
-use crate::math::{self, SquareMatrix};
-use num_traits::Zero;
-use std::ops::{Add, Index, Mul, Sub};
+use crate::math;
+use crate::math::homogeneous::transformation::TransformationMatrix;
+use std::ops::{Add, Index, Sub};
 
 #[repr(transparent)]
-pub struct Vector<T>(pub(crate) math::Vector<T, 4>);
+#[derive(Debug, PartialEq)]
+pub struct Vector(pub(crate) math::Vector<f64, 4>);
 
-impl<T: Copy + Zero> From<[T; 3]> for Vector<T> {
-    fn from(arr: [T; 3]) -> Self {
-        Vector(math::Vector::from([arr[0], arr[1], arr[2], T::zero()]))
+impl From<[f64; 3]> for Vector {
+    fn from(arr: [f64; 3]) -> Self {
+        Vector(math::Vector::from([arr[0], arr[1], arr[2], 0.0]))
     }
 }
 
-impl<T: Copy + Zero> From<math::Vector<T, 3>> for Vector<T> {
-    fn from(v: math::Vector<T, 3>) -> Self {
+impl From<math::Vector<f64, 3>> for Vector {
+    fn from(v: math::Vector<f64, 3>) -> Self {
         v.arr().into()
     }
 }
 
-impl<T> Index<usize> for Vector<T> {
-    type Output = T;
+impl Index<usize> for Vector {
+    type Output = f64;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
     }
 }
 
-impl<'a, T> Add for &'a Vector<T>
-where
-    &'a T: Add<Output = T>,
-{
-    type Output = Vector<T>;
+impl<'a> Add for &'a Vector {
+    type Output = Vector;
 
     fn add(self, rhs: Self) -> Self::Output {
         Vector(&self.0 + &rhs.0)
     }
 }
 
-impl<'a, T> Sub for &'a Vector<T>
-where
-    &'a T: Sub<Output = T>,
-{
-    type Output = Vector<T>;
+impl<'a> Sub for &'a Vector {
+    type Output = Vector;
 
     fn sub(self, rhs: Self) -> Self::Output {
         Vector(&self.0 - &rhs.0)
     }
 }
 
-impl<T> Transformable<T> for Vector<T>
-where
-    for<'a> &'a SquareMatrix<T, 4>: Mul<&'a math::Vector<T, 4>, Output = math::Vector<T, 4>>,
-{
-    fn transform(&self, matrix: &SquareMatrix<T, 4>) -> Self {
+impl Transformable for Vector {
+    fn transform(&self, matrix: &TransformationMatrix) -> Self {
         Vector(matrix * &self.0)
     }
 }

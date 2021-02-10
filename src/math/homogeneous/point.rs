@@ -1,62 +1,54 @@
+use super::transformation::TransformationMatrix;
 use super::{Transformable, Vector};
-use crate::math::{self, SquareMatrix};
-use num_traits::One;
+use crate::math;
 use std::cmp::PartialEq;
-use std::ops::{Add, Index, Mul, Sub};
+use std::ops::{Add, Index, Sub};
 
 /// A 3 dimensional point, represented in 4 dimensional homogeneous coordinates.
 #[repr(transparent)]
-#[derive(Debug, Eq, PartialEq)]
-pub struct Point<T>(math::Vector<T, 4>);
+#[derive(Debug, PartialEq)]
+pub struct Point(math::Vector<f64, 4>);
 
-impl<T: Copy + One> From<[T; 3]> for Point<T> {
-    fn from(arr: [T; 3]) -> Self {
-        Point(math::Vector::from([arr[0], arr[1], arr[2], T::one()]))
+impl From<[f64; 3]> for Point {
+    fn from(arr: [f64; 3]) -> Self {
+        Point(math::Vector::from([arr[0], arr[1], arr[2], 1.0]))
     }
 }
 
-impl<T: Copy + One> From<math::Vector<T, 3>> for Point<T> {
-    fn from(v: math::Vector<T, 3>) -> Self {
+impl From<math::Vector<f64, 3>> for Point {
+    fn from(v: math::Vector<f64, 3>) -> Self {
         v.arr().into()
     }
 }
 
-impl<T> Index<usize> for Point<T> {
-    type Output = T;
+impl Index<usize> for Point {
+    type Output = f64;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
     }
 }
 
-impl<'a, T> Add<&'a Vector<T>> for &'a Point<T>
-where
-    &'a math::Vector<T, 4>: Add<Output = math::Vector<T, 4>>,
-{
-    type Output = Point<T>;
+impl<'a> Add<&'a Vector> for &'a Point {
+    type Output = Point;
 
-    fn add(self, rhs: &'a Vector<T>) -> Self::Output {
+    fn add(self, rhs: &'a Vector) -> Self::Output {
         Point(&self.0 + &rhs.0)
     }
 }
 
-impl<'a, T> Sub for &'a Point<T>
-where
-    &'a math::Vector<T, 4>: Sub<Output = math::Vector<T, 4>>,
-{
-    type Output = Vector<T>;
+impl<'a> Sub for &'a Point {
+    type Output = Vector;
 
     fn sub(self, rhs: Self) -> Self::Output {
         Vector(&self.0 - &rhs.0)
     }
 }
 
-impl<T> Transformable<T> for Point<T>
-where
-    for<'a> &'a SquareMatrix<T, 4>: Mul<&'a math::Vector<T, 4>, Output = math::Vector<T, 4>>,
-{
-    fn transform(&self, matrix: &SquareMatrix<T, 4>) -> Self {
-        // FIXME: multiply by 1.0 / w
-        Point(matrix * &self.0)
+impl Transformable for Point {
+    fn transform(&self, matrix: &TransformationMatrix) -> Self {
+        let p = matrix * &self.0;
+        let inv_w = 1.0 / p[4];
+        Point(&p * &inv_w)
     }
 }

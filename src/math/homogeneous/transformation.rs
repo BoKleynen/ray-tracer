@@ -1,13 +1,14 @@
 use crate::math::SquareMatrix;
-use std::ops::Mul;
 
-pub struct Transformation<T> {
-    matrix: SquareMatrix<T, 4>,
-    inverse: SquareMatrix<T, 4>,
+pub type TransformationMatrix = SquareMatrix<f64, 4>;
+
+pub struct Transformation {
+    matrix: TransformationMatrix,
+    inverse: TransformationMatrix,
 }
 
-impl<T> Transformation<T> {
-    pub fn new(matrix: SquareMatrix<T, 4>, inverse: SquareMatrix<T, 4>) -> Self {
+impl Transformation {
+    pub fn new(matrix: TransformationMatrix, inverse: TransformationMatrix) -> Self {
         Self { matrix, inverse }
     }
 
@@ -15,25 +16,22 @@ impl<T> Transformation<T> {
         Self::new(self.inverse, self.matrix)
     }
 
-    pub fn append<'a>(&'a self, other: &'a Self) -> Self
-    where
-        &'a SquareMatrix<T, 4>: Mul<Output = SquareMatrix<T, 4>>,
-    {
+    pub fn append<'a>(&'a self, other: &'a Self) -> Self {
         let matrix = &self.matrix * &other.matrix;
         let inverse = &self.inverse * &other.inverse;
 
         Self::new(matrix, inverse)
     }
 
-    pub fn apply<U: Transformable<T>>(&self, obj: U) -> U {
+    pub fn apply<U: Transformable>(&self, obj: U) -> U {
         obj.transform(&self.matrix)
     }
 
-    pub fn apply_inverse<U: Transformable<T>>(&self, obj: U) -> U {
+    pub fn apply_inverse<U: Transformable>(&self, obj: U) -> U {
         obj.transform(&self.inverse)
     }
 }
 
-pub trait Transformable<T> {
-    fn transform(&self, matrix: &SquareMatrix<T, 4>) -> Self;
+pub trait Transformable {
+    fn transform(&self, matrix: &TransformationMatrix) -> Self;
 }

@@ -1,18 +1,13 @@
-use super::{Vector, Point};
-use crate::math::homogeneous::Transformable;
-use crate::math::SquareMatrix;
+use super::transformation::TransformationMatrix;
+use super::{Point, Transformable, Vector};
 
-pub struct Ray<T> {
-    origin: Point<T>,
-    direction: Vector<T>
+pub struct Ray {
+    origin: Point,
+    direction: Vector,
 }
 
-impl<T> Transformable<T> for Ray<T>
-where
-    Point<T>: Transformable<T>,
-    Vector<T>: Transformable<T>
-{
-    fn transform(&self, matrix: &SquareMatrix<T, 4>) -> Self {
+impl Transformable for Ray {
+    fn transform(&self, matrix: &TransformationMatrix) -> Self {
         let origin = self.origin.transform(matrix);
         let direction = self.direction.transform(matrix);
 

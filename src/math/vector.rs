@@ -105,6 +105,17 @@ where
     }
 }
 
+impl<'a, T, const N: usize> Mul<&'a T> for &'a Vector<T, N>
+where
+    &'a T: Mul<Output = T>,
+{
+    type Output = Vector<T, N>;
+
+    fn mul(self, rhs: &'a T) -> Self::Output {
+        self.const_iter().map(|a| a * rhs).collect()
+    }
+}
+
 impl<T, const N: usize> Clone for Vector<T, N>
 where
     T: Clone,
