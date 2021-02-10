@@ -1,3 +1,4 @@
+mod cuboid;
 mod sphere;
 
 use crate::math::homogeneous::Ray;
