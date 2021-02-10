@@ -3,3 +3,4 @@
 mod const_iter;
 pub mod math;
 mod shape;
+mod camera;
