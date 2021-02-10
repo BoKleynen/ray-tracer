@@ -1,7 +1,8 @@
-use crate::math::SquareMatrix;
+use crate::math::{Matrix, SquareMatrix};
 
 pub type TransformationMatrix = SquareMatrix<f64, 4>;
 
+#[derive(Debug)]
 pub struct Transformation {
     matrix: TransformationMatrix,
     inverse: TransformationMatrix,
@@ -9,6 +10,23 @@ pub struct Transformation {
 
 impl Transformation {
     pub fn new(matrix: TransformationMatrix, inverse: TransformationMatrix) -> Self {
+        Self { matrix, inverse }
+    }
+
+    pub fn identity() -> Self {
+        let matrix = Matrix::from([
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+        let inverse = Matrix::from([
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+
         Self { matrix, inverse }
     }
 

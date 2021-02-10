@@ -52,6 +52,6 @@ pub trait Iterator<const N: usize> {
         Self: Sized,
         S: Sum<N, Self::Item>,
     {
-        unimplemented!()
+        S::sum(self)
     }
 }

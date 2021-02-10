@@ -10,8 +10,24 @@ use std::ops::{Add, Index, Sub};
 pub struct Point(math::Vector<f64, 4>);
 
 impl Point {
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
+        [x, y, z].into()
+    }
+
     pub fn to_vector(&self) -> math::Vector<f64, 3> {
         [self[0], self[1], self[2]].into()
+    }
+
+    pub fn x(&self) -> f64 {
+        self[0]
+    }
+
+    pub fn y(&self) -> f64 {
+        self[1]
+    }
+
+    pub fn z(&self) -> f64 {
+        self[2]
     }
 }
 
@@ -54,7 +70,7 @@ impl<'a> Sub for &'a Point {
 impl Transformable for Point {
     fn transform(&self, matrix: &TransformationMatrix) -> Self {
         let p = matrix * &self.0;
-        let inv_w = 1.0 / p[4];
+        let inv_w = 1.0 / p[3];
         Point(&p * &inv_w)
     }
 }

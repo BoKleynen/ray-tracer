@@ -8,8 +8,24 @@ use std::ops::{Add, Index, Sub};
 pub struct Vector(pub(crate) math::Vector<f64, 4>);
 
 impl Vector {
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
+        [x, y, z].into()
+    }
+
     pub fn to_vector(&self) -> math::Vector<f64, 3> {
         [self[0], self[1], self[2]].into()
+    }
+
+    pub fn x(&self) -> f64 {
+        self[0]
+    }
+
+    pub fn y(&self) -> f64 {
+        self[1]
+    }
+
+    pub fn z(&self) -> f64 {
+        self[2]
     }
 }
 

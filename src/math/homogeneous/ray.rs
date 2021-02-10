@@ -7,6 +7,10 @@ pub struct Ray {
 }
 
 impl Ray {
+    pub fn new(origin: Point, direction: Vector) -> Self {
+        Self { origin, direction }
+    }
+
     pub fn origin(&self) -> &Point {
         &self.origin
     }
