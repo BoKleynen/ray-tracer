@@ -1,5 +1,5 @@
 use crate::math::homogeneous::{Ray, Transformation};
-use crate::shape::Intersectable;
+use crate::shape::Shape;
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
 /// which is transformed by a transformation.
@@ -7,7 +7,13 @@ pub struct Sphere {
     transformation: Transformation,
 }
 
-impl Intersectable for Sphere {
+impl Sphere {
+    pub fn new(transformation: Transformation) -> Self {
+        Sphere { transformation }
+    }
+}
+
+impl Shape for Sphere {
     fn intersect(&self, ray: &Ray) -> bool {
         let transformed_ray = self.transformation.apply(ray);
 

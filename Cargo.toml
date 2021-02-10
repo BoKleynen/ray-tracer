@@ -10,4 +10,9 @@ Computer Graphics: Project (academic year 2020-2021)
 """
 
 [dependencies]
+clap = "3.0.0-beta.2"
+rayon = "1.5"
 image = "0.23"
+
+[profile.release]
+lto = true
