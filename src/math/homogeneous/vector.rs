@@ -15,6 +15,18 @@ impl Vector {
     pub fn to_vector(&self) -> math::Vector<f64, 3> {
         [self[0], self[1], self[2]].into()
     }
+
+    pub fn x(&self) -> f64 {
+        self[0]
+    }
+
+    pub fn y(&self) -> f64 {
+        self[1]
+    }
+
+    pub fn z(&self) -> f64 {
+        self[2]
+    }
 }
 
 impl From<[f64; 3]> for Vector {
