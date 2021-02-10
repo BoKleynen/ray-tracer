@@ -9,6 +9,10 @@ use std::ops::{Add, Index, Mul, Neg, Sub};
 pub struct Vector<T, const N: usize>([T; N]);
 
 impl<T, const N: usize> Vector<T, N> {
+    pub fn arr(self) -> [T; N] {
+        self.0
+    }
+
     fn const_iter(&self) -> ConstIter<T, N> {
         ConstIter::new(self)
     }

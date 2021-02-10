@@ -1,9 +1,6 @@
-mod matrix;
-mod point;
-mod ray;
-mod vector;
-
-pub use matrix::Matrix;
-pub use point::Point;
-pub use ray::Ray;
+pub use matrix::{Matrix, SquareMatrix};
 pub use vector::Vector;
+
+pub mod homogeneous;
+mod matrix;
+mod vector;
