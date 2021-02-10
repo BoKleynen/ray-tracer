@@ -3,9 +3,9 @@ use std::error::Error;
 
 #[derive(Debug, Clone)]
 pub struct OrthonormalBasis {
-    u: Vector<f64, 3>,
-    v: Vector<f64, 3>,
-    w: Vector<f64, 3>,
+    pub(crate) u: Vector<f64, 3>,
+    pub(crate) v: Vector<f64, 3>,
+    pub(crate) w: Vector<f64, 3>,
 }
 
 impl OrthonormalBasis {
