@@ -6,6 +6,16 @@ pub struct Ray {
     direction: Vector,
 }
 
+impl Ray {
+    pub fn origin(&self) -> &Point {
+        &self.origin
+    }
+
+    pub fn direction(&self) -> &Vector {
+        &self.direction
+    }
+}
+
 impl Transformable for Ray {
     fn transform(&self, matrix: &TransformationMatrix) -> Self {
         let origin = self.origin.transform(matrix);

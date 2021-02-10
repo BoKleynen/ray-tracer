@@ -23,11 +23,11 @@ impl Transformation {
         Self::new(matrix, inverse)
     }
 
-    pub fn apply<U: Transformable>(&self, obj: U) -> U {
+    pub fn apply<U: Transformable>(&self, obj: &U) -> U {
         obj.transform(&self.matrix)
     }
 
-    pub fn apply_inverse<U: Transformable>(&self, obj: U) -> U {
+    pub fn apply_inverse<U: Transformable>(&self, obj: &U) -> U {
         obj.transform(&self.inverse)
     }
 }

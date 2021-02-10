@@ -9,6 +9,12 @@ use std::ops::{Add, Index, Sub};
 #[derive(Debug, PartialEq)]
 pub struct Point(math::Vector<f64, 4>);
 
+impl Point {
+    pub fn to_vector(&self) -> math::Vector<f64, 3> {
+        [self[0], self[1], self[2]].into()
+    }
+}
+
 impl From<[f64; 3]> for Point {
     fn from(arr: [f64; 3]) -> Self {
         Point(math::Vector::from([arr[0], arr[1], arr[2], 1.0]))

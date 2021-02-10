@@ -7,6 +7,12 @@ use std::ops::{Add, Index, Sub};
 #[derive(Debug, PartialEq)]
 pub struct Vector(pub(crate) math::Vector<f64, 4>);
 
+impl Vector {
+    pub fn to_vector(&self) -> math::Vector<f64, 3> {
+        [self[0], self[1], self[2]].into()
+    }
+}
+
 impl From<[f64; 3]> for Vector {
     fn from(arr: [f64; 3]) -> Self {
         Vector(math::Vector::from([arr[0], arr[1], arr[2], 0.0]))
