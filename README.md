@@ -1,5 +1,10 @@
 # CG Practicum
 
+to inspect the assembly code: 
+```bash
+cargo rustc --release --bin cg-practicum -- --emit asm
+```
+
 ## Some useful crates i might want to use
 
 num-traits = "0.2"
