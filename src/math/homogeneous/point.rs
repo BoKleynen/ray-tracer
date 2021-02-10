@@ -6,7 +6,7 @@ use std::ops::{Add, Index, Sub};
 
 /// A 3 dimensional point, represented in 4 dimensional homogeneous coordinates.
 #[repr(transparent)]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Point(math::Vector<f64, 4>);
 
 impl Point {

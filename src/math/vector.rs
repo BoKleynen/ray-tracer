@@ -5,7 +5,7 @@ use std::mem::MaybeUninit;
 use std::ops::{Add, Index, Mul, Neg, Sub};
 
 #[repr(transparent)]
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Vector<T, const N: usize>([T; N]);
 
 impl<T, const N: usize> Vector<T, N> {
@@ -15,6 +15,15 @@ impl<T, const N: usize> Vector<T, N> {
 
     fn const_iter(&self) -> ConstIter<T, N> {
         ConstIter::new(self)
+    }
+}
+
+impl<T, const N: usize> Vector<T, N> {
+    pub fn length<'a>(&'a self) -> T
+    where
+        &'a Vector<T, N>: Mul<Output = T>,
+    {
+        self * self
     }
 }
 
@@ -34,6 +43,24 @@ impl<T> Vector<T, 3> {
             &self[1] * &rhs[2] - &self[2] * &rhs[1],
         ]
         .into()
+    }
+
+    pub fn x(&self) -> &T {
+        &self[0]
+    }
+
+    pub fn y(&self) -> &T {
+        &self[1]
+    }
+
+    pub fn z(&self) -> &T {
+        &self[2]
+    }
+}
+
+impl Vector<f64, 3> {
+    pub fn normalize(&self) -> Self {
+        self * &(1.0 / self.length())
     }
 }
 
@@ -113,15 +140,6 @@ where
 
     fn mul(self, rhs: &'a T) -> Self::Output {
         self.const_iter().map(|a| a * rhs).collect()
-    }
-}
-
-impl<T, const N: usize> Clone for Vector<T, N>
-where
-    T: Clone,
-{
-    fn clone(&self) -> Self {
-        self.const_iter().map(T::clone).collect()
     }
 }
 
