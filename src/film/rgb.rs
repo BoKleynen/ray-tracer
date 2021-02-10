@@ -1,3 +1,4 @@
+use image::Rgba;
 use std::cmp::{max, min};
 use std::ops::{Add, Div, Mul, Sub};
 
@@ -25,12 +26,12 @@ impl RGB {
         }
     }
 
-    pub fn to_rgb(self) -> i32 {
-        let r = min(255, max(0, self.red.round() as i32));
-        let g = min(255, max(0, self.green.round() as i32));
-        let b = min(255, max(0, self.blue.round() as i32));
+    pub fn to_rgb(self) -> Rgba<u8> {
+        let r = min(255, max(0, self.red.round() as i32)) as u8;
+        let g = min(255, max(0, self.green.round() as i32)) as u8;
+        let b = min(255, max(0, self.blue.round() as i32)) as u8;
 
-        (255 << 24) + (r << 16) + (g << 8) + b
+        Rgba([r, g, b, 255])
     }
 
     pub fn pow(self, exp: f64) -> Self {

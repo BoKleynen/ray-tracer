@@ -2,6 +2,7 @@ use crate::camera::Camera;
 use crate::math::homogeneous::{Point, Ray};
 use crate::math::{OrthonormalBasis, Vector};
 use std::f64;
+use std::num::{NonZeroU64, NonZeroUsize};
 
 pub struct PerspectiveCamera {
     origin: Point,
@@ -14,18 +15,18 @@ pub struct PerspectiveCamera {
 
 impl PerspectiveCamera {
     pub fn new(
-        x_res: i64,
-        y_res: i64,
+        x_res: NonZeroUsize,
+        y_res: NonZeroUsize,
         origin: Point,
         lookat: Vector<f64, 3>,
         up: Vector<f64, 3>,
         fov: f64,
     ) -> Self {
-        if x_res < 1 {
+        if x_res < NonZeroUsize::new(1).unwrap() {
             panic!()
         }
 
-        if y_res < 1 {
+        if y_res < NonZeroUsize::new(1).unwrap() {
             panic!()
         }
 
@@ -39,10 +40,10 @@ impl PerspectiveCamera {
 
         let basis = OrthonormalBasis::from_vectors(&(-(&lookat)), &up).unwrap();
 
-        let inv_x_res = 1.0 / x_res as f64;
-        let inv_y_res = 1.0 / y_res as f64;
+        let inv_x_res = 1.0 / x_res.get() as f64;
+        let inv_y_res = 1.0 / y_res.get() as f64;
         let width = 2.0 * (0.5 * fov.to_radians()).tan();
-        let height = (y_res as f64 * width) * inv_y_res;
+        let height = (y_res.get() as f64 * width) * inv_y_res;
 
         Self {
             origin,

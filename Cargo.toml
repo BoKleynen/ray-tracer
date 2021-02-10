@@ -10,3 +10,4 @@ Computer Graphics: Project (academic year 2020-2021)
 """
 
 [dependencies]
+image = "0.23"
