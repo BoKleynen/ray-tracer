@@ -74,3 +74,9 @@ impl Transformable for Point {
         Point(&p * &inv_w)
     }
 }
+
+impl Default for Point {
+    fn default() -> Self {
+        Point::new(0.0, 0.0, 0.0)
+    }
+}

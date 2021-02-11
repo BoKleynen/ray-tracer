@@ -1,6 +1,6 @@
 mod perspective;
 
-pub use perspective::PerspectiveCamera;
+pub use perspective::{CameraBuilder, PerspectiveCamera};
 
 use crate::math::homogeneous::Ray;
 
