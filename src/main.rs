@@ -1,49 +1,50 @@
-use cg_practicum::camera::{Camera, CameraBuilder, PerspectiveCamera};
+use cg_practicum::camera::{Camera, CameraBuilder};
 use cg_practicum::film::{FrameBuffer, RGB};
-use cg_practicum::math::homogeneous::{Point, Transformation, Vector};
-use cg_practicum::shape::{Cuboid, Plane, Shape, Sphere};
+use cg_practicum::math::Transformation;
+use cg_practicum::shape::{Cuboid, Plane, Sphere};
 use cg_practicum::world::WorldBuilder;
 use clap::Clap;
+use nalgebra::{Point3, Vector3};
 use rayon::prelude::*;
 use std::error::Error;
 use std::num::NonZeroUsize;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cfg = Config::parse();
-    let origin = Point::new(0.0, 0.0, 0.0);
-    let destination = Point::new(0.0, 0.0, -1.0);
-    let up = Vector::new(0.0, 1.0, 0.0);
+    let origin = Point3::new(0.0, 0.0, 0.0);
+    let destination = Point3::new(0.0, 0.0, -1.0);
+    let up = Vector3::new(0.0, 1.0, 0.0);
 
     let camera = CameraBuilder::new(origin)
         .x_res(cfg.width)
         .y_res(cfg.height)
         .destination(destination)
-        .up(up.to_vector())
+        .up(up)
         .fov(cfg.fov)
         .build()
         .ok_or("invalid camera configuration")?;
 
     let t1 =
-        Transformation::translate(0.0, 0.0, -10.0).append(&Transformation::scale(5.0, 5.0, 5.0));
+        Transformation::translate(-2.5, -2.5, -10.0).append(&Transformation::scale(5.0, 5.0, 5.0));
     let t2 =
-        Transformation::translate(4.0, -4.0, -12.0).append(&Transformation::scale(4.0, 4.0, 4.0));
+        Transformation::translate(4.0, -4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
     let t3 =
-        Transformation::translate(-4.0, -4.0, -12.0).append(&Transformation::scale(4.0, 4.0, 4.0));
+        Transformation::translate(-4.0, -4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
     let t4 =
-        Transformation::translate(4.0, 4.0, -12.0).append(&Transformation::scale(4.0, 4.0, 4.0));
+        Transformation::translate(4.0, 4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
     let t5 =
-        Transformation::translate(-4.0, 4.0, -12.0).append(&Transformation::scale(4.0, 4.0, 4.0));
+        Transformation::translate(-4.0, 4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
 
     let world = WorldBuilder::new()
         .camera(camera)
-        .add_shape(Box::new(Sphere::new(t1)))
+        .add_shape(Box::new(Cuboid::new(Point3::new(1.0, 1.0, 1.0), t1)))
         .add_shape(Box::new(Sphere::new(t2)))
         .add_shape(Box::new(Sphere::new(t3)))
         .add_shape(Box::new(Sphere::new(t4)))
         .add_shape(Box::new(Sphere::new(t5)))
         .add_shape(Box::new(Plane::new(
-            Vector::new(1.0, 1.0, 0.0),
-            Point::new(-10.0, -10.0, -10.0),
+            Vector3::new(1.0, 1.0, 0.0),
+            Point3::new(-10.0, -10.0, -10.0),
             Transformation::identity(),
         )))
         .build()

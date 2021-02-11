@@ -1,4 +1,4 @@
-use crate::math::homogeneous::{Ray, Transformation};
+use crate::math::{Ray, Transformation};
 use crate::shape::Shape;
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
@@ -17,12 +17,12 @@ impl Shape for Sphere {
     fn intersect(&self, ray: &Ray) -> bool {
         let transformed_ray = self.transformation.apply_inverse(ray);
 
-        let origin = transformed_ray.origin().to_vector();
-        let direction = transformed_ray.direction().to_vector();
+        let origin = transformed_ray.origin();
+        let direction = transformed_ray.direction();
 
-        let a = &direction * &direction;
-        let b = &direction * &origin * 2.0;
-        let c = &origin * &origin - 1.0;
+        let a = direction.norm_squared();
+        let b = 2.0 * direction.dot(&origin.coords);
+        let c = origin.coords.dot(&origin.coords) - 1.0;
 
         let d = b * b - 4.0 * a * c;
 
