@@ -2,7 +2,7 @@ mod cuboid;
 mod plane;
 mod sphere;
 
-use crate::math::homogeneous::Ray;
+use crate::math::Ray;
 pub use cuboid::Cuboid;
 pub use plane::Plane;
 pub use sphere::Sphere;

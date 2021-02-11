@@ -1,8 +1,7 @@
-pub use matrix::{Matrix, SquareMatrix};
 pub use orthonormal_basis::OrthonormalBasis;
-pub use vector::Vector;
+pub use ray::Ray;
+pub use transformation::{Transformable, Transformation};
 
-pub mod homogeneous;
-mod matrix;
 mod orthonormal_basis;
-mod vector;
+mod ray;
+mod transformation;

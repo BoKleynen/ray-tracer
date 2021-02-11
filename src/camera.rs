@@ -1,11 +1,15 @@
-use crate::camera::Camera;
-use crate::math::homogeneous::{Point, Ray};
-use crate::math::{OrthonormalBasis, Vector};
+use crate::math::{OrthonormalBasis, Ray};
+use nalgebra::{Point3, Vector3};
 use std::f64;
-use std::num::{NonZeroU64, NonZeroUsize};
+use std::num::NonZeroUsize;
+use std::ops::Neg;
+
+pub trait Camera {
+    fn generate_ray(&self, sample: (f64, f64)) -> Ray;
+}
 
 pub struct PerspectiveCamera {
-    origin: Point,
+    origin: Point3<f64>,
     basis: OrthonormalBasis,
     width: f64,
     height: f64,
@@ -18,7 +22,7 @@ impl Camera for PerspectiveCamera {
         let u = self.width * (sample.0 * self.inv_x_res - 0.5);
         let v = self.height * (sample.1 * self.inv_y_res - 0.5);
 
-        let direction = &(&(&self.basis.u * &u) + &(&self.basis.v * &v)) - &self.basis.w;
+        let direction = &self.basis.u * u + &self.basis.v * v - &self.basis.w;
 
         Ray::new(self.origin.clone(), direction.into())
     }
@@ -27,14 +31,14 @@ impl Camera for PerspectiveCamera {
 pub struct CameraBuilder {
     x_res: Option<NonZeroUsize>,
     y_res: Option<NonZeroUsize>,
-    origin: Point,
-    look_at: Option<Vector<f64, 3>>,
-    up: Option<Vector<f64, 3>>,
+    origin: Point3<f64>,
+    look_at: Option<Vector3<f64>>,
+    up: Option<Vector3<f64>>,
     fov: Option<f64>,
 }
 
 impl CameraBuilder {
-    pub fn new(origin: Point) -> Self {
+    pub fn new(origin: Point3<f64>) -> Self {
         Self {
             x_res: None,
             y_res: None,
@@ -55,12 +59,12 @@ impl CameraBuilder {
         self
     }
 
-    pub fn destination(mut self, destination: Point) -> Self {
-        self.look_at = Some((&destination - &self.origin).to_vector());
+    pub fn destination(mut self, destination: Point3<f64>) -> Self {
+        self.look_at = Some(destination - self.origin);
         self
     }
 
-    pub fn look_at(mut self, look_at: Vector<f64, 3>) -> Self {
+    pub fn look_at(mut self, look_at: Vector3<f64>) -> Self {
         self.look_at = Some(look_at);
         self
     }
@@ -72,13 +76,13 @@ impl CameraBuilder {
         self
     }
 
-    pub fn up(mut self, up: Vector<f64, 3>) -> Self {
+    pub fn up(mut self, up: Vector3<f64>) -> Self {
         self.up = Some(up);
         self
     }
 
     pub fn build(self) -> Option<PerspectiveCamera> {
-        let basis = OrthonormalBasis::from_vectors(&(-(&self.look_at?)), &self.up?).unwrap();
+        let basis = OrthonormalBasis::from_vectors(&self.look_at?.neg(), &self.up?).unwrap();
 
         let inv_x_res = 1.0 / self.x_res?.get() as f64;
         let inv_y_res = 1.0 / self.y_res?.get() as f64;
