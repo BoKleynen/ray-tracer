@@ -103,4 +103,13 @@ mod test {
 
         assert_eq!(cuboid.intersect(&ray), true)
     }
+
+    #[test]
+    fn transformed_intersecting_ray() {
+        let t = Transformation::scale(10.0, 10.0, 10.0);
+        let cuboid = CuboidBuilder::new(Point::new(1.0, 1.0, 1.0)).transformation(t).build();
+        let ray = Ray::new(Point::new(2.0, 3.0, 4.0), Vector::new(1.0, 0.0, 0.0));
+
+        assert_eq!(cuboid.intersect(&ray), true)
+    }
 }

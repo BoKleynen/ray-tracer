@@ -70,7 +70,7 @@ impl Transformation {
 
     pub fn append<'a>(&'a self, other: &'a Self) -> Self {
         let matrix = &self.matrix * &other.matrix;
-        let inverse = &self.inverse * &other.inverse;
+        let inverse = &other.inverse * &self.inverse;
 
         Self::new(matrix, inverse)
     }

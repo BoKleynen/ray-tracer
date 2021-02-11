@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let lookat = &destination - &origin;
 
-    let camera = PerspectiveCamera::new(
+    let camera = PerspectiveCamera::new_with_lookat(
         cfg.width,
         cfg.height,
         origin,
@@ -26,19 +26,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut buffer = FrameBuffer::new(cfg.width, cfg.height);
 
     let t1 =
-        Transformation::translate(0.0, 0.0, -10.0).append(&Transformation::scale(50.0, 50.0, 50.0));
+        Transformation::translate(0.0, 0.0, -10.0).append(&Transformation::scale(5.0, 5.0, 5.0));
     let t2 =
-        Transformation::translate(4.0, -4.0, -12.0).append(&Transformation::scale(40.0, 40.0, 40.0));
+        Transformation::translate(4.0, -4.0, -12.0).append(&Transformation::scale(4.0, 4.0, 4.0));
     let t3 =
-        Transformation::translate(-4.0, -4.0, -12.0).append(&Transformation::scale(40.0, 40.0, 40.0));
+        Transformation::translate(-4.0, -4.0, -12.0).append(&Transformation::scale(4.0, 4.0, 4.0));
     let t4 =
-        Transformation::translate(4.0, 4.0, -12.0).append(&Transformation::scale(40.0, 40.0, 40.0));
+        Transformation::translate(4.0, 4.0, -12.0).append(&Transformation::scale(4.0, 4.0, 4.0));
     let t5 =
         Transformation::translate(-4.0, 4.0, -12.0).append(&Transformation::scale(4.0, 4.0, 4.0));
 
     let mut shapes: Vec<Box<dyn Shape + Sync + Send>> = Vec::with_capacity(5);
     // shapes.push(Box::new(Cuboid::new(Point::new(1.0, 1.0, 1.0), t1)));
-    // shapes.push(Box::new(Sphere::new(t1)));
+    shapes.push(Box::new(Sphere::new(t1)));
     shapes.push(Box::new(Sphere::new(t2)));
     shapes.push(Box::new(Sphere::new(t3)));
     shapes.push(Box::new(Sphere::new(t4)));
@@ -47,9 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     buffer.buffer().par_iter_mut().enumerate().for_each(|(idx, pixel)| {
         let x = (idx / cfg.width.get()) as f64;
         let y = (idx % cfg.width.get()) as f64;
-
         let ray = camera.generate_ray((x+0.5, y+0.5));
-
         let hit = shapes.iter().any(|shape| shape.intersect(&ray));
 
         if hit {

@@ -14,7 +14,7 @@ pub struct PerspectiveCamera {
 }
 
 impl PerspectiveCamera {
-    pub fn new(
+    pub fn new_with_lookat(
         x_res: NonZeroUsize,
         y_res: NonZeroUsize,
         origin: Point,
@@ -53,6 +53,10 @@ impl PerspectiveCamera {
             width,
             height,
         }
+    }
+
+    fn new_with_destination() -> Self {
+        unimplemented!()
     }
 }
 
