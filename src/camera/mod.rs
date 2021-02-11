@@ -1,5 +1,7 @@
 mod perspective;
 
+pub use perspective::PerspectiveCamera;
+
 use crate::math::homogeneous::Ray;
 
 pub trait Camera {

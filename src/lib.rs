@@ -1,6 +1,7 @@
 #![feature(const_generics)]
 
-mod camera;
+pub mod camera;
 mod const_iter;
+pub mod film;
 pub mod math;
-mod shape;
+pub mod shape;

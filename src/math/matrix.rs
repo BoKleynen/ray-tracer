@@ -136,4 +136,12 @@ mod tests {
 
         assert_eq!(c, Matrix::from([[6, 8], [10, 12]]))
     }
+
+    #[test]
+    fn mul_matrix() {
+        let a = Matrix::from([[1, 2], [3, 4]]);
+        let i = Matrix::from([[1, 0], [0, 1]]);
+
+        assert_eq!(a, &a * &i)
+    }
 }

@@ -30,13 +30,47 @@ impl Transformation {
         Self { matrix, inverse }
     }
 
+    pub fn translate(x: f64, y: f64, z: f64) -> Self {
+        let matrix = Matrix::from([
+            [1.0, 0.0, 0.0, x],
+            [0.0, 1.0, 0.0, y],
+            [0.0, 0.0, 1.0, z],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+        let inverse = Matrix::from([
+            [1.0, 0.0, 0.0, -x],
+            [0.0, 1.0, 0.0, -y],
+            [0.0, 0.0, 1.0, -z],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+
+        Self { matrix, inverse }
+    }
+
+    pub fn scale(x: f64, y: f64, z: f64) -> Self {
+        let matrix = Matrix::from([
+            [x, 0.0, 0.0, 0.0],
+            [0.0, y, 0.0, 0.0],
+            [0.0, 0.0, z, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+        let inverse = Matrix::from([
+            [1.0 / x, 0.0, 0.0, 0.0],
+            [0.0, 1.0 / y, 0.0, 0.0],
+            [0.0, 0.0, 1.0 / z, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+
+        Self { matrix, inverse }
+    }
+
     pub fn invert(self) -> Self {
         Self::new(self.inverse, self.matrix)
     }
 
     pub fn append<'a>(&'a self, other: &'a Self) -> Self {
         let matrix = &self.matrix * &other.matrix;
-        let inverse = &self.inverse * &other.inverse;
+        let inverse = &other.inverse * &self.inverse;
 
         Self::new(matrix, inverse)
     }

@@ -1,5 +1,5 @@
 use crate::math::homogeneous::{Point, Ray, Transformation};
-use crate::shape::Intersectable;
+use crate::shape::Shape;
 
 /// A three-dimensional cuboid, bounded by the origin and the oposite corner.
 #[derive(Debug)]
@@ -8,7 +8,16 @@ pub struct Cuboid {
     corner: Point,
 }
 
-impl Intersectable for Cuboid {
+impl Cuboid {
+    pub fn new(corner: Point, transformation: Transformation) -> Self {
+        Self {
+            transformation,
+            corner,
+        }
+    }
+}
+
+impl Shape for Cuboid {
     fn intersect(&self, ray: &Ray) -> bool {
         let inv_ray = self.transformation.apply_inverse(ray);
 
@@ -77,7 +86,7 @@ impl CuboidBuilder {
 mod test {
     use super::*;
     use crate::math::homogeneous::{Ray, Vector};
-    use crate::shape::Intersectable;
+    use crate::shape::Shape;
 
     #[test]
     fn non_intersecting_ray() {
@@ -91,6 +100,15 @@ mod test {
     fn intersecting_ray() {
         let cuboid = CuboidBuilder::new(Point::new(1.0, 1.0, 1.0)).build();
         let ray = Ray::new(Point::new(0.5, 0.5, 0.5), Vector::new(-1.0, 0.0, 0.0));
+
+        assert_eq!(cuboid.intersect(&ray), true)
+    }
+
+    #[test]
+    fn transformed_intersecting_ray() {
+        let t = Transformation::scale(10.0, 10.0, 10.0);
+        let cuboid = CuboidBuilder::new(Point::new(1.0, 1.0, 1.0)).transformation(t).build();
+        let ray = Ray::new(Point::new(2.0, 3.0, 4.0), Vector::new(1.0, 0.0, 0.0));
 
         assert_eq!(cuboid.intersect(&ray), true)
     }

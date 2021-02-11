@@ -38,9 +38,9 @@ impl<T> Vector<T, 3> {
         T: Sub<Output = T>,
     {
         [
-            &self[2] * &rhs[3] - &self[3] * &rhs[2],
-            &self[3] * &rhs[1] - &self[1] * &rhs[3],
             &self[1] * &rhs[2] - &self[2] * &rhs[1],
+            &self[2] * &rhs[0] - &self[0] * &rhs[2],
+            &self[0] * &rhs[1] - &self[1] * &rhs[0],
         ]
         .into()
     }
