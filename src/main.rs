@@ -1,7 +1,7 @@
 use cg_practicum::camera::{Camera, CameraBuilder, PerspectiveCamera};
 use cg_practicum::film::{FrameBuffer, RGB};
 use cg_practicum::math::homogeneous::{Point, Transformation, Vector};
-use cg_practicum::shape::{Cuboid, Shape, Sphere};
+use cg_practicum::shape::{Cuboid, Plane, Shape, Sphere};
 use cg_practicum::world::WorldBuilder;
 use clap::Clap;
 use rayon::prelude::*;
@@ -41,6 +41,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         .add_shape(Box::new(Sphere::new(t3)))
         .add_shape(Box::new(Sphere::new(t4)))
         .add_shape(Box::new(Sphere::new(t5)))
+        .add_shape(Box::new(Plane::new(
+            Vector::new(1.0, 1.0, 0.0),
+            Point::new(-10.0, -10.0, -10.0),
+            Transformation::identity(),
+        )))
         .build()
         .ok_or("invalid world configuration")?;
 
