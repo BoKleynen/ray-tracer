@@ -1,6 +1,6 @@
 use image::Rgba;
 use std::cmp::{max, min};
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct RGB {
@@ -108,5 +108,13 @@ impl Mul for RGB {
         let blue = self.blue * rhs.blue;
 
         Self { red, green, blue }
+    }
+}
+
+impl AddAssign for RGB {
+    fn add_assign(&mut self, rhs: Self) {
+        self.red += rhs.red;
+        self.green += rhs.green;
+        self.blue += rhs.blue;
     }
 }

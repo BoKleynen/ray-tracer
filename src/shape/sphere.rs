@@ -15,7 +15,7 @@ impl Sphere {
 
 impl Shape for Sphere {
     fn intersect(&self, ray: &Ray) -> bool {
-        let transformed_ray = self.transformation.apply(ray);
+        let transformed_ray = self.transformation.apply_inverse(ray);
 
         let origin = transformed_ray.origin().to_vector();
         let direction = transformed_ray.direction().to_vector();
@@ -31,6 +31,7 @@ impl Shape for Sphere {
         } else {
             let dr = d.sqrt();
 
+            // numerically solve the equation a*t^2 + b * t + c = 0
             let q = -0.5 * (if b < 0.0 { b - dr } else { b + dr });
             let t0 = q / a;
             let t1 = c / q;

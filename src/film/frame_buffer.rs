@@ -29,7 +29,7 @@ impl FrameBuffer {
         self.buffer[self.x_res * y + x]
     }
 
-    pub fn to_buffered_image(&self, sensitivity: f64, gamma: f64) -> RgbaImage {
+    pub fn to_rgba_image(&self, sensitivity: f64, gamma: f64) -> RgbaImage {
         let inv_sensitivity = 1.0 / sensitivity;
         let inv_gamma = 1.0 / gamma;
 

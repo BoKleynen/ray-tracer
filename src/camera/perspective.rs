@@ -43,7 +43,7 @@ impl PerspectiveCamera {
         let inv_x_res = 1.0 / x_res.get() as f64;
         let inv_y_res = 1.0 / y_res.get() as f64;
         let width = 2.0 * (0.5 * fov.to_radians()).tan();
-        let height = (y_res.get() as f64 * width) * inv_y_res;
+        let height = (y_res.get() as f64 * width) * inv_x_res;
 
         Self {
             origin,

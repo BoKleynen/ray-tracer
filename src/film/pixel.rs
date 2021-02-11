@@ -10,6 +10,10 @@ impl Pixel {
     pub fn spectrum(self) -> RGB {
         self.color
     }
+
+    pub fn add(&mut self, spectrum: RGB, weight: f64) {
+        self.color += spectrum * weight
+    }
 }
 
 impl Default for Pixel {
