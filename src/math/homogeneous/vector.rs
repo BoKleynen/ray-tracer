@@ -1,7 +1,7 @@
 use super::Transformable;
 use crate::math;
 use crate::math::homogeneous::transformation::TransformationMatrix;
-use std::ops::{Add, Index, Sub};
+use std::ops::{Add, Index, Mul, Sub};
 
 #[repr(transparent)]
 #[derive(Debug, PartialEq)]
@@ -62,6 +62,14 @@ impl<'a> Sub for &'a Vector {
 
     fn sub(self, rhs: Self) -> Self::Output {
         Vector(&self.0 - &rhs.0)
+    }
+}
+
+impl<'a> Mul for &'a Vector {
+    type Output = f64;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        &self.to_vector() * &rhs.to_vector()
     }
 }
 
