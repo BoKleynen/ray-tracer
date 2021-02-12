@@ -14,7 +14,7 @@ impl OrthonormalBasis {
             return None;
         }
 
-        let w = (1.0 / length) * a;
+        let w = a / length;
         let u = if w.x.abs() > w.y.abs() {
             let inv_length = 1.0 / w.norm();
             Vector3::new(-w.z * inv_length, 0.0, w.x * inv_length)

@@ -115,7 +115,7 @@ impl Shape for TriangleMesh {
     }
 
     fn color(&self) -> RGB {
-        unimplemented!()
+        self.color
     }
 }
 

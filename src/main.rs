@@ -35,20 +35,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     let t5 =
         Transformation::translate(-4.0, 4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
 
-    // let object = Obj::load("models/teapot.obj").unwrap();
+    let object = Obj::load("models/teapot.obj").unwrap();
 
     let green = RGB::new(0.0, 1.0, 0.0);
     let red = RGB::new(1.0, 0.0, 0.0);
 
     let world = WorldBuilder::new()
         .camera(camera)
-        // .add_shape(Box::new(TriangleMesh::new(object, t1)))
-        .shape(Box::new(Cuboid::new(Point3::new(0.5, 0.5, 0.5), t1, red)))
-        // .add_shape(Box::new(Sphere::new(t1, red)))
-        .shape(Box::new(Sphere::new(t2, green)))
-        .shape(Box::new(Sphere::new(t3, green)))
-        .shape(Box::new(Sphere::new(t4, green)))
-        .shape(Box::new(Sphere::new(t5, green)))
+        .shape(Box::new(TriangleMesh::new(object, t1)))
+        // .shape(Box::new(Cuboid::new(Point3::new(0.5, 0.5, 0.5), t1, red)))
+        // .shape(Box::new(Sphere::new(t1, red)))
+        // .shape(Box::new(Sphere::new(t2, green)))
+        // .shape(Box::new(Sphere::new(t3, green)))
+        // .shape(Box::new(Sphere::new(t4, green)))
+        // .shape(Box::new(Sphere::new(t5, green)))
         // .add_shape(Box::new(Plane::new(
         //     Vector3::new(1.0, 1.0, 0.0),
         //     Point3::new(-10.0, -10.0, -10.0),

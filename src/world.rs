@@ -28,8 +28,8 @@ impl World {
             .par_iter_mut()
             .enumerate()
             .for_each(|(idx, pixel)| {
-                let x = (idx / width.get()) as f64;
-                let y = (idx % width.get()) as f64;
+                let x = (idx % width.get()) as f64;
+                let y = (idx / width.get()) as f64;
                 let ray = self.camera.generate_ray((x + 0.5, y + 0.5));
 
                 pixel.add(tracer.trace_ray(&ray), 1.0);

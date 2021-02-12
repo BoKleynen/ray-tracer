@@ -26,7 +26,7 @@ impl FrameBuffer {
     }
 
     fn get_pixel(&self, x: usize, y: usize) -> Pixel {
-        self.buffer[self.x_res * y + x]
+        self.buffer[self.x_res * (self.y_res - y - 1) + x]
     }
 
     pub fn to_rgba_image(&self, sensitivity: f64, gamma: f64) -> RgbaImage {

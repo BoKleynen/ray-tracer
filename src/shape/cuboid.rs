@@ -154,7 +154,7 @@ mod test {
         let cuboid = CuboidBuilder::new(Point3::new(1.0, 1.0, 1.0)).build();
         let ray = Ray::new(Point3::new(2.0, 3.0, 4.0), Vector3::new(1.0, 0.0, 0.0));
 
-        assert_eq!(cuboid.intersect(&ray), false)
+        assert_eq!(cuboid.intersect(&ray).is_some(), false)
     }
 
     #[test]
@@ -162,7 +162,7 @@ mod test {
         let cuboid = CuboidBuilder::new(Point3::new(1.0, 1.0, 1.0)).build();
         let ray = Ray::new(Point3::new(0.5, 0.5, 0.5), Vector3::new(-1.0, 0.0, 0.0));
 
-        assert_eq!(cuboid.intersect(&ray), true)
+        assert_eq!(cuboid.intersect(&ray).is_some(), true)
     }
 
     #[test]
@@ -173,6 +173,6 @@ mod test {
             .build();
         let ray = Ray::new(Point3::new(2.0, 3.0, 4.0), Vector3::new(1.0, 0.0, 0.0));
 
-        assert_eq!(cuboid.intersect(&ray), true)
+        assert_eq!(cuboid.intersect(&ray).is_some(), true)
     }
 }
