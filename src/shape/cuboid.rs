@@ -2,7 +2,8 @@ use crate::math::{Ray, Transformation};
 use crate::shape::Shape;
 use nalgebra::Point3;
 
-/// A three-dimensional cuboid, bounded by the origin and the oposite corner.
+/// A three-dimensional cuboid bounded by a corner and it's mirror with respect
+/// to the origin.
 #[derive(Debug)]
 pub struct Cuboid {
     transformation: Transformation,
@@ -28,23 +29,23 @@ impl Shape for Cuboid {
 
         let a = 1.0 / inv_ray.direction().x;
         let (tx_min, tx_max) = if a >= 0.0 {
-            ((0.0 - ox) * a, (self.corner.x - ox) * a)
+            ((-self.corner.x - ox) * a, (self.corner.x - ox) * a)
         } else {
-            ((self.corner.x - ox) * a, (0.0 - ox) * a)
+            ((self.corner.x - ox) * a, (-self.corner.x - ox) * a)
         };
 
         let b = 1.0 / inv_ray.direction().y;
         let (ty_min, ty_max) = if b >= 0.0 {
-            ((0.0 - oy) * b, (self.corner.y - ox) * b)
+            ((-self.corner.y - oy) * b, (self.corner.y - ox) * b)
         } else {
-            ((self.corner.y - oy) * b, (0.0 - oy) * b)
+            ((self.corner.y - oy) * b, (-self.corner.y - oy) * b)
         };
 
         let c = 1.0 / inv_ray.direction().z;
         let (tz_min, tz_max) = if c >= 0.0 {
-            ((0.0 - oz) * c, (self.corner.z - oz) * c)
+            ((-self.corner.z - oz) * c, (self.corner.z - oz) * c)
         } else {
-            ((self.corner.z - oz) * c, (0.0 - oz) * c)
+            ((self.corner.z - oz) * c, (-self.corner.z - oz) * c)
         };
 
         // find largest entering t value
