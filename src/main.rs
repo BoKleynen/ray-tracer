@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .ok_or("invalid camera configuration")?;
 
     let t1 =
-        Transformation::translate(-2.5, -2.5, -10.0).append(&Transformation::scale(5.0, 5.0, 5.0));
+        Transformation::translate(0.0, 0.0, -10.0).append(&Transformation::scale(2.0, 2.0, 2.0));
     let t2 =
         Transformation::translate(4.0, -4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
     let t3 =
@@ -37,16 +37,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let world = WorldBuilder::new()
         .camera(camera)
-        .add_shape(Box::new(Cuboid::new(Point3::new(1.0, 1.0, 1.0), t1)))
+        .add_shape(Box::new(Cuboid::new(Point3::new(0.5, 0.5, 0.5), t1)))
         .add_shape(Box::new(Sphere::new(t2)))
         .add_shape(Box::new(Sphere::new(t3)))
         .add_shape(Box::new(Sphere::new(t4)))
         .add_shape(Box::new(Sphere::new(t5)))
-        .add_shape(Box::new(Plane::new(
-            Vector3::new(1.0, 1.0, 0.0),
-            Point3::new(-10.0, -10.0, -10.0),
-            Transformation::identity(),
-        )))
+        // .add_shape(Box::new(Plane::new(
+        //     Vector3::new(1.0, 1.0, 0.0),
+        //     Point3::new(-10.0, -10.0, -10.0),
+        //     Transformation::identity(),
+        // )))
         .build()
         .ok_or("invalid world configuration")?;
 
