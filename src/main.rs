@@ -1,4 +1,4 @@
-use cg_practicum::camera::CameraBuilder;
+use cg_practicum::camera::{CameraBuilder, Camera, ViewPlane};
 use cg_practicum::film::RGB;
 use cg_practicum::math::Transformation;
 use cg_practicum::shape::{Cuboid, Obj, Plane, Sphere, TriangleMesh};
@@ -41,12 +41,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let red = RGB::new(1.0, 0.0, 0.0);
 
     let world = WorldBuilder::new()
-        .camera(camera)
-        .shape(Box::new(TriangleMesh::new(object, t1)))
+        // .shape(Box::new(TriangleMesh::new(object, t1)))
         // .shape(Box::new(Cuboid::new(Point3::new(0.5, 0.5, 0.5), t1, red)))
-        // .shape(Box::new(Sphere::new(t1, red)))
-        // .shape(Box::new(Sphere::new(t2, green)))
-        // .shape(Box::new(Sphere::new(t3, green)))
+        .shape(Box::new(Sphere::new(t1, red)))
+        .shape(Box::new(Sphere::new(t2, green)))
+        .shape(Box::new(Sphere::new(t3, green)))
         // .shape(Box::new(Sphere::new(t4, green)))
         // .shape(Box::new(Sphere::new(t5, green)))
         // .add_shape(Box::new(Plane::new(
@@ -58,7 +57,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         .ok_or("invalid world configuration")?;
 
     let tracer = MultipleObjects::new(&world);
-    let buffer = world.render_scene(cfg.width, cfg.height, tracer)?;
+    let vp = ViewPlane {
+        horizontal_res: cfg.width.get(),
+        vertical_res: cfg.height.get(),
+        pixel_size: 0.0,
+        gamma: 0.0,
+        inv_gamma: 0.0
+    };
+
+    let buffer = camera.render_scene(&world, &tracer, vp);
 
     buffer
         .to_rgba_image(cfg.sensitivity, cfg.gamma)

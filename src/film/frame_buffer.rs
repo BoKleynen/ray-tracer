@@ -9,9 +9,9 @@ pub struct FrameBuffer {
 }
 
 impl FrameBuffer {
-    pub fn new(x_res: NonZeroUsize, y_res: NonZeroUsize) -> Self {
-        let x_res = x_res.get();
-        let y_res = y_res.get();
+    pub fn new(x_res: usize, y_res: usize) -> Self {
+        let x_res = x_res;
+        let y_res = y_res;
         let buffer = vec![Pixel::default(); x_res * y_res];
 
         Self {

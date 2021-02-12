@@ -27,9 +27,8 @@ impl Shape for Sphere {
         let direction = transformed_ray.direction();
 
         let a = direction.norm_squared();
-        let b = 2.0 * direction.dot(&origin.coords);
+        let b = 2.0 * &origin.coords.dot(direction);
         let c = origin.coords.dot(&origin.coords) - 1.0;
-
         let disc = b * b - 4.0 * a * c;
 
         if disc < 0.0 {
@@ -43,8 +42,8 @@ impl Shape for Sphere {
         if t > f64::EPSILON {
             return Some(Hit {
                 t,
-                normal: Vector3::default(),
-                local_hit_point: Point3::origin(),
+                normal: &origin.coords + t * direction,
+                local_hit_point: origin + t * direction,
             });
         }
 
@@ -52,8 +51,8 @@ impl Shape for Sphere {
         if t > f64::EPSILON {
             return Some(Hit {
                 t,
-                normal: Vector3::default(),
-                local_hit_point: Point3::origin(),
+                normal: &origin.coords + t * direction,
+                local_hit_point: origin + t * direction,
             });
         }
 

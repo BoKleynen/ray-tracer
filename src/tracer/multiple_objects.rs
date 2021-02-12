@@ -15,18 +15,12 @@ impl<'a> MultipleObjects<'a> {
 
 impl<'a> Tracer for MultipleObjects<'a> {
     fn trace_ray(&self, ray: &Ray) -> RGB {
-        let mut t_min = f64::INFINITY;
-        let mut color = RGB::black();
+        let sr = self.world.hit_objects(ray);
 
-        self.world.shapes().iter().for_each(|shape| {
-            if let Some(hit) = shape.intersect(ray) {
-                if hit.t < t_min {
-                    t_min = hit.t;
-                    color = shape.color();
-                }
-            }
-        });
-
-        color
+        if sr.hit_an_object {
+            sr.color
+        } else {
+            RGB::black()
+        }
     }
 }
