@@ -81,9 +81,9 @@ impl TriangleMesh {
             .triangles
             .iter()
             .map(|ObjTriangle(a, b, c)| {
-                let v0 = obj.vertexes[a.vertex_idx].clone();
-                let v1 = obj.vertexes[b.vertex_idx].clone();
-                let v2 = obj.vertexes[c.vertex_idx].clone();
+                let v0 = obj.vertexes[a.vertex_idx-1].clone();
+                let v1 = obj.vertexes[b.vertex_idx-1].clone();
+                let v2 = obj.vertexes[c.vertex_idx-1].clone();
 
                 Triangle { v0, v1, v2 }
             })
