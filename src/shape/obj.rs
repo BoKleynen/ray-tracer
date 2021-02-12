@@ -1,6 +1,6 @@
 use crate::film::RGB;
 use crate::math::{Ray, Transformation};
-use crate::shape::Shape;
+use crate::shape::{Hit, Shape};
 use nalgebra::{Point3, Vector3};
 use std::any::Any;
 use std::error::Error;
@@ -19,7 +19,7 @@ struct Triangle {
 }
 
 impl Triangle {
-    fn intersect(&self, ray: &Ray) -> Option<f64> {
+    fn intersect(&self, ray: &Ray) -> Option<Hit> {
         let a = self.v0.x - self.v1.x;
         let b = self.v0.x - self.v2.x;
         let c = ray.direction().x;
@@ -67,7 +67,11 @@ impl Triangle {
 
         // TODO: some stuff about calculating the actual hit point.
 
-        Some(t)
+        Some(Hit {
+            t,
+            normal: Vector3::default(),
+            local_hit_point: Point3::origin(),
+        })
     }
 }
 
@@ -101,13 +105,13 @@ impl TriangleMesh {
 }
 
 impl Shape for TriangleMesh {
-    fn intersect(&self, ray: &Ray) -> Option<f64> {
+    fn intersect(&self, ray: &Ray) -> Option<Hit> {
         let inv_ray = self.transformation.apply_inverse(ray);
 
         self.triangles
             .iter()
             .filter_map(|triangle| triangle.intersect(&inv_ray))
-            .min_by(|x, y| x.partial_cmp(y).unwrap())
+            .min_by(|x, y| x.t.partial_cmp(&y.t).unwrap())
     }
 
     fn color(&self) -> RGB {

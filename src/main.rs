@@ -2,6 +2,7 @@ use cg_practicum::camera::CameraBuilder;
 use cg_practicum::film::RGB;
 use cg_practicum::math::Transformation;
 use cg_practicum::shape::{Cuboid, Obj, Plane, Sphere, TriangleMesh};
+use cg_practicum::tracer::MultipleObjects;
 use cg_practicum::world::WorldBuilder;
 use clap::Clap;
 use nalgebra::{Point3, Vector3};
@@ -42,12 +43,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let world = WorldBuilder::new()
         .camera(camera)
         // .add_shape(Box::new(TriangleMesh::new(object, t1)))
-        .add_shape(Box::new(Cuboid::new(Point3::new(0.5, 0.5, 0.5), t1, red)))
+        .shape(Box::new(Cuboid::new(Point3::new(0.5, 0.5, 0.5), t1, red)))
         // .add_shape(Box::new(Sphere::new(t1, red)))
-        .add_shape(Box::new(Sphere::new(t2, green)))
-        .add_shape(Box::new(Sphere::new(t3, green)))
-        .add_shape(Box::new(Sphere::new(t4, green)))
-        .add_shape(Box::new(Sphere::new(t5, green)))
+        .shape(Box::new(Sphere::new(t2, green)))
+        .shape(Box::new(Sphere::new(t3, green)))
+        .shape(Box::new(Sphere::new(t4, green)))
+        .shape(Box::new(Sphere::new(t5, green)))
         // .add_shape(Box::new(Plane::new(
         //     Vector3::new(1.0, 1.0, 0.0),
         //     Point3::new(-10.0, -10.0, -10.0),
@@ -56,7 +57,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid world configuration")?;
 
-    let buffer = world.render_scene(cfg.width, cfg.height)?;
+    let tracer = MultipleObjects::new(&world);
+    let buffer = world.render_scene(cfg.width, cfg.height, tracer)?;
 
     buffer
         .to_rgba_image(cfg.sensitivity, cfg.gamma)

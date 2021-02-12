@@ -1,6 +1,6 @@
 use crate::film::RGB;
 use crate::math::{Ray, Transformation};
-use crate::shape::Shape;
+use crate::shape::{Hit, Shape};
 use nalgebra::{Point3, Vector3};
 
 pub struct Plane {
@@ -27,14 +27,18 @@ impl Plane {
 }
 
 impl Shape for Plane {
-    fn intersect(&self, ray: &Ray) -> Option<f64> {
+    fn intersect(&self, ray: &Ray) -> Option<Hit> {
         let inv_ray = self.transformation.apply_inverse(ray);
 
         let t = ((&self.point - inv_ray.origin()).dot(&self.normal))
             / (inv_ray.direction().dot(&self.normal));
 
         if t > f64::EPSILON {
-            Some(t)
+            return Some(Hit {
+                t,
+                normal: Vector3::default(),
+                local_hit_point: Point3::origin(),
+            });
         } else {
             None
         }

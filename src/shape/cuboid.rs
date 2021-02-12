@@ -1,7 +1,7 @@
 use crate::film::RGB;
 use crate::math::{Ray, Transformation};
-use crate::shape::Shape;
-use nalgebra::Point3;
+use crate::shape::{Hit, Shape};
+use nalgebra::{Point3, Vector3};
 
 /// A three-dimensional cuboid bounded by a corner and it's mirror with respect
 /// to the origin.
@@ -32,7 +32,7 @@ impl Cuboid {
 }
 
 impl Shape for Cuboid {
-    fn intersect(&self, ray: &Ray) -> Option<f64> {
+    fn intersect(&self, ray: &Ray) -> Option<Hit> {
         let inv_ray = self.transformation.apply_inverse(ray);
 
         let ox = inv_ray.origin().x;
@@ -92,9 +92,17 @@ impl Shape for Cuboid {
 
         if t0 < t1 && t1 > f64::EPSILON {
             if t0 > f64::EPSILON {
-                Some(t0)
+                Some(Hit {
+                    t: t0,
+                    normal: Vector3::default(),
+                    local_hit_point: Point3::origin(),
+                })
             } else {
-                Some(t1)
+                Some(Hit {
+                    t: t1,
+                    normal: Vector3::default(),
+                    local_hit_point: Point3::origin(),
+                })
             }
         } else {
             None

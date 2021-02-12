@@ -1,6 +1,7 @@
 use crate::film::RGB;
 use crate::math::{Ray, Transformation};
-use crate::shape::Shape;
+use crate::shape::{Hit, Shape};
+use nalgebra::{Point3, Vector3};
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
 /// which is transformed by a transformation.
@@ -19,7 +20,7 @@ impl Sphere {
 }
 
 impl Shape for Sphere {
-    fn intersect(&self, ray: &Ray) -> Option<f64> {
+    fn intersect(&self, ray: &Ray) -> Option<Hit> {
         let transformed_ray = self.transformation.apply_inverse(ray);
 
         let origin = transformed_ray.origin();
@@ -40,12 +41,20 @@ impl Shape for Sphere {
 
         let t = (-b - e) / denom; // smaller root
         if t > f64::EPSILON {
-            return Some(t);
+            return Some(Hit {
+                t,
+                normal: Vector3::default(),
+                local_hit_point: Point3::origin(),
+            });
         }
 
         let t = (-b + e) / denom;
         if t > f64::EPSILON {
-            return Some(t);
+            return Some(Hit {
+                t,
+                normal: Vector3::default(),
+                local_hit_point: Point3::origin(),
+            });
         }
 
         None
