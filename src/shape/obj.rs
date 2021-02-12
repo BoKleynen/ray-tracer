@@ -1,3 +1,4 @@
+use crate::film::RGB;
 use crate::math::{Ray, Transformation};
 use crate::shape::Shape;
 use nalgebra::{Point3, Vector3};
@@ -18,7 +19,7 @@ struct Triangle {
 }
 
 impl Triangle {
-    fn intersect(&self, ray: &Ray) -> bool {
+    fn intersect(&self, ray: &Ray) -> Option<f64> {
         let a = self.v0.x - self.v1.x;
         let b = self.v0.x - self.v2.x;
         let c = ray.direction().x;
@@ -46,7 +47,7 @@ impl Triangle {
         let beta = e1 * inv_denom;
 
         if beta < 0.0 {
-            return false;
+            return None;
         }
 
         let r = e * l - h * i;
@@ -54,25 +55,26 @@ impl Triangle {
         let gamma = e2 * inv_denom;
 
         if gamma < 0.0 || beta + gamma > 1.0 {
-            return false;
+            return None;
         }
 
         let e3 = a * p - b * r + d * s;
         let t = e3 * inv_denom;
 
         if t < f64::EPSILON {
-            return false;
+            return None;
         }
 
         // TODO: some stuff about calculating the actual hit point.
 
-        true
+        Some(t)
     }
 }
 
 pub struct TriangleMesh {
     triangles: Vec<Triangle>,
     transformation: Transformation,
+    color: RGB,
 }
 
 impl TriangleMesh {
@@ -81,28 +83,35 @@ impl TriangleMesh {
             .triangles
             .iter()
             .map(|ObjTriangle(a, b, c)| {
-                let v0 = obj.vertexes[a.vertex_idx-1].clone();
-                let v1 = obj.vertexes[b.vertex_idx-1].clone();
-                let v2 = obj.vertexes[c.vertex_idx-1].clone();
+                let v0 = obj.vertexes[a.vertex_idx - 1].clone();
+                let v1 = obj.vertexes[b.vertex_idx - 1].clone();
+                let v2 = obj.vertexes[c.vertex_idx - 1].clone();
 
                 Triangle { v0, v1, v2 }
             })
             .collect();
+        let color = RGB::new(0.0, 1.0, 0.0);
 
         Self {
             triangles,
             transformation,
+            color,
         }
     }
 }
 
 impl Shape for TriangleMesh {
-    fn intersect(&self, ray: &Ray) -> bool {
+    fn intersect(&self, ray: &Ray) -> Option<f64> {
         let inv_ray = self.transformation.apply_inverse(ray);
 
         self.triangles
             .iter()
-            .any(|triangle| triangle.intersect(&inv_ray))
+            .filter_map(|triangle| triangle.intersect(&inv_ray))
+            .min_by(|x, y| x.partial_cmp(y).unwrap())
+    }
+
+    fn color(&self) -> RGB {
+        unimplemented!()
     }
 }
 
