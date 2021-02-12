@@ -1,5 +1,4 @@
 use image::Rgba;
-use std::cmp::{max, min};
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -27,9 +26,9 @@ impl RGB {
     }
 
     pub fn to_rgb(self) -> Rgba<u8> {
-        let r = min(255, max(0, self.red.round() as i32)) as u8;
-        let g = min(255, max(0, self.green.round() as i32)) as u8;
-        let b = min(255, max(0, self.blue.round() as i32)) as u8;
+        let r = self.red.clamp(0.0, 255.0) as u8;
+        let g = self.green.clamp(0.0, 255.0) as u8;
+        let b = self.blue.clamp(0.0, 255.0) as u8;
 
         Rgba([r, g, b, 255])
     }
@@ -43,9 +42,9 @@ impl RGB {
     }
 
     pub fn clamp(self, low: f64, high: f64) -> Self {
-        let red = high.min(low.max(self.red));
-        let green = high.min(low.max(self.green));
-        let blue = high.min(low.max(self.blue));
+        let red = self.red.clamp(low, high);
+        let green = self.green.clamp(low, high);
+        let blue = self.blue.clamp(low, high);
 
         Self { red, green, blue }
     }
