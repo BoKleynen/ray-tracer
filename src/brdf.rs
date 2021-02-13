@@ -1,6 +1,6 @@
+use crate::film::RGB;
 use crate::shade_rec::ShadeRec;
 use nalgebra::Vector3;
-use crate::film::RGB;
 use std::f64;
 
 pub trait BRDF {
@@ -11,7 +11,7 @@ pub trait BRDF {
 
 pub struct Lambertian {
     kd: f64,
-    cd: RGB
+    cd: RGB,
 }
 
 impl BRDF for Lambertian {

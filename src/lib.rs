@@ -1,3 +1,4 @@
+mod brdf;
 pub mod camera;
 pub mod film;
 mod light;
@@ -6,4 +7,3 @@ pub mod shade_rec;
 pub mod shape;
 pub mod tracer;
 pub mod world;
-mod brdf;

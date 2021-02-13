@@ -1,7 +1,6 @@
 use crate::film::RGB;
 use crate::math::{Ray, Transformation};
 use crate::shape::{Hit, Shape};
-use nalgebra::{Point3, Vector3};
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
 /// which is transformed by a transformation.

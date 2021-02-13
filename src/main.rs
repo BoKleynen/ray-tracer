@@ -1,4 +1,4 @@
-use cg_practicum::camera::{CameraBuilder, Camera, ViewPlane};
+use cg_practicum::camera::{Camera, CameraBuilder, ViewPlane};
 use cg_practicum::film::RGB;
 use cg_practicum::math::Transformation;
 use cg_practicum::shape::{Cuboid, Obj, Plane, Sphere, TriangleMesh};
@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         vertical_res: cfg.height.get(),
         pixel_size: 0.0,
         gamma: 0.0,
-        inv_gamma: 0.0
+        inv_gamma: 0.0,
     };
 
     let buffer = camera.render_scene(&world, &tracer, vp);

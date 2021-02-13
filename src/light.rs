@@ -1,10 +1,10 @@
 use crate::film::RGB;
-use nalgebra::{Point3, Vector3};
 use crate::shade_rec::ShadeRec;
+use nalgebra::{Point3, Vector3};
 
 pub struct AmbientLight {
     ls: f64,
-    color: RGB
+    color: RGB,
 }
 
 impl AmbientLight {

@@ -1,13 +1,8 @@
-use crate::camera::{Camera, PerspectiveCamera};
-use crate::film::{FrameBuffer, RGB};
-use crate::light::{PointLight, AmbientLight, Light};
+use crate::film::RGB;
+use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
 use crate::shape::Shape;
-use crate::tracer::Tracer;
-use rayon::prelude::*;
-use std::error::Error;
-use std::num::NonZeroUsize;
 use nalgebra::Vector3;
 
 pub struct World {
@@ -34,7 +29,7 @@ impl World {
                         ray: ray.clone(),
                         depth: 0,
                         direction: Vector3::default(),
-                        world: self
+                        world: self,
                     })
                 }
             }
@@ -62,10 +57,7 @@ impl WorldBuilder {
         let shapes = Vec::new();
         let lights = Vec::new();
 
-        Self {
-            shapes,
-            lights,
-        }
+        Self { shapes, lights }
     }
 
     pub fn shape(mut self, shape: Box<dyn Shape>) -> Self {
@@ -86,7 +78,7 @@ impl WorldBuilder {
         let world = World {
             shapes,
             lights,
-            ambient_light
+            ambient_light,
         };
         Some(world)
     }

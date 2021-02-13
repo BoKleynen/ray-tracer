@@ -1,6 +1,5 @@
 use super::{Pixel, RGB};
 use image::{ImageBuffer, RgbaImage};
-use std::num::NonZeroUsize;
 
 pub struct FrameBuffer {
     buffer: Vec<Pixel>,

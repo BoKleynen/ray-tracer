@@ -2,12 +2,8 @@ use crate::film::RGB;
 use crate::math::{Ray, Transformation};
 use crate::shape::{Hit, Shape};
 use nalgebra::{Point3, Vector3};
-use std::any::Any;
-use std::error::Error;
 use std::fs::File;
 use std::io::Read;
-use std::iter::Peekable;
-use std::str::{Chars, FromStr};
 
 struct Triangle {
     v0: Point3<f64>,
@@ -167,7 +163,7 @@ impl Obj {
 
                     obj.triangles.push(ObjTriangle(a, b, c))
                 }
-                s => return None,
+                _ => return None,
             }
         }
 

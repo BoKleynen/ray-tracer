@@ -1,12 +1,12 @@
+use crate::film::FrameBuffer;
 use crate::math::{OrthonormalBasis, Ray};
+use crate::tracer::Tracer;
+use crate::world::World;
 use nalgebra::{Point3, Vector3};
+use rayon::prelude::*;
 use std::f64;
 use std::num::NonZeroUsize;
 use std::ops::Neg;
-use crate::world::World;
-use crate::tracer::Tracer;
-use crate::film::FrameBuffer;
-use rayon::prelude::*;
 
 #[derive(Debug, Copy, Clone)]
 pub struct ViewPlane {
@@ -18,7 +18,12 @@ pub struct ViewPlane {
 }
 
 pub trait Camera {
-    fn render_scene<T: Tracer>(&self, world: &World, tracer: &T, view_plane: ViewPlane) -> FrameBuffer;
+    fn render_scene<T: Tracer>(
+        &self,
+        world: &World,
+        tracer: &T,
+        view_plane: ViewPlane,
+    ) -> FrameBuffer;
 }
 
 pub struct PerspectiveCamera {
@@ -42,7 +47,12 @@ impl PerspectiveCamera {
 }
 
 impl Camera for PerspectiveCamera {
-    fn render_scene<T: Tracer>(&self, world: &World, tracer: &T, view_plane: ViewPlane) -> FrameBuffer {
+    fn render_scene<T: Tracer>(
+        &self,
+        _world: &World,
+        tracer: &T,
+        view_plane: ViewPlane,
+    ) -> FrameBuffer {
         let mut buffer = FrameBuffer::new(view_plane.horizontal_res, view_plane.vertical_res);
         buffer
             .buffer()
