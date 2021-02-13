@@ -5,7 +5,7 @@ use nalgebra::{Point3, Vector3};
 use std::any::Any;
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Read};
+use std::io::Read;
 use std::iter::Peekable;
 use std::str::{Chars, FromStr};
 

@@ -1,6 +1,6 @@
 use crate::camera::{Camera, PerspectiveCamera};
 use crate::film::{FrameBuffer, RGB};
-use crate::light::PointLight;
+use crate::light::{PointLight, AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
 use crate::shape::Shape;
@@ -8,23 +8,34 @@ use crate::tracer::Tracer;
 use rayon::prelude::*;
 use std::error::Error;
 use std::num::NonZeroUsize;
+use nalgebra::Vector3;
 
 pub struct World {
     shapes: Vec<Box<dyn Shape>>,
-    lights: Vec<PointLight>,
+    ambient_light: AmbientLight,
+    lights: Vec<Box<dyn Light>>,
 }
 
 impl World {
-    pub fn hit_objects(&self, ray: &Ray) -> ShadeRec {
-        let mut sr = ShadeRec::new(self);
+    pub fn hit_objects(&self, ray: &Ray) -> Option<ShadeRec> {
+        let mut sr: Option<ShadeRec> = None;
         let mut t_min = f64::INFINITY;
 
         self.shapes.iter().for_each(|shape| {
-            if let Some(hit) = shape.intersect(ray) {
+            if let Some(hit) = shape.intersect(&ray) {
                 if hit.t < t_min {
-                    sr.hit_an_object = true;
                     t_min = hit.t;
-                    sr.color = shape.color()
+
+                    sr = Some(ShadeRec {
+                        hit_point: ray.origin() + hit.t * ray.direction(),
+                        local_hit_point: hit.local_hit_point,
+                        normal: hit.normal,
+                        color: shape.color(),
+                        ray: ray.clone(),
+                        depth: 0,
+                        direction: Vector3::default(),
+                        world: self
+                    })
                 }
             }
         });
@@ -36,14 +47,14 @@ impl World {
         self.shapes.as_slice()
     }
 
-    pub fn lights(&self) -> &[PointLight] {
+    pub fn lights(&self) -> &[Box<dyn Light>] {
         self.lights.as_slice()
     }
 }
 
 pub struct WorldBuilder {
     shapes: Vec<Box<dyn Shape>>,
-    lights: Vec<PointLight>,
+    lights: Vec<Box<dyn Light>>,
 }
 
 impl WorldBuilder {
@@ -62,7 +73,7 @@ impl WorldBuilder {
         self
     }
 
-    pub fn light(mut self, light: PointLight) -> Self {
+    pub fn light(mut self, light: Box<dyn Light>) -> Self {
         self.lights.push(light);
         self
     }
@@ -70,10 +81,12 @@ impl WorldBuilder {
     pub fn build(self) -> Option<World> {
         let shapes = self.shapes;
         let lights = self.lights;
+        let ambient_light = AmbientLight::new(1., RGB::new(1., 1., 1.));
 
         let world = World {
             shapes,
             lights,
+            ambient_light
         };
         Some(world)
     }
