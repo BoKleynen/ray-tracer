@@ -6,3 +6,4 @@ pub mod shade_rec;
 pub mod shape;
 pub mod tracer;
 pub mod world;
+mod brdf;
