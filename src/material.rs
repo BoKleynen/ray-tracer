@@ -3,11 +3,13 @@ use crate::film::RGB;
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
 
+#[derive(Debug, Clone)]
 pub enum Material {
     Matte {
         ambient_brdf: Lambertian,
         diffuse_brdf: Lambertian,
     },
+    Color(RGB),
 }
 
 impl Material {
@@ -27,9 +29,7 @@ impl Material {
                         let n_dot_wi = sr.normal.dot(&wi);
 
                         if n_dot_wi > 0. {
-                            let radiance =
-                                diffuse_brdf.f(sr, &wo, &wi) * light.radiance(sr) * n_dot_wi;
-                            Some(radiance)
+                            Some(diffuse_brdf.f(sr, &wo, &wi) * light.radiance(sr) * n_dot_wi)
                         } else {
                             None
                         }
@@ -38,6 +38,7 @@ impl Material {
 
                 radiance + ambient_brdf.rho(sr, &wo) * sr.world.ambient_light().radiance()
             }
+            Material::Color(color) => *color,
         }
     }
 }

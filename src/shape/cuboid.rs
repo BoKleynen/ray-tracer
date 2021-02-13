@@ -10,7 +10,7 @@ use nalgebra::{Point3, Vector3};
 pub struct Cuboid {
     transformation: Transformation,
     corner: Point3<f64>,
-    color: RGB,
+    material: Material,
 }
 
 enum CuboidFace {
@@ -23,11 +23,11 @@ enum CuboidFace {
 }
 
 impl Cuboid {
-    pub fn new(corner: Point3<f64>, transformation: Transformation, color: RGB) -> Self {
+    pub fn new(corner: Point3<f64>, transformation: Transformation, material: Material) -> Self {
         Self {
             transformation,
             corner,
-            color,
+            material,
         }
     }
 }
@@ -110,74 +110,7 @@ impl Shape for Cuboid {
         }
     }
 
-    fn color(&self) -> RGB {
-        self.color
-    }
-
     fn material(&self) -> Material {
-        unimplemented!()
-    }
-}
-
-struct CuboidBuilder {
-    transformation: Option<Transformation>,
-    bound: Point3<f64>,
-    color: Option<RGB>,
-}
-
-impl CuboidBuilder {
-    fn new(bound: Point3<f64>) -> Self {
-        Self {
-            transformation: None,
-            bound,
-            color: None,
-        }
-    }
-
-    fn transformation(mut self, transformation: Transformation) -> Self {
-        self.transformation = Some(transformation);
-        self
-    }
-
-    fn build(self) -> Cuboid {
-        Cuboid {
-            transformation: self.transformation.unwrap_or_else(Transformation::identity),
-            corner: self.bound,
-            color: self.color.unwrap_or(RGB::new(0.0, 0.0, 1.0)),
-        }
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    use crate::shape::Shape;
-    use nalgebra::{Point3, Vector3};
-
-    #[test]
-    fn non_intersecting_ray() {
-        let cuboid = CuboidBuilder::new(Point3::new(1.0, 1.0, 1.0)).build();
-        let ray = Ray::new(Point3::new(2.0, 3.0, 4.0), Vector3::new(1.0, 0.0, 0.0));
-
-        assert_eq!(cuboid.intersect(&ray).is_some(), false)
-    }
-
-    #[test]
-    fn intersecting_ray() {
-        let cuboid = CuboidBuilder::new(Point3::new(1.0, 1.0, 1.0)).build();
-        let ray = Ray::new(Point3::new(0.5, 0.5, 0.5), Vector3::new(-1.0, 0.0, 0.0));
-
-        assert_eq!(cuboid.intersect(&ray).is_some(), true)
-    }
-
-    #[test]
-    fn transformed_intersecting_ray() {
-        let t = Transformation::scale(10.0, 10.0, 10.0);
-        let cuboid = CuboidBuilder::new(Point3::new(1.0, 1.0, 1.0))
-            .transformation(t)
-            .build();
-        let ray = Ray::new(Point3::new(2.0, 3.0, 4.0), Vector3::new(1.0, 0.0, 0.0));
-
-        assert_eq!(cuboid.intersect(&ray).is_some(), true)
+        self.material.clone()
     }
 }

@@ -1,6 +1,8 @@
+use cg_practicum::brdf::Lambertian;
 use cg_practicum::camera::{Camera, CameraBuilder, ViewPlane};
 use cg_practicum::film::RGB;
 use cg_practicum::light::PointLight;
+use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
 use cg_practicum::shape::{Cuboid, Obj, Plane, Sphere, TriangleMesh};
 use cg_practicum::tracer::{MultipleObjects, RayCast};
@@ -36,17 +38,22 @@ fn main() -> Result<(), Box<dyn Error>> {
     let t5 =
         Transformation::translate(-4.0, 4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
 
-    let object = Obj::load("models/teapot.obj").unwrap();
+    // let object = Obj::load("models/teapot.obj").unwrap();
 
-    let green = RGB::new(0.0, 1.0, 0.0);
-    let red = RGB::new(1.0, 0.0, 0.0);
+    let matterial1 = Material::Matte {
+        ambient_brdf: Lambertian::new(0.15, RGB::black()),
+        diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 1., 0.)),
+    };
 
     let light = PointLight::white(Point3::new(100., 50., 150.));
 
     let world = WorldBuilder::new()
         // .shape(Box::new(TriangleMesh::new(object, t1)))
         // .shape(Box::new(Cuboid::new(Point3::new(0.5, 0.5, 0.5), t1, red)))
-        .shape(Box::new(Sphere::new(Transformation::identity(), red)))
+        .shape(Box::new(Sphere::new(
+            Transformation::identity(),
+            matterial1,
+        )))
         // .shape(Box::new(Sphere::new(t2, green)))
         // .shape(Box::new(Sphere::new(t3, green)))
         // .shape(Box::new(Sphere::new(t4, green)))

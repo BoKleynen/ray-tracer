@@ -111,10 +111,6 @@ impl Shape for TriangleMesh {
             .min_by(|x, y| x.t.partial_cmp(&y.t).unwrap())
     }
 
-    fn color(&self) -> RGB {
-        self.color
-    }
-
     fn material(&self) -> Material {
         unimplemented!()
     }

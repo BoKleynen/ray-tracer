@@ -9,6 +9,7 @@ pub trait BRDF {
     fn rho(&self, sr: &ShadeRec, wo: &Vector3<f64>) -> RGB;
 }
 
+#[derive(Debug, Copy, Clone)]
 pub struct Lambertian {
     kd: f64,
     cd: RGB,

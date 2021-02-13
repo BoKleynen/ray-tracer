@@ -25,7 +25,6 @@ impl World {
                         hit_point: ray.origin() + hit.t * ray.direction(),
                         local_hit_point: hit.local_hit_point,
                         normal: hit.normal,
-                        color: shape.color(),
                         material: shape.material(),
                         depth: 0,
                         direction: Vector3::default(),

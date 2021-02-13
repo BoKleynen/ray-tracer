@@ -8,7 +8,7 @@ pub struct Plane {
     normal: Vector3<f64>,
     point: Point3<f64>,
     transformation: Transformation,
-    color: RGB,
+    material: Material,
 }
 
 impl Plane {
@@ -16,13 +16,13 @@ impl Plane {
         normal: Vector3<f64>,
         point: Point3<f64>,
         transformation: Transformation,
-        color: RGB,
+        material: Material,
     ) -> Self {
         Self {
             normal,
             point,
             transformation,
-            color,
+            material,
         }
     }
 }
@@ -45,11 +45,7 @@ impl Shape for Plane {
         }
     }
 
-    fn color(&self) -> RGB {
-        self.color
-    }
-
     fn material(&self) -> Material {
-        unimplemented!()
+        self.material.clone()
     }
 }

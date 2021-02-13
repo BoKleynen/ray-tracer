@@ -15,9 +15,10 @@ impl<'a> MultipleObjects<'a> {
 
 impl<'a> Tracer for MultipleObjects<'a> {
     fn trace_ray(&self, ray: &Ray, _depth: u32) -> RGB {
-        match self.world.hit_objects(&ray) {
-            None => RGB::black(),
-            Some(sr) => sr.color,
-        }
+        unimplemented!();
+        // match self.world.hit_objects(&ray) {
+        //     None => RGB::black(),
+        //     Some(sr) => sr.color,
+        // }
     }
 }

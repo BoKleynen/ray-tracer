@@ -8,14 +8,14 @@ use crate::shape::{Hit, Shape};
 /// which is transformed by a transformation.
 pub struct Sphere {
     transformation: Transformation,
-    color: RGB,
+    material: Material,
 }
 
 impl Sphere {
-    pub fn new(transformation: Transformation, color: RGB) -> Self {
+    pub fn new(transformation: Transformation, material: Material) -> Self {
         Sphere {
             transformation,
-            color,
+            material,
         }
     }
 }
@@ -60,14 +60,7 @@ impl Shape for Sphere {
         None
     }
 
-    fn color(&self) -> RGB {
-        self.color
-    }
-
     fn material(&self) -> Material {
-        Material::Matte {
-            ambient_brdf: Lambertian::new(0.25, RGB::black()),
-            diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 1., 0.)),
-        }
+        self.material.clone()
     }
 }

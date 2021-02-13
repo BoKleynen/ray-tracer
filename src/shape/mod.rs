@@ -15,8 +15,6 @@ pub use sphere::Sphere;
 pub trait Shape: Sync + Send {
     fn intersect(&self, ray: &Ray) -> Option<Hit>;
 
-    fn color(&self) -> RGB;
-
     fn material(&self) -> Material;
 }
 

@@ -8,7 +8,6 @@ pub struct ShadeRec<'a> {
     pub hit_point: Point3<f64>,
     pub local_hit_point: Point3<f64>,
     pub normal: Vector3<f64>,
-    pub color: RGB,
     pub material: Material,
     pub depth: u32,
     pub direction: Vector3<f64>,
