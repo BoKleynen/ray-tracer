@@ -22,6 +22,19 @@ enum CuboidFace {
     Front,
 }
 
+impl CuboidFace {
+    fn normal(self) -> Vector3<f64> {
+        match self {
+            CuboidFace::Left => Vector3::new(-1., 0., 0.),
+            CuboidFace::Bottom => Vector3::new(0., -1., 0.),
+            CuboidFace::Back => Vector3::new(0., 0., -1.),
+            CuboidFace::Right => Vector3::new(1., 0., 0.),
+            CuboidFace::Top => Vector3::new(0., 1., 0.),
+            CuboidFace::Front => Vector3::new(0., 0., 1.),
+        }
+    }
+}
+
 impl Cuboid {
     pub fn new(corner: Point3<f64>, transformation: Transformation, material: Material) -> Self {
         Self {
@@ -66,43 +79,77 @@ impl Shape for Cuboid {
         };
 
         // find largest entering t value
-        let t0 = tx_min.max(ty_min).max(tz_min);
-        // let (mut t0, mut face_in) = if tx_min > ty_min {
-        //     (tx_min, if a >= 0.0 { CuboidFace::Left } else { CuboidFace::Right })
-        // } else {
-        //     (ty_max, if b >= 0.0 { CuboidFace::Bottom } else { CuboidFace::Top })
-        // };
-        //
-        // if tz_min > t0 {
-        //     t0 = tz_min;
-        //     face_in = if c >= 0.0 { CuboidFace::Back } else { CuboidFace::Front }
-        // }
+        let (mut t0, mut face_in) = if tx_min > ty_min {
+            (
+                tx_min,
+                if a >= 0.0 {
+                    CuboidFace::Left
+                } else {
+                    CuboidFace::Right
+                },
+            )
+        } else {
+            (
+                ty_min,
+                if b >= 0.0 {
+                    CuboidFace::Bottom
+                } else {
+                    CuboidFace::Top
+                },
+            )
+        };
+
+        if tz_min > t0 {
+            t0 = tz_min;
+            face_in = if c >= 0.0 {
+                CuboidFace::Back
+            } else {
+                CuboidFace::Front
+            }
+        }
 
         // find smallest exiting t value
-        let t1 = tx_max.min(ty_max).min(tz_max);
-        // let (mut t1, mut face_out) = if tx_max < ty_max {
-        //     (tx_max, if a >= 0.0 { CuboidFace::Right } else { CuboidFace::Left })
-        // } else {
-        //     (ty_max, if b >= 0.0 { CuboidFace::Top } else { CuboidFace::Bottom })
-        // };
-        //
-        // if tz_max < t1 {
-        //     t1 = tz_max;
-        //     face_out = if c >= 0.0 { CuboidFace::Front } else { CuboidFace::Back }
-        // }
+        let (mut t1, mut face_out) = if tx_max < ty_max {
+            (
+                tx_max,
+                if a >= 0.0 {
+                    CuboidFace::Right
+                } else {
+                    CuboidFace::Left
+                },
+            )
+        } else {
+            (
+                ty_max,
+                if b >= 0.0 {
+                    CuboidFace::Top
+                } else {
+                    CuboidFace::Bottom
+                },
+            )
+        };
+
+        if tz_max < t1 {
+            t1 = tz_max;
+            face_out = if c >= 0.0 {
+                CuboidFace::Front
+            } else {
+                CuboidFace::Back
+            }
+        }
 
         if t0 < t1 && t1 > f64::EPSILON {
             if t0 > f64::EPSILON {
                 Some(Hit {
                     t: t0,
-                    normal: Vector3::default(),
-                    local_hit_point: Point3::origin(),
+                    normal: face_in.normal(),
+                    local_hit_point: ray.origin() + t0 * ray.direction(),
                 })
             } else {
                 Some(Hit {
                     t: t1,
-                    normal: Vector3::default(),
-                    local_hit_point: Point3::origin(),
+                    normal: face_out.normal(),
+                    local_hit_point: ray.origin() + t1 * ray.direction(),
                 })
             }
         } else {

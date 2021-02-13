@@ -5,11 +5,11 @@ use crate::shade_rec::ShadeRec;
 
 #[derive(Debug, Clone)]
 pub enum Material {
+    // Perfect diffuse reflection
     Matte {
         ambient_brdf: Lambertian,
         diffuse_brdf: Lambertian,
     },
-    Color(RGB),
 }
 
 impl Material {
@@ -20,25 +20,26 @@ impl Material {
                 diffuse_brdf,
             } => {
                 let wo = -ray.direction();
-                let radiance: RGB = sr
+                let ambient_radiance =
+                    ambient_brdf.rho(sr, &wo) * sr.world.ambient_light().radiance();
+                let direct_diffuse_radiance: RGB = sr
                     .world
                     .lights()
                     .iter()
-                    .filter_map(|light| {
+                    .map(|light| {
                         let wi = light.direction(sr);
                         let n_dot_wi = sr.normal.dot(&wi);
 
                         if n_dot_wi > 0. {
-                            Some(diffuse_brdf.f(sr, &wo, &wi) * light.radiance(sr) * n_dot_wi)
+                            diffuse_brdf.f(sr, &wo, &wi) * light.radiance(sr) * n_dot_wi
                         } else {
-                            None
+                            RGB::black()
                         }
                     })
                     .sum();
 
-                radiance + ambient_brdf.rho(sr, &wo) * sr.world.ambient_light().radiance()
+                ambient_radiance + direct_diffuse_radiance
             }
-            Material::Color(color) => *color,
         }
     }
 }

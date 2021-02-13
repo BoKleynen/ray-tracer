@@ -15,8 +15,8 @@ use std::num::NonZeroUsize;
 fn main() -> Result<(), Box<dyn Error>> {
     let cfg = Config::parse();
     let eye = Point3::new(0., 0., 5.);
-    let destination = Point3::new(0.0, 0.0, -1.0);
-    let up = Vector3::new(0.0, 1.0, 0.0);
+    let destination = Point3::new(-1., 0., -1.);
+    let up = Vector3::new(0., 1., 0.);
 
     let camera = CameraBuilder::new(eye)
         .x_res(cfg.width)
@@ -38,23 +38,32 @@ fn main() -> Result<(), Box<dyn Error>> {
     let t5 =
         Transformation::translate(-4.0, 4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
 
-    // let object = Obj::load("models/teapot.obj").unwrap();
+    let object = Obj::load("models/teapot.obj").unwrap();
 
-    let matterial1 = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::black()),
+    let material1 = Material::Matte {
+        ambient_brdf: Lambertian::new(0.15, RGB::new(1., 1., 0.)),
         diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 1., 0.)),
+    };
+
+    let material2 = Material::Matte {
+        ambient_brdf: Lambertian::new(0.15, RGB::new(1., 0., 1.)),
+        diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 0., 1.)),
     };
 
     let light = PointLight::white(Point3::new(100., 50., 150.));
 
     let world = WorldBuilder::new()
         // .shape(Box::new(TriangleMesh::new(object, t1)))
-        // .shape(Box::new(Cuboid::new(Point3::new(0.5, 0.5, 0.5), t1, red)))
         .shape(Box::new(Sphere::new(
-            Transformation::identity(),
-            matterial1,
+            Transformation::translate(1., 1., 0.),
+            material1,
         )))
-        // .shape(Box::new(Sphere::new(t2, green)))
+        .shape(Box::new(Cuboid::new(
+            Point3::new(1., 1., 1.),
+            Transformation::translate(0., 0., -1.),
+            material2.clone(),
+        )))
+        // .shape(Box::new(Sphere::new(t2, material2.clone())))
         // .shape(Box::new(Sphere::new(t3, green)))
         // .shape(Box::new(Sphere::new(t4, green)))
         // .shape(Box::new(Sphere::new(t5, green)))
@@ -64,6 +73,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         //     Transformation::identity(),
         // )))
         .light(Box::new(light))
+        .background(RGB::new(0.01, 0.01, 0.01))
         .build()
         .ok_or("invalid world configuration")?;
 

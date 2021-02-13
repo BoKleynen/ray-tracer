@@ -9,6 +9,7 @@ pub struct World {
     shapes: Vec<Box<dyn Shape>>,
     ambient_light: AmbientLight,
     lights: Vec<Box<dyn Light>>,
+    background_color: RGB,
 }
 
 impl World {
@@ -48,19 +49,32 @@ impl World {
     pub fn ambient_light(&self) -> &AmbientLight {
         &self.ambient_light
     }
+
+    pub fn background_color(&self) -> RGB {
+        self.background_color
+    }
 }
 
 pub struct WorldBuilder {
     shapes: Vec<Box<dyn Shape>>,
     lights: Vec<Box<dyn Light>>,
+    ambient_light: Option<AmbientLight>,
+    background_color: Option<RGB>,
 }
 
 impl WorldBuilder {
     pub fn new() -> Self {
         let shapes = Vec::new();
         let lights = Vec::new();
+        let ambient_light = None;
+        let background_color = None;
 
-        Self { shapes, lights }
+        Self {
+            shapes,
+            lights,
+            ambient_light,
+            background_color,
+        }
     }
 
     pub fn shape(mut self, shape: Box<dyn Shape>) -> Self {
@@ -73,16 +87,26 @@ impl WorldBuilder {
         self
     }
 
+    pub fn background(mut self, color: RGB) -> Self {
+        self.background_color = Some(color);
+        self
+    }
+
     pub fn build(self) -> Option<World> {
         let shapes = self.shapes;
         let lights = self.lights;
-        let ambient_light = AmbientLight::new(1., RGB::new(1., 1., 1.));
+        let ambient_light = self
+            .ambient_light
+            .unwrap_or_else(|| AmbientLight::white(0.25));
+        let background_color = self.background_color.unwrap_or_else(RGB::black);
 
         let world = World {
             shapes,
             lights,
             ambient_light,
+            background_color,
         };
+
         Some(world)
     }
 }

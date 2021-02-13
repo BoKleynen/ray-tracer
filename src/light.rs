@@ -12,8 +12,36 @@ impl AmbientLight {
         Self { ls, color }
     }
 
+    pub fn white(ls: f64) -> Self {
+        let color = RGB::white();
+        Self { ls, color }
+    }
+
     pub fn radiance(&self) -> RGB {
         self.color * self.ls
+    }
+}
+
+// TODO: use trait object or an enum
+pub enum Light2 {
+    Point {
+        ls: f64,
+        color: RGB,
+        location: Point3<f64>,
+    },
+}
+
+impl Light2 {
+    pub fn direction(&self, sr: &ShadeRec) -> Vector3<f64> {
+        match self {
+            Light2::Point { location, .. } => (location - &sr.hit_point).normalize(),
+        }
+    }
+
+    pub fn radiance(&self, sr: &ShadeRec) -> RGB {
+        match self {
+            Light2::Point { ls, color, .. } => *color * *ls,
+        }
     }
 }
 

@@ -63,7 +63,7 @@ impl Camera for PerspectiveCamera {
                 let y = (idx / view_plane.vertical_res) as f64;
                 let ray = self.generate_ray((x + 0.5, y + 0.5));
 
-                pixel.add(tracer.trace_ray(&ray, 0), 1.0);
+                pixel.set(tracer.trace_ray(&ray, 0));
             });
 
         buffer

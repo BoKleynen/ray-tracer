@@ -17,7 +17,7 @@ impl<'a> RayCast<'a> {
 impl<'a> Tracer for RayCast<'a> {
     fn trace_ray(&self, ray: &Ray, depth: u32) -> RGB {
         match self.world.hit_objects(ray) {
-            None => RGB::black(),
+            None => self.world.background_color(),
             Some(sr) => sr.material.shade(&sr, ray),
         }
     }
