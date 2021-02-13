@@ -1,4 +1,6 @@
+use crate::brdf::Lambertian;
 use crate::film::RGB;
+use crate::material::Material;
 use crate::math::{Ray, Transformation};
 use crate::shape::{Hit, Shape};
 
@@ -60,5 +62,12 @@ impl Shape for Sphere {
 
     fn color(&self) -> RGB {
         self.color
+    }
+
+    fn material(&self) -> Material {
+        Material::Matte {
+            ambient_brdf: Lambertian::new(0.25, RGB::black()),
+            diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 1., 0.)),
+        }
     }
 }

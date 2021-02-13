@@ -14,6 +14,12 @@ pub struct Lambertian {
     cd: RGB,
 }
 
+impl Lambertian {
+    pub fn new(kd: f64, cd: RGB) -> Self {
+        Lambertian { kd, cd }
+    }
+}
+
 impl BRDF for Lambertian {
     fn f(&self, _sr: &ShadeRec, _wi: &Vector3<f64>, _wo: &Vector3<f64>) -> RGB {
         self.cd * (self.kd * f64::consts::FRAC_1_PI)

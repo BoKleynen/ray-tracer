@@ -1,8 +1,9 @@
 use cg_practicum::camera::{Camera, CameraBuilder, ViewPlane};
 use cg_practicum::film::RGB;
+use cg_practicum::light::PointLight;
 use cg_practicum::math::Transformation;
 use cg_practicum::shape::{Cuboid, Obj, Plane, Sphere, TriangleMesh};
-use cg_practicum::tracer::MultipleObjects;
+use cg_practicum::tracer::{MultipleObjects, RayCast};
 use cg_practicum::world::WorldBuilder;
 use clap::Clap;
 use nalgebra::{Point3, Vector3};
@@ -11,11 +12,11 @@ use std::num::NonZeroUsize;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cfg = Config::parse();
-    let origin = Point3::new(0.0, 0.0, 0.0);
+    let eye = Point3::new(0., 0., 5.);
     let destination = Point3::new(0.0, 0.0, -1.0);
     let up = Vector3::new(0.0, 1.0, 0.0);
 
-    let camera = CameraBuilder::new(origin)
+    let camera = CameraBuilder::new(eye)
         .x_res(cfg.width)
         .y_res(cfg.height)
         .destination(destination)
@@ -40,12 +41,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let green = RGB::new(0.0, 1.0, 0.0);
     let red = RGB::new(1.0, 0.0, 0.0);
 
+    let light = PointLight::white(Point3::new(100., 50., 150.));
+
     let world = WorldBuilder::new()
         // .shape(Box::new(TriangleMesh::new(object, t1)))
         // .shape(Box::new(Cuboid::new(Point3::new(0.5, 0.5, 0.5), t1, red)))
-        .shape(Box::new(Sphere::new(t1, red)))
-        .shape(Box::new(Sphere::new(t2, green)))
-        .shape(Box::new(Sphere::new(t3, green)))
+        .shape(Box::new(Sphere::new(Transformation::identity(), red)))
+        // .shape(Box::new(Sphere::new(t2, green)))
+        // .shape(Box::new(Sphere::new(t3, green)))
         // .shape(Box::new(Sphere::new(t4, green)))
         // .shape(Box::new(Sphere::new(t5, green)))
         // .add_shape(Box::new(Plane::new(
@@ -53,10 +56,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         //     Point3::new(-10.0, -10.0, -10.0),
         //     Transformation::identity(),
         // )))
+        .light(Box::new(light))
         .build()
         .ok_or("invalid world configuration")?;
 
-    let tracer = MultipleObjects::new(&world);
+    let tracer = RayCast::new(&world);
     let vp = ViewPlane {
         horizontal_res: cfg.width.get(),
         vertical_res: cfg.height.get(),

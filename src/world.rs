@@ -26,7 +26,7 @@ impl World {
                         local_hit_point: hit.local_hit_point,
                         normal: hit.normal,
                         color: shape.color(),
-                        ray: ray.clone(),
+                        material: shape.material(),
                         depth: 0,
                         direction: Vector3::default(),
                         world: self,
@@ -44,6 +44,10 @@ impl World {
 
     pub fn lights(&self) -> &[Box<dyn Light>] {
         self.lights.as_slice()
+    }
+
+    pub fn ambient_light(&self) -> &AmbientLight {
+        &self.ambient_light
     }
 }
 

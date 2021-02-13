@@ -1,4 +1,5 @@
 use crate::film::RGB;
+use crate::material::Material;
 use crate::math::{Ray, Transformation};
 use crate::shape::{Hit, Shape};
 use nalgebra::{Point3, Vector3};
@@ -111,6 +112,10 @@ impl Shape for Cuboid {
 
     fn color(&self) -> RGB {
         self.color
+    }
+
+    fn material(&self) -> Material {
+        unimplemented!()
     }
 }
 

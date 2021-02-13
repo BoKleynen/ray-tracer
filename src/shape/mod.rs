@@ -4,6 +4,7 @@ mod plane;
 mod sphere;
 
 use crate::film::RGB;
+use crate::material::Material;
 use crate::math::Ray;
 pub use cuboid::Cuboid;
 use nalgebra::{Point3, Vector3};
@@ -15,6 +16,8 @@ pub trait Shape: Sync + Send {
     fn intersect(&self, ray: &Ray) -> Option<Hit>;
 
     fn color(&self) -> RGB;
+
+    fn material(&self) -> Material;
 }
 
 pub struct Hit {
