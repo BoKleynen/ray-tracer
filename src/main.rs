@@ -5,7 +5,6 @@ use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
 use cg_practicum::shape::{Cuboid, Obj, Plane, Sphere, TriangleMesh};
-use cg_practicum::tracer::{MultipleObjects, RayCast};
 use cg_practicum::world::WorldBuilder;
 use clap::Clap;
 use nalgebra::{Point3, Vector3};
@@ -77,7 +76,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid world configuration")?;
 
-    let tracer = RayCast::new(&world);
     let vp = ViewPlane {
         horizontal_res: cfg.width.get(),
         vertical_res: cfg.height.get(),
@@ -86,7 +84,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         inv_gamma: 0.0,
     };
 
-    let buffer = camera.render_scene(&world, &tracer, vp);
+    let buffer = camera.render_scene(&world, vp);
 
     buffer
         .to_rgba_image(cfg.sensitivity, cfg.gamma)

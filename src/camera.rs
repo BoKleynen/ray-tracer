@@ -1,6 +1,5 @@
 use crate::film::FrameBuffer;
 use crate::math::{OrthonormalBasis, Ray};
-use crate::tracer::Tracer;
 use crate::world::World;
 use nalgebra::{Point3, Vector3};
 use rayon::prelude::*;
@@ -18,10 +17,9 @@ pub struct ViewPlane {
 }
 
 pub trait Camera {
-    fn render_scene<T: Tracer>(
+    fn render_scene(
         &self,
         world: &World,
-        tracer: &T,
         view_plane: ViewPlane,
     ) -> FrameBuffer;
 }
@@ -47,10 +45,9 @@ impl PerspectiveCamera {
 }
 
 impl Camera for PerspectiveCamera {
-    fn render_scene<T: Tracer>(
+    fn render_scene(
         &self,
-        _world: &World,
-        tracer: &T,
+        world: &World,
         view_plane: ViewPlane,
     ) -> FrameBuffer {
         let mut buffer = FrameBuffer::new(view_plane.horizontal_res, view_plane.vertical_res);
@@ -63,7 +60,12 @@ impl Camera for PerspectiveCamera {
                 let y = (idx / view_plane.vertical_res) as f64;
                 let ray = self.generate_ray((x + 0.5, y + 0.5));
 
-                pixel.set(tracer.trace_ray(&ray, 0));
+                let color = match world.hit_objects(&ray) {
+                    None => world.background_color(),
+                    Some(sr) => sr.material.shade(&sr, &ray),
+                };
+
+                pixel.set(color);
             });
 
         buffer
