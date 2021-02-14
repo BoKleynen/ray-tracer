@@ -5,14 +5,16 @@ use crate::shape::{Hit, Shape};
 use nalgebra::{Point3, Vector3};
 use std::fs::File;
 use std::io::Read;
+use crate::K_EPSILON;
 
 struct Triangle {
     v0: Point3<f64>,
     v1: Point3<f64>,
     v2: Point3<f64>,
-    // n1: Vector3<f64>,
-    // n2: Vector3<f64>,
-    // n3: Vector3<f64>,
+
+    n0: Vector3<f64>,
+    n1: Vector3<f64>,
+    n2: Vector3<f64>,
 }
 
 impl Triangle {
@@ -58,16 +60,18 @@ impl Triangle {
         let e3 = a * p - b * r + d * s;
         let t = e3 * inv_denom;
 
-        if t < f64::EPSILON {
+        if t < K_EPSILON {
             return None;
         }
 
-        // TODO: some stuff about calculating the actual hit point.
+
+        let shading_normal = beta * &self.n1 + gamma * &self.n2 + (1. - beta - gamma) * &self.n0;
+        let local_hit_point = ray.origin() + t * ray.direction();
 
         Some(Hit {
             t,
-            normal: Vector3::default(),
-            local_hit_point: Point3::origin(),
+            normal: shading_normal,
+            local_hit_point,
         })
     }
 }
@@ -75,11 +79,11 @@ impl Triangle {
 pub struct TriangleMesh {
     triangles: Vec<Triangle>,
     transformation: Transformation,
-    color: RGB,
+    material: Material,
 }
 
 impl TriangleMesh {
-    pub fn new(obj: Obj, transformation: Transformation) -> Self {
+    pub fn new(obj: Obj, material: Material, transformation: Transformation) -> Self {
         let triangles = obj
             .triangles
             .iter()
@@ -88,15 +92,18 @@ impl TriangleMesh {
                 let v1 = obj.vertexes[b.vertex_idx - 1].clone();
                 let v2 = obj.vertexes[c.vertex_idx - 1].clone();
 
-                Triangle { v0, v1, v2 }
+                let n0 = obj.vertex_normals[a.normal_idx - 1].clone();
+                let n1 = obj.vertex_normals[b.normal_idx - 1].clone();
+                let n2 = obj.vertex_normals[c.normal_idx - 1].clone();
+
+                Triangle { v0, v1, v2, n0, n1, n2 }
             })
             .collect();
-        let color = RGB::new(0.0, 1.0, 0.0);
 
         Self {
             triangles,
             transformation,
-            color,
+            material,
         }
     }
 }
@@ -112,7 +119,7 @@ impl Shape for TriangleMesh {
     }
 
     fn material(&self) -> Material {
-        unimplemented!()
+        self.material.clone()
     }
 }
 

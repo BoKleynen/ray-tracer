@@ -52,16 +52,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     let light = PointLight::white(Point3::new(100., 50., 150.));
 
     let world = WorldBuilder::new()
-        // .shape(Box::new(TriangleMesh::new(object, t1)))
-        .shape(Box::new(Sphere::new(
-            Transformation::translate(1., 1., 0.),
-            material1,
-        )))
-        .shape(Box::new(Cuboid::new(
-            Point3::new(1., 1., 1.),
-            Transformation::translate(0., 0., -1.),
-            material2.clone(),
-        )))
+        .shape(Box::new(TriangleMesh::new(object, material1, Transformation::identity())))
+        // .shape(Box::new(Sphere::new(
+        //     Transformation::translate(1., 1., 0.),
+        //     material1,
+        // )))
+        // .shape(Box::new(Cuboid::new(
+        //     Point3::new(1., 1., 1.),
+        //     Transformation::translate(0., 0., -1.),
+        //     material2.clone(),
+        // )))
         // .shape(Box::new(Sphere::new(t2, material2.clone())))
         // .shape(Box::new(Sphere::new(t3, green)))
         // .shape(Box::new(Sphere::new(t4, green)))
