@@ -14,8 +14,8 @@ use std::num::NonZeroUsize;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cfg = Config::parse();
-    let eye = Point3::new(0., 0., 5.);
-    let destination = Point3::new(-1., 0., -1.);
+    let eye = Point3::new(-3., 2., 5.);
+    let destination = Point3::new(5., 0., -1.);
     let up = Vector3::new(0., 1., 0.);
 
     let camera = CameraBuilder::new(eye)

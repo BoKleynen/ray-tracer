@@ -66,7 +66,7 @@ impl Shape for Cuboid {
 
         let b = 1.0 / dy;
         let (ty_min, ty_max) = if b >= 0.0 {
-            ((-self.corner.y - oy) * b, (self.corner.y - ox) * b)
+            ((-self.corner.y - oy) * b, (self.corner.y - oy) * b)
         } else {
             ((self.corner.y - oy) * b, (-self.corner.y - oy) * b)
         };

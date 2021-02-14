@@ -16,6 +16,10 @@ pub trait Shape: Sync + Send {
     fn intersect(&self, ray: &Ray) -> Option<Hit>;
 
     fn material(&self) -> Material;
+
+    fn hit(&self, ray: &Ray) -> bool {
+        self.intersect(ray).is_some()
+    }
 }
 
 pub struct Hit {
