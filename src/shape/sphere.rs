@@ -39,7 +39,7 @@ impl Shape for Sphere {
         let denom = 2.0 * a;
 
         let t = (-b - e) / denom; // smaller root
-        if t > f64::EPSILON {
+        if t > K_EPSILON {
             return Some(Hit {
                 t,
                 normal: (origin + t * direction).coords,
@@ -47,7 +47,7 @@ impl Shape for Sphere {
             });
         }
 
-        let t = (-b + e) / denom;
+        let t = (-b + e) / denom; // larger root
         if t > K_EPSILON {
             return Some(Hit {
                 t,
