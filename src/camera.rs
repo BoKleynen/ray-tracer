@@ -17,11 +17,7 @@ pub struct ViewPlane {
 }
 
 pub trait Camera {
-    fn render_scene(
-        &self,
-        world: &World,
-        view_plane: ViewPlane,
-    ) -> FrameBuffer;
+    fn render_scene(&self, world: &World, view_plane: ViewPlane) -> FrameBuffer;
 }
 
 pub struct PerspectiveCamera {
@@ -38,18 +34,14 @@ impl PerspectiveCamera {
         let u = self.width * (sample.0 * self.inv_x_res - 0.5);
         let v = self.height * (sample.1 * self.inv_y_res - 0.5);
 
-        let direction = &self.basis.u * u + &self.basis.v * v - &self.basis.w;
+        let direction = self.basis.u * u + self.basis.v * v - self.basis.w;
 
-        Ray::new(self.origin.clone(), direction.into())
+        Ray::new(self.origin, direction)
     }
 }
 
 impl Camera for PerspectiveCamera {
-    fn render_scene(
-        &self,
-        world: &World,
-        view_plane: ViewPlane,
-    ) -> FrameBuffer {
+    fn render_scene(&self, world: &World, view_plane: ViewPlane) -> FrameBuffer {
         let mut buffer = FrameBuffer::new(view_plane.horizontal_res, view_plane.vertical_res);
         buffer
             .buffer()

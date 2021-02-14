@@ -3,7 +3,6 @@ mod obj;
 mod plane;
 mod sphere;
 
-use crate::film::RGB;
 use crate::material::Material;
 use crate::math::Ray;
 pub use cuboid::Cuboid;

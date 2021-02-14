@@ -50,18 +50,23 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     let light = PointLight::white(Point3::new(100., 50., 150.));
+    let light2 = PointLight::white(Point3::new(50., 100., 50.));
 
-    let world = WorldBuilder::new()
-        .shape(Box::new(TriangleMesh::new(object, material1, Transformation::identity())))
-        // .shape(Box::new(Sphere::new(
-        //     Transformation::translate(1., 1., 0.),
+    let world = WorldBuilder::default()
+        // .shape(Box::new(TriangleMesh::new(
+        //     object,
         //     material1,
+        //     Transformation::identity(),
         // )))
-        // .shape(Box::new(Cuboid::new(
-        //     Point3::new(1., 1., 1.),
-        //     Transformation::translate(0., 0., -1.),
-        //     material2.clone(),
-        // )))
+        .shape(Box::new(Sphere::new(
+            Transformation::translate(1., 1., 0.),
+            material1,
+        )))
+        .shape(Box::new(Cuboid::new(
+            Point3::new(1., 1., 1.),
+            Transformation::translate(0., 0., -1.),
+            material2.clone(),
+        )))
         // .shape(Box::new(Sphere::new(t2, material2.clone())))
         // .shape(Box::new(Sphere::new(t3, green)))
         // .shape(Box::new(Sphere::new(t4, green)))
@@ -72,6 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         //     Transformation::identity(),
         // )))
         .light(Box::new(light))
+        .light(Box::new(light2))
         .background(RGB::new(0.01, 0.01, 0.01))
         .build()
         .ok_or("invalid world configuration")?;

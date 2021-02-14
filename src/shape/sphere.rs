@@ -1,5 +1,3 @@
-use crate::brdf::Lambertian;
-use crate::film::RGB;
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
 use crate::shape::{Hit, Shape};
@@ -44,7 +42,7 @@ impl Shape for Sphere {
         if t > f64::EPSILON {
             return Some(Hit {
                 t,
-                normal: &origin.coords + t * direction,
+                normal: origin.coords + t * direction,
                 local_hit_point: origin + t * direction,
             });
         }
@@ -53,7 +51,7 @@ impl Shape for Sphere {
         if t > K_EPSILON {
             return Some(Hit {
                 t,
-                normal: &origin.coords + t * direction,
+                normal: origin.coords + t * direction,
                 local_hit_point: origin + t * direction,
             });
         }

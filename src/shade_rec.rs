@@ -1,6 +1,4 @@
-use crate::film::RGB;
 use crate::material::Material;
-use crate::math::Ray;
 use crate::world::World;
 use nalgebra::{Point3, Vector3};
 

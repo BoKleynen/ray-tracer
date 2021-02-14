@@ -17,8 +17,8 @@ impl Transformation {
     }
 
     pub fn append(&self, other: &Self) -> Self {
-        let matrix = &self.matrix * &other.matrix;
-        let inverse = &other.inverse * &self.inverse;
+        let matrix = self.matrix * other.matrix;
+        let inverse = other.inverse * self.inverse;
 
         Self::new(matrix, inverse)
     }

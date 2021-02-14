@@ -1,11 +1,10 @@
-use crate::film::RGB;
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
 use crate::shape::{Hit, Shape};
+use crate::K_EPSILON;
 use nalgebra::{Point3, Vector3};
 use std::fs::File;
 use std::io::Read;
-use crate::K_EPSILON;
 
 struct Triangle {
     v0: Point3<f64>,
@@ -64,8 +63,7 @@ impl Triangle {
             return None;
         }
 
-
-        let shading_normal = beta * &self.n1 + gamma * &self.n2 + (1. - beta - gamma) * &self.n0;
+        let shading_normal = beta * self.n1 + gamma * self.n2 + (1. - beta - gamma) * self.n0;
         let local_hit_point = ray.origin() + t * ray.direction();
 
         Some(Hit {
@@ -88,15 +86,22 @@ impl TriangleMesh {
             .triangles
             .iter()
             .map(|ObjTriangle(a, b, c)| {
-                let v0 = obj.vertexes[a.vertex_idx - 1].clone();
-                let v1 = obj.vertexes[b.vertex_idx - 1].clone();
-                let v2 = obj.vertexes[c.vertex_idx - 1].clone();
+                let v0 = obj.vertexes[a.vertex_idx - 1];
+                let v1 = obj.vertexes[b.vertex_idx - 1];
+                let v2 = obj.vertexes[c.vertex_idx - 1];
 
-                let n0 = obj.vertex_normals[a.normal_idx - 1].clone();
-                let n1 = obj.vertex_normals[b.normal_idx - 1].clone();
-                let n2 = obj.vertex_normals[c.normal_idx - 1].clone();
+                let n0 = obj.vertex_normals[a.normal_idx - 1];
+                let n1 = obj.vertex_normals[b.normal_idx - 1];
+                let n2 = obj.vertex_normals[c.normal_idx - 1];
 
-                Triangle { v0, v1, v2, n0, n1, n2 }
+                Triangle {
+                    v0,
+                    v1,
+                    v2,
+                    n0,
+                    n1,
+                    n2,
+                }
             })
             .collect();
 

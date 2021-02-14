@@ -64,17 +64,7 @@ pub struct WorldBuilder {
 
 impl WorldBuilder {
     pub fn new() -> Self {
-        let shapes = Vec::new();
-        let lights = Vec::new();
-        let ambient_light = None;
-        let background_color = None;
-
-        Self {
-            shapes,
-            lights,
-            ambient_light,
-            background_color,
-        }
+        Self::default()
     }
 
     pub fn shape(mut self, shape: Box<dyn Shape>) -> Self {
@@ -108,5 +98,21 @@ impl WorldBuilder {
         };
 
         Some(world)
+    }
+}
+
+impl Default for WorldBuilder {
+    fn default() -> Self {
+        let shapes = Vec::new();
+        let lights = Vec::new();
+        let ambient_light = None;
+        let background_color = None;
+
+        Self {
+            shapes,
+            lights,
+            ambient_light,
+            background_color,
+        }
     }
 }

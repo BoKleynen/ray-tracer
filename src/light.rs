@@ -34,11 +34,11 @@ pub enum Light2 {
 impl Light2 {
     pub fn direction(&self, sr: &ShadeRec) -> Vector3<f64> {
         match self {
-            Light2::Point { location, .. } => (location - &sr.hit_point).normalize(),
+            Light2::Point { location, .. } => (location - sr.hit_point).normalize(),
         }
     }
 
-    pub fn radiance(&self, sr: &ShadeRec) -> RGB {
+    pub fn radiance(&self, _sr: &ShadeRec) -> RGB {
         match self {
             Light2::Point { ls, color, .. } => *color * *ls,
         }
@@ -76,7 +76,7 @@ impl PointLight {
 
 impl Light for PointLight {
     fn direction(&self, sr: &ShadeRec) -> Vector3<f64> {
-        (&self.location - &sr.hit_point).normalize()
+        (self.location - sr.hit_point).normalize()
     }
 
     fn radiance(&self, _sr: &ShadeRec) -> RGB {
