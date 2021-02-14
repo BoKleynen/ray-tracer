@@ -2,6 +2,7 @@ use crate::film::RGB;
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
 use crate::shape::{Hit, Shape};
+use crate::K_EPSILON;
 use nalgebra::{Point3, Vector3};
 
 /// A three-dimensional cuboid bounded by a corner and it's mirror with respect
@@ -138,8 +139,8 @@ impl Shape for Cuboid {
             }
         }
 
-        if t0 < t1 && t1 > f64::EPSILON {
-            if t0 > f64::EPSILON {
+        if t0 < t1 && t1 > K_EPSILON {
+            if t0 > K_EPSILON {
                 Some(Hit {
                     t: t0,
                     normal: face_in.normal(),

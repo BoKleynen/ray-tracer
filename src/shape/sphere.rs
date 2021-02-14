@@ -3,6 +3,7 @@ use crate::film::RGB;
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
 use crate::shape::{Hit, Shape};
+use crate::K_EPSILON;
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
 /// which is transformed by a transformation.
@@ -49,7 +50,7 @@ impl Shape for Sphere {
         }
 
         let t = (-b + e) / denom;
-        if t > f64::EPSILON {
+        if t > K_EPSILON {
             return Some(Hit {
                 t,
                 normal: &origin.coords + t * direction,

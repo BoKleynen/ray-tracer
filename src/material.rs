@@ -30,7 +30,11 @@ impl Material {
                         let wi = light.direction(sr);
                         let n_dot_wi = sr.normal.dot(&wi);
 
-                        if n_dot_wi > 0. {
+                        let shadow_ray = Ray::new(sr.hit_point.clone(), wi.clone());
+                        let invisible =
+                            sr.world.shapes().iter().any(|shape| shape.hit(&shadow_ray));
+
+                        if n_dot_wi > 0. && !invisible {
                             diffuse_brdf.f(sr, &wo, &wi) * light.radiance(sr) * n_dot_wi
                         } else {
                             RGB::black()
