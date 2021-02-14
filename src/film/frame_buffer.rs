@@ -29,13 +29,13 @@ impl FrameBuffer {
     }
 
     pub fn to_rgba_image(&self, sensitivity: f64, gamma: f64) -> RgbaImage {
-        let inv_sensitivity = 1.0 / sensitivity;
-        let inv_gamma = 1.0 / gamma;
+        let inv_sensitivity = 1. / sensitivity;
+        let inv_gamma = 1. / gamma;
 
         ImageBuffer::from_fn(self.x_res as u32, self.y_res as u32, |x, y| {
             let pixel = self.get_pixel(x as usize, y as usize);
             RGB::to_rgb(
-                (pixel.spectrum().clamp(0.0, inv_sensitivity) * sensitivity).pow(inv_gamma) * 255.0,
+                (pixel.spectrum().clamp(0., inv_sensitivity) * sensitivity).pow(inv_gamma) * 255.,
             )
         })
     }

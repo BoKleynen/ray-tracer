@@ -48,9 +48,9 @@ impl Transformation {
     pub fn scale(x: f64, y: f64, z: f64) -> Self {
         let matrix = na::convert_unchecked(Matrix4::new_nonuniform_scaling(&Vector3::new(x, y, z)));
         let inverse = na::convert_unchecked(Matrix4::new_nonuniform_scaling(&Vector3::new(
-            1.0 / x,
-            1.0 / y,
-            1.0 / z,
+            1. / x,
+            1. / y,
+            1. / z,
         )));
 
         Self { matrix, inverse }

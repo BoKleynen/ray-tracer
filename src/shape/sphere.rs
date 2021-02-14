@@ -27,11 +27,11 @@ impl Shape for Sphere {
         let direction = transformed_ray.direction();
 
         let a = direction.norm_squared();
-        let b = 2.0 * &origin.coords.dot(direction);
-        let c = origin.coords.dot(&origin.coords) - 1.0;
-        let disc = b * b - 4.0 * a * c;
+        let b = 2. * &origin.coords.dot(direction);
+        let c = origin.coords.dot(&origin.coords) - 1.;
+        let disc = b * b - 4. * a * c;
 
-        if disc < 0.0 {
+        if disc < 0. {
             return None;
         }
 

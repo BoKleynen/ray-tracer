@@ -57,22 +57,22 @@ impl Shape for Cuboid {
         let dy = inv_ray.direction().y;
         let dz = inv_ray.direction().z;
 
-        let a = 1.0 / dx;
-        let (tx_min, tx_max) = if a >= 0.0 {
+        let a = 1. / dx;
+        let (tx_min, tx_max) = if a >= 0. {
             ((-self.corner.x - ox) * a, (self.corner.x - ox) * a)
         } else {
             ((self.corner.x - ox) * a, (-self.corner.x - ox) * a)
         };
 
-        let b = 1.0 / dy;
-        let (ty_min, ty_max) = if b >= 0.0 {
+        let b = 1. / dy;
+        let (ty_min, ty_max) = if b >= 0. {
             ((-self.corner.y - oy) * b, (self.corner.y - oy) * b)
         } else {
             ((self.corner.y - oy) * b, (-self.corner.y - oy) * b)
         };
 
-        let c = 1.0 / dz;
-        let (tz_min, tz_max) = if c >= 0.0 {
+        let c = 1. / dz;
+        let (tz_min, tz_max) = if c >= 0. {
             ((-self.corner.z - oz) * c, (self.corner.z - oz) * c)
         } else {
             ((self.corner.z - oz) * c, (-self.corner.z - oz) * c)
@@ -82,7 +82,7 @@ impl Shape for Cuboid {
         let (mut t0, mut face_in) = if tx_min > ty_min {
             (
                 tx_min,
-                if a >= 0.0 {
+                if a >= 0. {
                     CuboidFace::Left
                 } else {
                     CuboidFace::Right
@@ -91,7 +91,7 @@ impl Shape for Cuboid {
         } else {
             (
                 ty_min,
-                if b >= 0.0 {
+                if b >= 0. {
                     CuboidFace::Bottom
                 } else {
                     CuboidFace::Top
@@ -101,7 +101,7 @@ impl Shape for Cuboid {
 
         if tz_min > t0 {
             t0 = tz_min;
-            face_in = if c >= 0.0 {
+            face_in = if c >= 0. {
                 CuboidFace::Back
             } else {
                 CuboidFace::Front
@@ -112,7 +112,7 @@ impl Shape for Cuboid {
         let (mut t1, mut face_out) = if tx_max < ty_max {
             (
                 tx_max,
-                if a >= 0.0 {
+                if a >= 0. {
                     CuboidFace::Right
                 } else {
                     CuboidFace::Left
@@ -121,7 +121,7 @@ impl Shape for Cuboid {
         } else {
             (
                 ty_max,
-                if b >= 0.0 {
+                if b >= 0. {
                     CuboidFace::Top
                 } else {
                     CuboidFace::Bottom
@@ -131,7 +131,7 @@ impl Shape for Cuboid {
 
         if tz_max < t1 {
             t1 = tz_max;
-            face_out = if c >= 0.0 {
+            face_out = if c >= 0. {
                 CuboidFace::Front
             } else {
                 CuboidFace::Back

@@ -26,16 +26,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid camera configuration")?;
 
-    let t1 =
-        Transformation::translate(0.0, 0.0, -10.0).append(&Transformation::scale(5.0, 5.0, 5.0));
-    let t2 =
-        Transformation::translate(4.0, -4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
-    let t3 =
-        Transformation::translate(-4.0, -4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
-    let t4 =
-        Transformation::translate(4.0, 4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
-    let t5 =
-        Transformation::translate(-4.0, 4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
+    let t1 = Transformation::translate(0., 0., -10.).append(&Transformation::scale(5., 5., 5.));
+    let t2 = Transformation::translate(4., -4., -12.).append(&Transformation::scale(3., 3., 3.));
+    let t3 = Transformation::translate(-4., -4., -12.).append(&Transformation::scale(3., 3., 3.));
+    let t4 = Transformation::translate(4., 4., -12.).append(&Transformation::scale(3., 3., 3.));
+    let t5 = Transformation::translate(-4., 4., -12.).append(&Transformation::scale(3., 3., 3.));
 
     let object = Obj::load("models/teapot.obj").unwrap();
 
@@ -72,22 +67,22 @@ fn main() -> Result<(), Box<dyn Error>> {
         // .shape(Box::new(Sphere::new(t4, green)))
         // .shape(Box::new(Sphere::new(t5, green)))
         // .add_shape(Box::new(Plane::new(
-        //     Vector3::new(1.0, 1.0, 0.0),
-        //     Point3::new(-10.0, -10.0, -10.0),
+        //     Vector3::new(1., 1., 0.),
+        //     Point3::new(-10., -10., -10.),
         //     Transformation::identity(),
         // )))
         .light(Box::new(light))
         .light(Box::new(light2))
-        .background(RGB::new(0.01, 0.01, 0.01))
+        .background(RGB::new(0.1, 0.1, 0.1))
         .build()
         .ok_or("invalid world configuration")?;
 
     let vp = ViewPlane {
         horizontal_res: cfg.width.get(),
         vertical_res: cfg.height.get(),
-        pixel_size: 0.0,
-        gamma: 0.0,
-        inv_gamma: 0.0,
+        pixel_size: 0.,
+        gamma: 0.,
+        inv_gamma: 0.,
     };
 
     let buffer = camera.render_scene(&world, vp);

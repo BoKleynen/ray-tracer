@@ -39,12 +39,12 @@ impl Triangle {
         let q = g * i - e * k;
         let s = e * j - f * i;
 
-        let inv_denom = 1.0 / (a * m + b * q + c * s);
+        let inv_denom = 1. / (a * m + b * q + c * s);
 
         let e1 = d * m - b * n - c * p;
         let beta = e1 * inv_denom;
 
-        if beta < 0.0 {
+        if beta < 0. {
             return None;
         }
 
@@ -52,7 +52,7 @@ impl Triangle {
         let e2 = a * n + d * q + c * r;
         let gamma = e2 * inv_denom;
 
-        if gamma < 0.0 || beta + gamma > 1.0 {
+        if gamma < 0. || beta + gamma > 1. {
             return None;
         }
 

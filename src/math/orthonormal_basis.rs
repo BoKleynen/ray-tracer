@@ -10,17 +10,17 @@ pub struct OrthonormalBasis {
 impl OrthonormalBasis {
     pub fn from_vector(a: &Vector3<f64>) -> Option<Self> {
         let length = a.norm();
-        if length == 0.0 {
+        if length == 0. {
             return None;
         }
 
         let w = a / length;
         let u = if w.x.abs() > w.y.abs() {
-            let inv_length = 1.0 / w.norm();
-            Vector3::new(-w.z * inv_length, 0.0, w.x * inv_length)
+            let inv_length = 1. / w.norm();
+            Vector3::new(-w.z * inv_length, 0., w.x * inv_length)
         } else {
-            let inv_length = 1.0 / w.norm();
-            Vector3::new(0.0, w.z * inv_length, -w.y * inv_length)
+            let inv_length = 1. / w.norm();
+            Vector3::new(0., w.z * inv_length, -w.y * inv_length)
         };
         let v = w.cross(&u);
 
@@ -31,7 +31,7 @@ impl OrthonormalBasis {
         let cross = b.cross(&a);
         let length = cross.norm();
 
-        if length == 0.0 {
+        if length == 0. {
             return None;
         }
 

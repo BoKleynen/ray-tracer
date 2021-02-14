@@ -24,7 +24,7 @@ impl Default for Pixel {
     fn default() -> Self {
         Pixel {
             color: RGB::black(),
-            weight_sum: 0.0,
+            weight_sum: 0.,
         }
     }
 }
