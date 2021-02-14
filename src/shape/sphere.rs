@@ -42,7 +42,7 @@ impl Shape for Sphere {
         if t > f64::EPSILON {
             return Some(Hit {
                 t,
-                normal: origin.coords + t * direction,
+                normal: (origin + t * direction).coords,
                 local_hit_point: origin + t * direction,
             });
         }
@@ -51,7 +51,7 @@ impl Shape for Sphere {
         if t > K_EPSILON {
             return Some(Hit {
                 t,
-                normal: origin.coords + t * direction,
+                normal: (origin + t * direction).coords,
                 local_hit_point: origin + t * direction,
             });
         }
