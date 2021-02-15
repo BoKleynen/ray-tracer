@@ -14,13 +14,17 @@ impl Pixel {
     pub fn add(&mut self, spectrum: RGB, weight: f64) {
         self.color += spectrum * weight
     }
+
+    pub fn set(&mut self, spectrum: RGB) {
+        self.color = spectrum
+    }
 }
 
 impl Default for Pixel {
     fn default() -> Self {
         Pixel {
             color: RGB::black(),
-            weight_sum: 0.0,
+            weight_sum: 0.,
         }
     }
 }

@@ -1,6 +1,7 @@
 use super::Transformable;
 use nalgebra::{Affine3, Point3, Vector3};
 
+#[derive(Debug, Clone)]
 pub struct Ray {
     origin: Point3<f64>,
     direction: Vector3<f64>,

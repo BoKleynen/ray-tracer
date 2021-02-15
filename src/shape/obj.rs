@@ -1,24 +1,23 @@
+use crate::material::Material;
 use crate::math::{Ray, Transformation};
-use crate::shape::Shape;
+use crate::shape::{Hit, Shape};
+use crate::K_EPSILON;
 use nalgebra::{Point3, Vector3};
-use std::any::Any;
-use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Read};
-use std::iter::Peekable;
-use std::str::{Chars, FromStr};
+use std::io::Read;
 
 struct Triangle {
     v0: Point3<f64>,
     v1: Point3<f64>,
     v2: Point3<f64>,
-    // n1: Vector3<f64>,
-    // n2: Vector3<f64>,
-    // n3: Vector3<f64>,
+
+    n0: Vector3<f64>,
+    n1: Vector3<f64>,
+    n2: Vector3<f64>,
 }
 
 impl Triangle {
-    fn intersect(&self, ray: &Ray) -> bool {
+    fn intersect(&self, ray: &Ray) -> Option<Hit> {
         let a = self.v0.x - self.v1.x;
         let b = self.v0.x - self.v2.x;
         let c = ray.direction().x;
@@ -40,69 +39,92 @@ impl Triangle {
         let q = g * i - e * k;
         let s = e * j - f * i;
 
-        let inv_denom = 1.0 / (a * m + b * q + c * s);
+        let inv_denom = 1. / (a * m + b * q + c * s);
 
         let e1 = d * m - b * n - c * p;
         let beta = e1 * inv_denom;
 
-        if beta < 0.0 {
-            return false;
+        if beta < 0. {
+            return None;
         }
 
         let r = e * l - h * i;
         let e2 = a * n + d * q + c * r;
         let gamma = e2 * inv_denom;
 
-        if gamma < 0.0 || beta + gamma > 1.0 {
-            return false;
+        if gamma < 0. || beta + gamma > 1. {
+            return None;
         }
 
         let e3 = a * p - b * r + d * s;
         let t = e3 * inv_denom;
 
-        if t < f64::EPSILON {
-            return false;
+        if t < K_EPSILON {
+            return None;
         }
 
-        // TODO: some stuff about calculating the actual hit point.
+        let shading_normal = beta * self.n1 + gamma * self.n2 + (1. - beta - gamma) * self.n0;
+        let local_hit_point = ray.origin() + t * ray.direction();
 
-        true
+        Some(Hit {
+            t,
+            normal: shading_normal,
+            local_hit_point,
+        })
     }
 }
 
 pub struct TriangleMesh {
     triangles: Vec<Triangle>,
     transformation: Transformation,
+    material: Material,
 }
 
 impl TriangleMesh {
-    pub fn new(obj: Obj, transformation: Transformation) -> Self {
+    pub fn new(obj: Obj, material: Material, transformation: Transformation) -> Self {
         let triangles = obj
             .triangles
             .iter()
             .map(|ObjTriangle(a, b, c)| {
-                let v0 = obj.vertexes[a.vertex_idx-1].clone();
-                let v1 = obj.vertexes[b.vertex_idx-1].clone();
-                let v2 = obj.vertexes[c.vertex_idx-1].clone();
+                let v0 = obj.vertexes[a.vertex_idx - 1];
+                let v1 = obj.vertexes[b.vertex_idx - 1];
+                let v2 = obj.vertexes[c.vertex_idx - 1];
 
-                Triangle { v0, v1, v2 }
+                let n0 = obj.vertex_normals[a.normal_idx - 1];
+                let n1 = obj.vertex_normals[b.normal_idx - 1];
+                let n2 = obj.vertex_normals[c.normal_idx - 1];
+
+                Triangle {
+                    v0,
+                    v1,
+                    v2,
+                    n0,
+                    n1,
+                    n2,
+                }
             })
             .collect();
 
         Self {
             triangles,
             transformation,
+            material,
         }
     }
 }
 
 impl Shape for TriangleMesh {
-    fn intersect(&self, ray: &Ray) -> bool {
+    fn intersect(&self, ray: &Ray) -> Option<Hit> {
         let inv_ray = self.transformation.apply_inverse(ray);
 
         self.triangles
             .iter()
-            .any(|triangle| triangle.intersect(&inv_ray))
+            .filter_map(|triangle| triangle.intersect(&inv_ray))
+            .min_by(|x, y| x.t.partial_cmp(&y.t).unwrap())
+    }
+
+    fn material(&self) -> Material {
+        self.material.clone()
     }
 }
 
@@ -154,7 +176,7 @@ impl Obj {
 
                     obj.triangles.push(ObjTriangle(a, b, c))
                 }
-                s => return None,
+                _ => return None,
             }
         }
 

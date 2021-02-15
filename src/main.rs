@@ -1,21 +1,23 @@
-use cg_practicum::camera::{Camera, CameraBuilder};
-use cg_practicum::film::{FrameBuffer, RGB};
+use cg_practicum::brdf::Lambertian;
+use cg_practicum::camera::{Camera, CameraBuilder, ViewPlane};
+use cg_practicum::film::RGB;
+use cg_practicum::light::PointLight;
+use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
-use cg_practicum::shape::{Cuboid, Plane, Sphere, Obj, TriangleMesh};
+use cg_practicum::shape::{Cuboid, Obj, Plane, Sphere, TriangleMesh};
 use cg_practicum::world::WorldBuilder;
 use clap::Clap;
 use nalgebra::{Point3, Vector3};
-use rayon::prelude::*;
 use std::error::Error;
 use std::num::NonZeroUsize;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cfg = Config::parse();
-    let origin = Point3::new(0.0, 0.0, 0.0);
-    let destination = Point3::new(0.0, 0.0, -1.0);
-    let up = Vector3::new(0.0, 1.0, 0.0);
+    let eye = Point3::new(-3., 2., 5.);
+    let destination = Point3::new(5., 0., -1.);
+    let up = Vector3::new(0., 1., 0.);
 
-    let camera = CameraBuilder::new(origin)
+    let camera = CameraBuilder::new(eye)
         .x_res(cfg.width)
         .y_res(cfg.height)
         .destination(destination)
@@ -24,52 +26,66 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid camera configuration")?;
 
-    let t1 =
-        Transformation::translate(0.0, 0.0, -10.0).append(&Transformation::scale(2.0, 2.0, 2.0));
-    // let t2 =
-    //     Transformation::translate(4.0, -4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
-    // let t3 =
-    //     Transformation::translate(-4.0, -4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
-    // let t4 =
-    //     Transformation::translate(4.0, 4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
-    // let t5 =
-    //     Transformation::translate(-4.0, 4.0, -12.0).append(&Transformation::scale(3.0, 3.0, 3.0));
+    let t1 = Transformation::translate(0., 0., -10.).append(&Transformation::scale(5., 5., 5.));
+    let t2 = Transformation::translate(4., -4., -12.).append(&Transformation::scale(3., 3., 3.));
+    let t3 = Transformation::translate(-4., -4., -12.).append(&Transformation::scale(3., 3., 3.));
+    let t4 = Transformation::translate(4., 4., -12.).append(&Transformation::scale(3., 3., 3.));
+    let t5 = Transformation::translate(-4., 4., -12.).append(&Transformation::scale(3., 3., 3.));
 
     let object = Obj::load("models/teapot.obj").unwrap();
 
-    let world = WorldBuilder::new()
-        .camera(camera)
-        .add_shape(Box::new(TriangleMesh::new(object, t1)))
-        // .add_shape(Box::new(Cuboid::new(Point3::new(0.5, 0.5, 0.5), t1)))
-        // .add_shape(Box::new(Sphere::new(t2)))
-        // .add_shape(Box::new(Sphere::new(t3)))
-        // .add_shape(Box::new(Sphere::new(t4)))
-        // .add_shape(Box::new(Sphere::new(t5)))
-        // .add_shape(Box::new(Plane::new(
-        //     Vector3::new(1.0, 1.0, 0.0),
-        //     Point3::new(-10.0, -10.0, -10.0),
+    let material1 = Material::Matte {
+        ambient_brdf: Lambertian::new(0.15, RGB::new(1., 1., 0.)),
+        diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 1., 0.)),
+    };
+
+    let material2 = Material::Matte {
+        ambient_brdf: Lambertian::new(0.15, RGB::new(1., 0., 1.)),
+        diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 0., 1.)),
+    };
+
+    let light = PointLight::white(Point3::new(100., 50., 150.));
+    let light2 = PointLight::white(Point3::new(50., 100., 50.));
+
+    let world = WorldBuilder::default()
+        // .shape(Box::new(TriangleMesh::new(
+        //     object,
+        //     material1,
         //     Transformation::identity(),
         // )))
+        .shape(Box::new(Sphere::new(
+            Transformation::translate(1., 1., 0.),
+            material1,
+        )))
+        .shape(Box::new(Cuboid::new(
+            Point3::new(1., 1., 1.),
+            Transformation::translate(0., 0., -1.),
+            material2.clone(),
+        )))
+        // .shape(Box::new(Sphere::new(t2, material2.clone())))
+        // .shape(Box::new(Sphere::new(t3, green)))
+        // .shape(Box::new(Sphere::new(t4, green)))
+        // .shape(Box::new(Sphere::new(t5, green)))
+        // .add_shape(Box::new(Plane::new(
+        //     Vector3::new(1., 1., 0.),
+        //     Point3::new(-10., -10., -10.),
+        //     Transformation::identity(),
+        // )))
+        .light(Box::new(light))
+        .light(Box::new(light2))
+        .background(RGB::new(0.1, 0.1, 0.1))
         .build()
         .ok_or("invalid world configuration")?;
 
-    let mut buffer = FrameBuffer::new(cfg.width, cfg.height);
-    buffer
-        .buffer()
-        .par_iter_mut()
-        .enumerate()
-        .for_each(|(idx, pixel)| {
-            let x = (idx / cfg.width.get()) as f64;
-            let y = (idx % cfg.width.get()) as f64;
-            let ray = world.camera().generate_ray((x + 0.5, y + 0.5));
-            let hit = world.shapes().iter().any(|shape| shape.intersect(&ray));
+    let vp = ViewPlane {
+        horizontal_res: cfg.width.get(),
+        vertical_res: cfg.height.get(),
+        pixel_size: 0.,
+        gamma: 0.,
+        inv_gamma: 0.,
+    };
 
-            if hit {
-                pixel.add(RGB::new(1.0, 0.0, 0.0), 1.0);
-            } else {
-                pixel.add(RGB::new(0.0, 0.0, 0.0), 1.0);
-            }
-        });
+    let buffer = camera.render_scene(&world, vp);
 
     buffer
         .to_rgba_image(cfg.sensitivity, cfg.gamma)

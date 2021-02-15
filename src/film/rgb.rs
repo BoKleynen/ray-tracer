@@ -1,4 +1,5 @@
 use image::Rgba;
+use std::iter::Sum;
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -19,16 +20,24 @@ impl RGB {
 
     pub const fn black() -> Self {
         RGB {
-            red: 0.0,
-            green: 0.0,
-            blue: 0.0,
+            red: 0.,
+            green: 0.,
+            blue: 0.,
+        }
+    }
+
+    pub const fn white() -> Self {
+        RGB {
+            red: 1.,
+            green: 1.,
+            blue: 1.,
         }
     }
 
     pub fn to_rgb(self) -> Rgba<u8> {
-        let r = self.red.clamp(0.0, 255.0) as u8;
-        let g = self.green.clamp(0.0, 255.0) as u8;
-        let b = self.blue.clamp(0.0, 255.0) as u8;
+        let r = self.red.clamp(0., 255.) as u8;
+        let g = self.green.clamp(0., 255.) as u8;
+        let b = self.blue.clamp(0., 255.) as u8;
 
         Rgba([r, g, b, 255])
     }
@@ -94,7 +103,7 @@ impl Div<f64> for RGB {
     type Output = RGB;
 
     fn div(self, rhs: f64) -> Self::Output {
-        self * (1.0 / rhs)
+        self * (1. / rhs)
     }
 }
 
@@ -115,5 +124,11 @@ impl AddAssign for RGB {
         self.red += rhs.red;
         self.green += rhs.green;
         self.blue += rhs.blue;
+    }
+}
+
+impl Sum for RGB {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(RGB::black(), RGB::add)
     }
 }
