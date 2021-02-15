@@ -27,10 +27,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         .ok_or("invalid camera configuration")?;
 
     let t1 = Transformation::translate(0., 0., -10.).append(&Transformation::scale(5., 5., 5.));
-    let t2 = Transformation::translate(4., -4., -12.).append(&Transformation::scale(3., 3., 3.));
-    let t3 = Transformation::translate(-4., -4., -12.).append(&Transformation::scale(3., 3., 3.));
-    let t4 = Transformation::translate(4., 4., -12.).append(&Transformation::scale(3., 3., 3.));
-    let t5 = Transformation::translate(-4., 4., -12.).append(&Transformation::scale(3., 3., 3.));
+    let t2 = Transformation::translate(4., -4., -12.).append(&Transformation::scale(4., 4., 3.));
+    let t3 = Transformation::translate(-4., -4., -12.).append(&Transformation::scale(4., 4., 3.));
+    let t4 = Transformation::translate(4., 4., -12.).append(&Transformation::scale(4., 4., 4.));
+    let t5 = Transformation::translate(-4., 4., -12.).append(&Transformation::scale(4., 4., 4.));
 
     // let object = Obj::load("models/teapot.obj").unwrap();
 

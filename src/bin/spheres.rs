@@ -14,22 +14,22 @@ use std::time::Instant;
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
 
-    let camera = CameraBuilder::new(Point3::new(0., -1., -0.5))
-        .x_res(1920)
-        .y_res(1080)
+    let camera = CameraBuilder::new(Point3::new(0., 0., 0.))
+        .x_res(1280)
+        .y_res(1280)
         .look_at(Vector3::new(0., 0., -1.))
         .up(Vector3::new(0., 1., 0.))
         .fov(80.)
         .build()
         .ok_or("invalid camera configuration")?;
 
-    let light = PointLight::white(Point3::new(5., 5., 5.));
+    let light = PointLight::white(Point3::new(20., 20., 20.));
 
-    let t1 = Transformation::translate(0., 0., -4.);
-    let t2 = Transformation::translate(1., 1., -5.);
-    let t3 = Transformation::translate(-1., -1., -5.);
-    let t4 = Transformation::translate(-1., 1., -5.);
-    let t5 = Transformation::translate(1., -1., -5.);
+    let t1 = Transformation::translate(0., 0., -10.).append(&Transformation::scale(5., 5., 5.));
+    let t2 = Transformation::translate(4., -4., -12.).append(&Transformation::scale(4., 4., 3.));
+    let t3 = Transformation::translate(-4., -4., -12.).append(&Transformation::scale(4., 4., 3.));
+    let t4 = Transformation::translate(4., 4., -12.).append(&Transformation::scale(4., 4., 4.));
+    let t5 = Transformation::translate(-4., 4., -12.).append(&Transformation::scale(4., 4., 4.));
 
     let material1 = Material::Matte {
         ambient_brdf: Lambertian::new(0.15, RGB::new(1., 1., 1.)),
@@ -64,8 +64,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .ok_or("invalid world configuration")?;
 
     let vp = ViewPlane {
-        horizontal_res: 1920,
-        vertical_res: 1080,
+        horizontal_res: 1280,
+        vertical_res: 1280,
         pixel_size: 0.,
         gamma: 0.,
         inv_gamma: 0.,

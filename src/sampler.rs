@@ -1,7 +1,7 @@
+use crate::film::RGB;
+use itertools::Itertools;
 use std::iter::{once, Once};
 use std::marker::PhantomData;
-use itertools::Itertools;
-use crate::film::RGB;
 
 pub type Sample = (f64, f64);
 
@@ -25,7 +25,7 @@ impl Sampler for Unsampled {
 }
 
 pub struct RegularGrid {
-    samples: Vec<Sample>
+    samples: Vec<Sample>,
 }
 
 impl RegularGrid {
@@ -34,12 +34,15 @@ impl RegularGrid {
         let inv_n = 1. / n;
         let n = n as usize;
 
-        let samples = (0..n).cartesian_product((0..n)).map(|(p,q)| {
-            let p = p as f64;
-            let q = q as f64;
+        let samples = (0..n)
+            .cartesian_product((0..n))
+            .map(|(p, q)| {
+                let p = p as f64;
+                let q = q as f64;
 
-            ((p + 0.5) * inv_n, (q + 0.5) * inv_n)
-        }).collect();
+                ((p + 0.5) * inv_n, (q + 0.5) * inv_n)
+            })
+            .collect();
 
         Self { samples }
     }

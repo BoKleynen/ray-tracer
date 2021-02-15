@@ -25,6 +25,10 @@ impl Plane {
             material,
         }
     }
+
+    fn shading_normal(&self, normal: &Vector3<f64>) -> Vector3<f64> {
+        unimplemented!()
+    }
 }
 
 impl Shape for Plane {
