@@ -4,12 +4,12 @@ use cg_practicum::film::RGB;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
+use cg_practicum::sampler::Unsampled;
 use cg_practicum::shape::{Cuboid, Obj, Plane, Sphere, TriangleMesh};
 use cg_practicum::world::WorldBuilder;
 use clap::Clap;
 use nalgebra::{Point3, Vector3};
 use std::error::Error;
-use cg_practicum::sampler::Unsampled;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cfg = Config::parse();

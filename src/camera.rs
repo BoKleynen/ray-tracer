@@ -1,11 +1,11 @@
 use crate::film::{FrameBuffer, RGB};
 use crate::math::{OrthonormalBasis, Ray};
+use crate::sampler::{Sample, Sampler};
 use crate::world::World;
 use nalgebra::{Point3, Vector3};
 use rayon::prelude::*;
 use std::f64;
 use std::ops::Neg;
-use crate::sampler::{Sampler, Sample};
 
 #[derive(Debug, Copy, Clone)]
 pub struct ViewPlane {
@@ -17,10 +17,9 @@ pub struct ViewPlane {
 }
 
 pub trait Camera {
-    fn render_scene<S, I>(&self, world: &World, view_plane: ViewPlane, sampler: S) -> FrameBuffer
+    fn render_scene<S>(&self, world: &World, view_plane: ViewPlane, sampler: S) -> FrameBuffer
     where
-        S: Sampler<I> + Sync,
-        I: IntoIterator<Item = Sample>;
+        S: Sampler + Sync;
 }
 
 pub struct PerspectiveCamera {
@@ -33,10 +32,9 @@ pub struct PerspectiveCamera {
 }
 
 impl Camera for PerspectiveCamera {
-    fn render_scene<S, I>(&self, world: &World, view_plane: ViewPlane, sampler: S) -> FrameBuffer
+    fn render_scene<S>(&self, world: &World, view_plane: ViewPlane, sampler: S) -> FrameBuffer
     where
-        S: Sampler<I> + Sync,
-        I: IntoIterator<Item = Sample>,
+        S: Sampler + Sync,
     {
         let mut buffer = FrameBuffer::new(view_plane.horizontal_res, view_plane.vertical_res);
         buffer
@@ -47,7 +45,7 @@ impl Camera for PerspectiveCamera {
                 let x = (idx % view_plane.horizontal_res) as f64;
                 let y = (idx / view_plane.vertical_res) as f64;
 
-                let color: RGB = sampler.samples().into_iter().map(|(ux, uy)| {
+                let color = sampler.average(|(ux, uy)| {
                     let u = self.width * ((x + ux) * self.inv_x_res - 0.5);
                     let v = self.height * ((y + uy) * self.inv_y_res - 0.5);
 
@@ -58,7 +56,7 @@ impl Camera for PerspectiveCamera {
                         None => world.background_color(),
                         Some(sr) => sr.material.shade(&sr, &ray),
                     }
-                }).sum();
+                });
 
                 pixel.set(color);
             });
