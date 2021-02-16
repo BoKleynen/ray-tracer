@@ -55,6 +55,14 @@ impl Transformation {
 
         Self { matrix, inverse }
     }
+
+    pub fn matrix(&self) -> &Affine3<f64> {
+        &self.matrix
+    }
+
+    pub fn inverse(&self) -> &Affine3<f64> {
+        &self.inverse
+    }
 }
 
 pub trait Transformable {

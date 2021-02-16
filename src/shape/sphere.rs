@@ -2,6 +2,7 @@ use crate::material::Material;
 use crate::math::{Ray, Transformation};
 use crate::shape::{Hit, Shape};
 use crate::K_EPSILON;
+use nalgebra::Vector3;
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
 /// which is transformed by a transformation.
@@ -16,6 +17,15 @@ impl Sphere {
             transformation,
             material,
         }
+    }
+
+    fn shading_normal(&self, normal: &Vector3<f64>) -> Vector3<f64> {
+        self.transformation
+            .inverse()
+            .matrix()
+            .transpose()
+            .transform_vector(normal)
+            .normalize()
     }
 }
 
@@ -40,19 +50,23 @@ impl Shape for Sphere {
 
         let t = (-b - e) / denom; // smaller root
         if t > K_EPSILON {
+            let local_hit_point = origin + t * direction;
+
             return Some(Hit {
                 t,
-                normal: (origin + t * direction).coords,
-                local_hit_point: origin + t * direction,
+                normal: self.shading_normal(&local_hit_point.coords),
+                local_hit_point,
             });
         }
 
         let t = (-b + e) / denom; // larger root
         if t > K_EPSILON {
+            let local_hit_point = origin + t * direction;
+
             return Some(Hit {
                 t,
-                normal: (origin + t * direction).coords,
-                local_hit_point: origin + t * direction,
+                normal: self.shading_normal(&local_hit_point.coords),
+                local_hit_point,
             });
         }
 

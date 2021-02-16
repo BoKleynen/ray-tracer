@@ -1,10 +1,10 @@
 use crate::film::FrameBuffer;
 use crate::math::{OrthonormalBasis, Ray};
+use crate::sampler::Sampler;
 use crate::world::World;
 use nalgebra::{Point3, Vector3};
 use rayon::prelude::*;
 use std::f64;
-use std::num::NonZeroUsize;
 use std::ops::Neg;
 
 #[derive(Debug, Copy, Clone)]
@@ -17,7 +17,9 @@ pub struct ViewPlane {
 }
 
 pub trait Camera {
-    fn render_scene(&self, world: &World, view_plane: ViewPlane) -> FrameBuffer;
+    fn render_scene<S>(&self, world: &World, view_plane: ViewPlane, sampler: S) -> FrameBuffer
+    where
+        S: Sampler + Sync;
 }
 
 pub struct PerspectiveCamera {
@@ -29,21 +31,11 @@ pub struct PerspectiveCamera {
     inv_y_res: f64,
 }
 
-impl PerspectiveCamera {
-    fn generate_ray(&self, sample: (f64, f64)) -> Ray {
-        let (sample_x, sample_y) = sample;
-
-        let u = self.width * (sample_x * self.inv_x_res - 0.5);
-        let v = self.height * (sample_y * self.inv_y_res - 0.5);
-
-        let direction = self.basis.u * u + self.basis.v * v - self.basis.w;
-
-        Ray::new(self.origin, direction)
-    }
-}
-
 impl Camera for PerspectiveCamera {
-    fn render_scene(&self, world: &World, view_plane: ViewPlane) -> FrameBuffer {
+    fn render_scene<S>(&self, world: &World, view_plane: ViewPlane, sampler: S) -> FrameBuffer
+    where
+        S: Sampler + Sync,
+    {
         let mut buffer = FrameBuffer::new(view_plane.horizontal_res, view_plane.vertical_res);
         buffer
             .buffer()
@@ -52,12 +44,19 @@ impl Camera for PerspectiveCamera {
             .for_each(|(idx, pixel)| {
                 let x = (idx % view_plane.horizontal_res) as f64;
                 let y = (idx / view_plane.vertical_res) as f64;
-                let ray = self.generate_ray((x + 0.5, y + 0.5));
 
-                let color = match world.hit_objects(&ray) {
-                    None => world.background_color(),
-                    Some(sr) => sr.material.shade(&sr, &ray),
-                };
+                let color = sampler.average(|(ux, uy)| {
+                    let u = self.width * ((x + ux) * self.inv_x_res - 0.5);
+                    let v = self.height * ((y + uy) * self.inv_y_res - 0.5);
+
+                    let direction = self.basis.u * u + self.basis.v * v - self.basis.w;
+                    let ray = Ray::new(self.origin, direction);
+
+                    match world.hit_objects(&ray) {
+                        None => world.background_color(),
+                        Some(sr) => sr.material.shade(&sr, &ray),
+                    }
+                });
 
                 pixel.set(color);
             });
@@ -67,8 +66,8 @@ impl Camera for PerspectiveCamera {
 }
 
 pub struct CameraBuilder {
-    x_res: Option<NonZeroUsize>,
-    y_res: Option<NonZeroUsize>,
+    x_res: Option<usize>,
+    y_res: Option<usize>,
     eye: Point3<f64>,
     look_at: Option<Vector3<f64>>,
     up: Option<Vector3<f64>>,
@@ -87,12 +86,12 @@ impl CameraBuilder {
         }
     }
 
-    pub fn x_res(mut self, x_res: NonZeroUsize) -> Self {
+    pub fn x_res(mut self, x_res: usize) -> Self {
         self.x_res = Some(x_res);
         self
     }
 
-    pub fn y_res(mut self, y_res: NonZeroUsize) -> Self {
+    pub fn y_res(mut self, y_res: usize) -> Self {
         self.y_res = Some(y_res);
         self
     }
@@ -122,10 +121,10 @@ impl CameraBuilder {
     pub fn build(self) -> Option<PerspectiveCamera> {
         let basis = OrthonormalBasis::from_vectors(&self.look_at?.neg(), &self.up?).unwrap();
 
-        let inv_x_res = 1. / self.x_res?.get() as f64;
-        let inv_y_res = 1. / self.y_res?.get() as f64;
+        let inv_x_res = 1. / self.x_res? as f64;
+        let inv_y_res = 1. / self.y_res? as f64;
         let width = 2. * (0.5 * self.fov?.to_radians()).tan();
-        let height = (self.y_res?.get() as f64 * width) * inv_x_res;
+        let height = (self.y_res? as f64 * width) * inv_x_res;
 
         let camera = PerspectiveCamera {
             origin: self.eye,

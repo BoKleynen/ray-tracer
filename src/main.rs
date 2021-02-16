@@ -4,12 +4,12 @@ use cg_practicum::film::RGB;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
+use cg_practicum::sampler::Unsampled;
 use cg_practicum::shape::{Cuboid, Obj, Plane, Sphere, TriangleMesh};
 use cg_practicum::world::WorldBuilder;
 use clap::Clap;
 use nalgebra::{Point3, Vector3};
 use std::error::Error;
-use std::num::NonZeroUsize;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cfg = Config::parse();
@@ -27,12 +27,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         .ok_or("invalid camera configuration")?;
 
     let t1 = Transformation::translate(0., 0., -10.).append(&Transformation::scale(5., 5., 5.));
-    let t2 = Transformation::translate(4., -4., -12.).append(&Transformation::scale(3., 3., 3.));
-    let t3 = Transformation::translate(-4., -4., -12.).append(&Transformation::scale(3., 3., 3.));
-    let t4 = Transformation::translate(4., 4., -12.).append(&Transformation::scale(3., 3., 3.));
-    let t5 = Transformation::translate(-4., 4., -12.).append(&Transformation::scale(3., 3., 3.));
+    let t2 = Transformation::translate(4., -4., -12.).append(&Transformation::scale(4., 4., 3.));
+    let t3 = Transformation::translate(-4., -4., -12.).append(&Transformation::scale(4., 4., 3.));
+    let t4 = Transformation::translate(4., 4., -12.).append(&Transformation::scale(4., 4., 4.));
+    let t5 = Transformation::translate(-4., 4., -12.).append(&Transformation::scale(4., 4., 4.));
 
-    let object = Obj::load("models/teapot.obj").unwrap();
+    // let object = Obj::load("models/teapot.obj").unwrap();
 
     let material1 = Material::Matte {
         ambient_brdf: Lambertian::new(0.15, RGB::new(1., 1., 0.)),
@@ -78,14 +78,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         .ok_or("invalid world configuration")?;
 
     let vp = ViewPlane {
-        horizontal_res: cfg.width.get(),
-        vertical_res: cfg.height.get(),
+        horizontal_res: cfg.width,
+        vertical_res: cfg.height,
         pixel_size: 0.,
         gamma: 0.,
         inv_gamma: 0.,
     };
 
-    let buffer = camera.render_scene(&world, vp);
+    let sampler = Unsampled::default();
+    let buffer = camera.render_scene(&world, vp, sampler);
 
     buffer
         .to_rgba_image(cfg.sensitivity, cfg.gamma)
@@ -97,9 +98,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 #[derive(Clap)]
 pub struct Config {
     #[clap(long, default_value = "640")]
-    width: NonZeroUsize,
+    width: usize,
     #[clap(long, default_value = "640")]
-    height: NonZeroUsize,
+    height: usize,
     #[clap(long, default_value = "1")]
     sensitivity: f64,
     #[clap(long, default_value = "2.2")]
