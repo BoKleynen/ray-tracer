@@ -44,7 +44,7 @@ impl PointLight {
 
     pub fn white(location: Point3<f64>) -> Self {
         Self {
-            ls: 1.,
+            ls: 1.0,
             color: RGB::white(),
             location,
         }

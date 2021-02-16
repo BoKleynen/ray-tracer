@@ -27,7 +27,12 @@ impl Plane {
     }
 
     fn shading_normal(&self, normal: &Vector3<f64>) -> Vector3<f64> {
-        unimplemented!()
+        self.transformation
+            .inverse()
+            .matrix()
+            .transpose()
+            .transform_vector(normal)
+            .normalize()
     }
 }
 
@@ -41,7 +46,7 @@ impl Shape for Plane {
         if t > K_EPSILON {
             return Some(Hit {
                 t,
-                normal: self.normal,
+                normal: self.shading_normal(&self.normal),
                 local_hit_point: inv_ray.origin() + t * inv_ray.direction(),
             });
         } else {

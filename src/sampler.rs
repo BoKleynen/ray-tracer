@@ -1,7 +1,5 @@
 use crate::film::RGB;
 use itertools::Itertools;
-use std::iter::{once, Once};
-use std::marker::PhantomData;
 
 pub type Sample = (f64, f64);
 
@@ -12,8 +10,8 @@ pub trait Sampler {
 #[derive(Debug, Copy, Clone)]
 pub struct Unsampled {}
 
-impl Unsampled {
-    pub fn new() -> Self {
+impl Default for Unsampled {
+    fn default() -> Self {
         Self {}
     }
 }
@@ -24,18 +22,18 @@ impl Sampler for Unsampled {
     }
 }
 
-pub struct RegularGrid {
+pub struct RegularSampler {
     samples: Vec<Sample>,
 }
 
-impl RegularGrid {
+impl RegularSampler {
     pub fn new(nb_samples: usize) -> Self {
         let n = (nb_samples as f64).sqrt();
         let inv_n = 1. / n;
         let n = n as usize;
 
         let samples = (0..n)
-            .cartesian_product((0..n))
+            .cartesian_product(0..n)
             .map(|(p, q)| {
                 let p = p as f64;
                 let q = q as f64;
@@ -48,7 +46,7 @@ impl RegularGrid {
     }
 }
 
-impl Sampler for RegularGrid {
+impl Sampler for RegularSampler {
     fn average<F: Fn(Sample) -> RGB>(&self, f: F) -> RGB {
         self.samples.iter().map(|&sample| f(sample)).sum::<RGB>() / self.samples.len() as f64
     }

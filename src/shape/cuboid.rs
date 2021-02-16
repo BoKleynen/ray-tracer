@@ -43,6 +43,15 @@ impl Cuboid {
             material,
         }
     }
+
+    fn shading_normal(&self, normal: &Vector3<f64>) -> Vector3<f64> {
+        self.transformation
+            .inverse()
+            .matrix()
+            .transpose()
+            .transform_vector(normal)
+            .normalize()
+    }
 }
 
 impl Shape for Cuboid {
@@ -142,13 +151,13 @@ impl Shape for Cuboid {
             if t0 > K_EPSILON {
                 Some(Hit {
                     t: t0,
-                    normal: face_in.normal(),
+                    normal: self.shading_normal(&face_in.normal()),
                     local_hit_point: ray.origin() + t0 * ray.direction(),
                 })
             } else {
                 Some(Hit {
                     t: t1,
-                    normal: face_out.normal(),
+                    normal: self.shading_normal(&face_out.normal()),
                     local_hit_point: ray.origin() + t1 * ray.direction(),
                 })
             }

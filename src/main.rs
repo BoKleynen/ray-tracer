@@ -85,7 +85,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         inv_gamma: 0.,
     };
 
-    let sampler = Unsampled::new();
+    let sampler = Unsampled::default();
     let buffer = camera.render_scene(&world, vp, sampler);
 
     buffer

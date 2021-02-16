@@ -1,6 +1,6 @@
-use crate::film::{FrameBuffer, RGB};
+use crate::film::FrameBuffer;
 use crate::math::{OrthonormalBasis, Ray};
-use crate::sampler::{Sample, Sampler};
+use crate::sampler::Sampler;
 use crate::world::World;
 use nalgebra::{Point3, Vector3};
 use rayon::prelude::*;
