@@ -1,5 +1,6 @@
 use crate::film::RGB;
 use itertools::Itertools;
+use rand::prelude::*;
 
 pub type Sample = (f64, f64);
 
@@ -49,5 +50,34 @@ impl RegularSampler {
 impl Sampler for RegularSampler {
     fn average<F: Fn(Sample) -> RGB>(&self, f: F) -> RGB {
         self.samples.iter().map(|&sample| f(sample)).sum::<RGB>() / self.samples.len() as f64
+    }
+}
+
+pub struct JitteredSampler {
+    nb_samples: usize,
+}
+
+impl JitteredSampler {
+    pub fn new(nb_samples: usize) -> Self {
+        Self { nb_samples }
+    }
+}
+
+impl Sampler for JitteredSampler {
+    fn average<F: Fn(Sample) -> RGB>(&self, f: F) -> RGB {
+        let n = (self.nb_samples as f64).sqrt();
+        let inv_n = 1. / n;
+        let n = n as usize;
+
+        (0..n)
+            .cartesian_product(0..n)
+            .map(|(p, q)| {
+                let x = (p as f64 + thread_rng().gen::<f64>()) * inv_n;
+                let y = (q as f64 + thread_rng().gen::<f64>()) * inv_n;
+
+                f((x, y))
+            })
+            .sum::<RGB>()
+            / self.nb_samples as f64
     }
 }
