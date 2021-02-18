@@ -16,6 +16,7 @@ image = "0.23.13"
 nalgebra = "0.24.1"
 itertools = "0.10.0"
 chrono = "0.4"
+rand = "0.8.3"
 
 [profile.release]
 lto = true
