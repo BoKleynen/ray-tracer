@@ -1,6 +1,6 @@
-use nalgebra::Point3;
 use crate::math::Ray;
 use crate::K_EPSILON;
+use nalgebra::Point3;
 
 pub struct AABB {
     // p1 > p2
