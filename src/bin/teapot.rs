@@ -6,7 +6,7 @@ use cg_practicum::material::Material;
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::film::RGB;
 use cg_practicum::world::WorldBuilder;
-use cg_practicum::shape::{Sphere, Obj, TriangleMesh};
+use cg_practicum::shape::{Obj, TriangleMesh};
 use cg_practicum::sampler::JitteredSampler;
 use std::time::Instant;
 use std::error::Error;
