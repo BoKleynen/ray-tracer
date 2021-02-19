@@ -1,15 +1,15 @@
-use cg_practicum::camera::{CameraBuilder, ViewPlane, Camera};
-use nalgebra::{Point3, Vector3};
-use cg_practicum::light::PointLight;
-use cg_practicum::math::Transformation;
-use cg_practicum::material::Material;
 use cg_practicum::brdf::Lambertian;
+use cg_practicum::camera::{Camera, CameraBuilder, ViewPlane};
 use cg_practicum::film::RGB;
-use cg_practicum::world::WorldBuilder;
-use cg_practicum::shape::{Obj, TriangleMesh};
+use cg_practicum::light::PointLight;
+use cg_practicum::material::Material;
+use cg_practicum::math::Transformation;
 use cg_practicum::sampler::JitteredSampler;
-use std::time::Instant;
+use cg_practicum::shape::{Obj, TriangleMesh};
+use cg_practicum::world::WorldBuilder;
+use nalgebra::{Point3, Vector3};
 use std::error::Error;
+use std::time::Instant;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
@@ -34,15 +34,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let object = Obj::load("models/teapot.obj").unwrap();
 
-
     let world = WorldBuilder::default()
         .light(Box::new(light1))
         .background(RGB::black())
-        .shape(Box::new(TriangleMesh::new(
-            object,
-            material,
-            t,
-        )))
+        .shape(Box::new(TriangleMesh::new(object, material, t)))
         .build()
         .ok_or("invalid world configuration")?;
 
