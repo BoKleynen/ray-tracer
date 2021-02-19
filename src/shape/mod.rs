@@ -1,15 +1,17 @@
+mod aabb;
 mod cuboid;
 mod obj;
 mod plane;
 mod sphere;
 
-use crate::material::Material;
-use crate::math::Ray;
 pub use cuboid::Cuboid;
-use nalgebra::{Point3, Vector3};
 pub use obj::{Obj, TriangleMesh};
 pub use plane::Plane;
 pub use sphere::Sphere;
+
+use crate::material::Material;
+use crate::math::Ray;
+use nalgebra::{Point3, Vector3};
 
 pub trait Shape: Sync + Send {
     fn intersect(&self, ray: &Ray) -> Option<Hit>;

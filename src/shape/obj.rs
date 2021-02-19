@@ -1,5 +1,6 @@
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
+use crate::shape::aabb::AABB;
 use crate::shape::{Hit, Shape};
 use crate::K_EPSILON;
 use nalgebra::{Point3, Vector3};
@@ -78,21 +79,65 @@ pub struct TriangleMesh {
     triangles: Vec<Triangle>,
     transformation: Transformation,
     material: Material,
+    aabb: AABB,
 }
 
 impl TriangleMesh {
     pub fn new(obj: Obj, material: Material, transformation: Transformation) -> Self {
+        let min_x = obj
+            .vertexes
+            .iter()
+            .min_by(|v1, v2| v1.x.partial_cmp(&v2.x).unwrap())
+            .unwrap()
+            .x;
+        let min_y = obj
+            .vertexes
+            .iter()
+            .min_by(|v1, v2| v1.y.partial_cmp(&v2.y).unwrap())
+            .unwrap()
+            .y;
+        let min_z = obj
+            .vertexes
+            .iter()
+            .min_by(|v1, v2| v1.z.partial_cmp(&v2.z).unwrap())
+            .unwrap()
+            .z;
+
+        let max_x = obj
+            .vertexes
+            .iter()
+            .max_by(|v1, v2| v1.x.partial_cmp(&v2.x).unwrap())
+            .unwrap()
+            .x;
+        let max_y = obj
+            .vertexes
+            .iter()
+            .max_by(|v1, v2| v1.y.partial_cmp(&v2.y).unwrap())
+            .unwrap()
+            .y;
+        let max_z = obj
+            .vertexes
+            .iter()
+            .max_by(|v1, v2| v1.z.partial_cmp(&v2.z).unwrap())
+            .unwrap()
+            .z;
+
+        let aabb = AABB::new(
+            Point3::new(min_x, min_y, min_z),
+            Point3::new(max_x, max_y, max_z),
+        );
+
         let triangles = obj
             .triangles
             .iter()
             .map(|ObjTriangle(a, b, c)| {
-                let v0 = obj.vertexes[a.vertex_idx - 1];
-                let v1 = obj.vertexes[b.vertex_idx - 1];
-                let v2 = obj.vertexes[c.vertex_idx - 1];
+                let v0 = obj.vertexes[a.vertex_idx];
+                let v1 = obj.vertexes[b.vertex_idx];
+                let v2 = obj.vertexes[c.vertex_idx];
 
-                let n0 = obj.vertex_normals[a.normal_idx - 1];
-                let n1 = obj.vertex_normals[b.normal_idx - 1];
-                let n2 = obj.vertex_normals[c.normal_idx - 1];
+                let n0 = obj.vertex_normals[a.normal_idx];
+                let n1 = obj.vertex_normals[b.normal_idx];
+                let n2 = obj.vertex_normals[c.normal_idx];
 
                 Triangle {
                     v0,
@@ -109,6 +154,7 @@ impl TriangleMesh {
             triangles,
             transformation,
             material,
+            aabb,
         }
     }
 }
@@ -116,6 +162,10 @@ impl TriangleMesh {
 impl Shape for TriangleMesh {
     fn intersect(&self, ray: &Ray) -> Option<Hit> {
         let inv_ray = self.transformation.apply_inverse(ray);
+
+        if !self.aabb.hit(&inv_ray) {
+            return None;
+        }
 
         self.triangles
             .iter()
@@ -125,6 +175,16 @@ impl Shape for TriangleMesh {
 
     fn material(&self) -> Material {
         self.material.clone()
+    }
+
+    fn hit(&self, ray: &Ray) -> bool {
+        let inv_ray = self.transformation.apply_inverse(ray);
+
+        self.aabb.hit(&inv_ray)
+            && self
+                .triangles
+                .iter()
+                .any(|triangle| triangle.intersect(&inv_ray).is_some())
     }
 }
 
@@ -196,9 +256,9 @@ impl ObjTriangleCorner {
     fn parse(s: &str) -> Option<Self> {
         let mut parts = s.split_terminator('/');
 
-        let vertex_idx = parts.next()?.parse().ok()?;
-        let texture_idx = parts.next()?.parse().ok()?;
-        let normal_idx = parts.next()?.parse().ok()?;
+        let vertex_idx = parts.next()?.parse::<usize>().ok()? - 1;
+        let texture_idx = parts.next()?.parse::<usize>().ok()? - 1;
+        let normal_idx = parts.next()?.parse::<usize>().ok()? - 1;
 
         Some(Self {
             vertex_idx,
