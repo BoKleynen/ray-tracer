@@ -1,5 +1,5 @@
 use cg_practicum::brdf::Lambertian;
-use cg_practicum::camera::{Camera, CameraBuilder, ViewPlane};
+use cg_practicum::camera::{Camera, CameraBuilder};
 use cg_practicum::film::RGB;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
@@ -64,17 +64,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid world configuration")?;
 
-    let vp = ViewPlane {
-        horizontal_res: 1920,
-        vertical_res: 1920,
-        pixel_size: 0.,
-        gamma: 0.,
-        inv_gamma: 0.,
-    };
     // let sampler = RegularSampler::new(16);
     // let sampler = Unsampled::default();
     let sampler = JitteredSampler::new(16);
-    let buffer = camera.render_scene(&world, vp, sampler);
+    let buffer = camera.render_scene(&world, sampler);
 
     buffer.to_rgba_image(1., 2.2).save("renders/spheres.png")?;
 
