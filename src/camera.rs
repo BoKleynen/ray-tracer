@@ -1,6 +1,6 @@
 use crate::film::FrameBuffer;
 use crate::math::{OrthonormalBasis, Ray};
-use crate::sampler::Sampler;
+use crate::sampler::{Sampler, Sample};
 use crate::world::World;
 use nalgebra::{Point3, Vector3};
 use rayon::prelude::*;
@@ -11,6 +11,8 @@ pub trait Camera {
     fn render_scene<S>(&self, world: &World, sampler: S) -> FrameBuffer
     where
         S: Sampler + Sync;
+
+    fn generate_ray(&self, column: usize, row: usize, sample: Sample) -> Ray;
 }
 
 #[derive(Debug)]
@@ -37,12 +39,8 @@ impl Camera for PerspectiveCamera {
             .enumerate()
             .for_each(|(r, row)| {
                 row.iter_mut().enumerate().for_each(|(c, pixel)| {
-                    let color = sampler.average(|(sample_x, sample_y)| {
-                        let xv = self.width * ((c as f64 + sample_x) * self.inv_x_res - 0.5);
-                        let yv = self.height * ((r as f64 + sample_y) * self.inv_y_res - 0.5);
-
-                        let direction = self.basis.u * xv + self.basis.v * yv - self.basis.w;
-                        let ray = Ray::new(self.origin, direction);
+                    let color = sampler.average(|sample| {
+                        let ray = self.generate_ray(c, r, sample);
 
                         match world.hit_objects(&ray) {
                             None => world.background_color(),
@@ -55,6 +53,17 @@ impl Camera for PerspectiveCamera {
             });
 
         buffer
+    }
+
+    fn generate_ray(&self, column: usize, row: usize, sample: (f64, f64)) -> Ray {
+        let (sample_x, sample_y) = sample;
+
+        let xv = self.width * ((column as f64 + sample_x) * self.inv_x_res - 0.5);
+        let yv = self.height * ((row as f64 + sample_y) * self.inv_y_res - 0.5);
+        
+        let direction = self.basis.u * xv + self.basis.v * yv - self.basis.w;
+
+        Ray::new(self.origin, direction)
     }
 }
 
