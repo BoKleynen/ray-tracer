@@ -16,11 +16,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let camera = CameraBuilder::new(Point3::new(0., 0., 0.))
         .x_res(1920)
-        .y_res(1920)
+        .y_res(1080)
         .destination(Point3::new(0., 0., -1.))
         // .look_at(Vector3::new(0., 0., -1.))
         .up(Vector3::new(0., 1., 0.))
-        .fov(90.)
+        .fov(120.)
         .build()
         .ok_or("invalid camera configuration")?;
 

@@ -13,6 +13,7 @@ pub trait Camera {
         S: Sampler + Sync;
 }
 
+#[derive(Debug)]
 pub struct PerspectiveCamera {
     x_res: usize,
     y_res: usize,
@@ -36,13 +37,13 @@ impl Camera for PerspectiveCamera {
             .enumerate()
             .for_each(|(idx, pixel)| {
                 let column = (idx % self.x_res) as f64;
-                let row = (idx / self.y_res) as f64;
+                let row = (idx / self.x_res) as f64;
 
-                let color = sampler.average(|(ux, uy)| {
-                    let u = self.width * ((column + ux) * self.inv_x_res - 0.5);
-                    let v = self.height * ((row + uy) * self.inv_y_res - 0.5);
+                let color = sampler.average(|(sample_x, sample_y)| {
+                    let xv = self.width * ((column + sample_x) * self.inv_x_res - 0.5);
+                    let yv = self.height * ((row + sample_y) * self.inv_y_res - 0.5);
 
-                    let direction = self.basis.u * u + self.basis.v * v - self.basis.w;
+                    let direction = self.basis.u * xv + self.basis.v * yv - self.basis.w;
                     let ray = Ray::new(self.origin, direction);
 
                     match world.hit_objects(&ray) {
