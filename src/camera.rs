@@ -33,26 +33,25 @@ impl Camera for PerspectiveCamera {
         let mut buffer = FrameBuffer::new(self.x_res, self.y_res);
         buffer
             .buffer()
-            .par_iter_mut()
+            .par_chunks_exact_mut(self.x_res)
             .enumerate()
-            .for_each(|(idx, pixel)| {
-                let column = (idx % self.x_res) as f64;
-                let row = (idx / self.x_res) as f64;
+            .for_each(|(r, row)| {
+                row.iter_mut().enumerate().for_each(|(c, pixel)| {
+                    let color = sampler.average(|(sample_x, sample_y)| {
+                        let xv = self.width * ((c as f64 + sample_x) * self.inv_x_res - 0.5);
+                        let yv = self.height * ((r as f64 + sample_y) * self.inv_y_res - 0.5);
 
-                let color = sampler.average(|(sample_x, sample_y)| {
-                    let xv = self.width * ((column + sample_x) * self.inv_x_res - 0.5);
-                    let yv = self.height * ((row + sample_y) * self.inv_y_res - 0.5);
+                        let direction = self.basis.u * xv + self.basis.v * yv - self.basis.w;
+                        let ray = Ray::new(self.origin, direction);
 
-                    let direction = self.basis.u * xv + self.basis.v * yv - self.basis.w;
-                    let ray = Ray::new(self.origin, direction);
+                        match world.hit_objects(&ray) {
+                            None => world.background_color(),
+                            Some(sr) => sr.material.shade(&sr, &ray),
+                        }
+                    });
 
-                    match world.hit_objects(&ray) {
-                        None => world.background_color(),
-                        Some(sr) => sr.material.shade(&sr, &ray),
-                    }
+                    pixel.set(color);
                 });
-
-                pixel.set(color);
             });
 
         buffer
