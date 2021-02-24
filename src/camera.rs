@@ -1,16 +1,13 @@
-use crate::film::FrameBuffer;
 use crate::math::{OrthonormalBasis, Ray};
-use crate::sampler::Sampler;
-use crate::world::World;
+use crate::sampler::Sample;
 use nalgebra::{Point3, Vector3};
-use rayon::prelude::*;
 use std::f64;
 use std::ops::Neg;
 
 pub trait Camera {
-    fn render_scene<S>(&self, world: &World, sampler: S) -> FrameBuffer
-    where
-        S: Sampler + Sync;
+    fn generate_ray(&self, column: usize, row: usize, sample: Sample) -> Ray;
+
+    fn resolution(&self) -> (usize, usize);
 }
 
 #[derive(Debug)]
@@ -26,35 +23,19 @@ pub struct PerspectiveCamera {
 }
 
 impl Camera for PerspectiveCamera {
-    fn render_scene<S>(&self, world: &World, sampler: S) -> FrameBuffer
-    where
-        S: Sampler + Sync,
-    {
-        let mut buffer = FrameBuffer::new(self.x_res, self.y_res);
-        buffer
-            .buffer()
-            .par_chunks_exact_mut(self.x_res)
-            .enumerate()
-            .for_each(|(r, row)| {
-                row.iter_mut().enumerate().for_each(|(c, pixel)| {
-                    let color = sampler.average(|(sample_x, sample_y)| {
-                        let xv = self.width * ((c as f64 + sample_x) * self.inv_x_res - 0.5);
-                        let yv = self.height * ((r as f64 + sample_y) * self.inv_y_res - 0.5);
+    fn generate_ray(&self, column: usize, row: usize, sample: (f64, f64)) -> Ray {
+        let (sample_x, sample_y) = sample;
 
-                        let direction = self.basis.u * xv + self.basis.v * yv - self.basis.w;
-                        let ray = Ray::new(self.origin, direction);
+        let xv = self.width * ((column as f64 + sample_x) * self.inv_x_res - 0.5);
+        let yv = self.height * ((row as f64 + sample_y) * self.inv_y_res - 0.5);
 
-                        match world.hit_objects(&ray) {
-                            None => world.background_color(),
-                            Some(sr) => sr.material.shade(&sr, &ray),
-                        }
-                    });
+        let direction = self.basis.u * xv + self.basis.v * yv - self.basis.w;
 
-                    pixel.set(color);
-                });
-            });
+        Ray::new(self.origin, direction)
+    }
 
-        buffer
+    fn resolution(&self) -> (usize, usize) {
+        (self.x_res, self.y_res)
     }
 }
 

@@ -4,6 +4,9 @@ use cg_practicum::film::RGB;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
+use cg_practicum::renderer::{
+    DirectIllumination, FalseColorIntersectionTests, FalseColorNormals, Renderer,
+};
 use cg_practicum::sampler::{JitteredSampler, RegularSampler, Unsampled};
 use cg_practicum::shape::Sphere;
 use cg_practicum::world::WorldBuilder;
@@ -67,7 +70,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let sampler = RegularSampler::new(16);
     // let sampler = Unsampled::default();
     let sampler = JitteredSampler::new(16);
-    let buffer = camera.render_scene(&world, sampler);
+    let tracer = FalseColorIntersectionTests::default();
+    let buffer = tracer.render_scene(&world, camera, sampler);
 
     buffer.to_rgba_image(1., 2.2).save("renders/spheres.png")?;
 

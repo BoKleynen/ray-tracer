@@ -4,6 +4,7 @@ use cg_practicum::film::RGB;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
+use cg_practicum::renderer::{DirectIllumination, Renderer};
 use cg_practicum::sampler::Unsampled;
 use cg_practicum::shape::{Cuboid, Obj, Plane, Sphere, TriangleMesh};
 use cg_practicum::world::WorldBuilder;
@@ -78,7 +79,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .ok_or("invalid world configuration")?;
 
     let sampler = Unsampled::default();
-    let buffer = camera.render_scene(&world, sampler);
+    let tracer = DirectIllumination::default();
+    let buffer = tracer.render_scene(&world, camera, sampler);
 
     buffer
         .to_rgba_image(cfg.sensitivity, cfg.gamma)
