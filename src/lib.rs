@@ -9,7 +9,7 @@ pub mod math;
 pub mod sampler;
 pub mod shade_rec;
 pub mod shape;
-pub mod world;
 pub mod tracer;
+pub mod world;
 
 const K_EPSILON: f64 = 1e-10;

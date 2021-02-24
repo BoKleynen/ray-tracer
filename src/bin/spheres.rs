@@ -10,6 +10,7 @@ use cg_practicum::world::WorldBuilder;
 use nalgebra::{Point3, Vector3};
 use std::error::Error;
 use std::time::Instant;
+use cg_practicum::tracer::{Renderer, Tracer, FalseColorNormal};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
@@ -67,7 +68,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let sampler = RegularSampler::new(16);
     // let sampler = Unsampled::default();
     let sampler = JitteredSampler::new(16);
-    let buffer = camera.render_scene(&world, sampler);
+    let tracer = FalseColorNormal::default();
+    let buffer = tracer.render_scene(&world, camera, sampler);
 
     buffer.to_rgba_image(1., 2.2).save("renders/spheres.png")?;
 
