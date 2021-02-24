@@ -1,9 +1,6 @@
-use crate::film::FrameBuffer;
 use crate::math::{OrthonormalBasis, Ray};
-use crate::sampler::{Sample, Sampler};
-use crate::world::World;
+use crate::sampler::Sample;
 use nalgebra::{Point3, Vector3};
-use rayon::prelude::*;
 use std::f64;
 use std::ops::Neg;
 

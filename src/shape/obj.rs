@@ -177,6 +177,16 @@ impl Shape for TriangleMesh {
         self.material.clone()
     }
 
+    fn count_intersection_tests(&self, ray: &Ray) -> usize {
+        let inv_ray = self.transformation.apply_inverse(ray);
+
+        if self.aabb.hit(&inv_ray) {
+            1 + self.triangles.len()
+        } else {
+            1
+        }
+    }
+
     fn hit(&self, ray: &Ray) -> bool {
         let inv_ray = self.transformation.apply_inverse(ray);
 

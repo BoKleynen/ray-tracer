@@ -76,4 +76,8 @@ impl Shape for Sphere {
     fn material(&self) -> Material {
         self.material.clone()
     }
+
+    fn count_intersection_tests(&self, _ray: &Ray) -> usize {
+        1
+    }
 }
