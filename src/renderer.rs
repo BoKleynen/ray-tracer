@@ -115,8 +115,8 @@ impl Renderer for FalseColorIntersectionTests {
             .for_each(|(idx, pixel)| {
                 let count = intersection_counts[idx];
 
-                let r = (count & (0b1111_1111 << 16)) >> 16;
-                let g = (count & (0b1111_1111 << 8)) >> 8;
+                let r = (count & 0b1111_1111 << 16) >> 16;
+                let g = (count & 0b1111_1111 << 8) >> 8;
                 let b = count & 0b_1111_1111;
 
                 pixel.set(RGB::new(r as f64, g as f64, b as f64));
