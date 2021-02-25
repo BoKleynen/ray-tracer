@@ -28,6 +28,7 @@ pub trait Light: Sync {
 }
 
 pub struct PointLight {
+    // radiance scaling factor, in [0, +inf)
     ls: f64,
     color: RGB,
     location: Point3<f64>,
@@ -35,6 +36,8 @@ pub struct PointLight {
 
 impl PointLight {
     pub fn new(ls: f64, color: RGB, location: Point3<f64>) -> Self {
+        assert!(ls >= 0.);
+
         Self {
             ls,
             color,
@@ -59,4 +62,9 @@ impl Light for PointLight {
     fn radiance(&self, _sr: &ShadeRec) -> RGB {
         self.color * self.ls
     }
+}
+
+pub struct AreaLight {
+    color: RGB,
+    location: Point3<f64>,
 }

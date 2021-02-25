@@ -1,6 +1,10 @@
+use crate::brdf::BRDF;
 use crate::camera::Camera;
 use crate::film::{FrameBuffer, RGB};
+use crate::material::Material;
+use crate::math::Ray;
 use crate::sampler::Sampler;
+use crate::shade_rec::ShadeRec;
 use crate::world::World;
 use rayon::prelude::*;
 
@@ -33,7 +37,7 @@ impl Renderer for DirectIllumination {
 
                         match world.hit_objects(&ray) {
                             None => world.background_color(),
-                            Some(sr) => sr.material.shade(&sr, &ray),
+                            Some(sr) => Self::shade(&sr.material, &sr, &ray),
                         }
                     });
 
@@ -42,6 +46,45 @@ impl Renderer for DirectIllumination {
             });
 
         buffer
+    }
+}
+
+impl DirectIllumination {
+    fn shade(material: &Material, sr: &ShadeRec, ray: &Ray) -> RGB {
+        match material {
+            Material::Matte {
+                ambient_brdf,
+                diffuse_brdf,
+            } => {
+                let wo = -ray.direction();
+                let ambient_radiance =
+                    ambient_brdf.rho(sr, &wo) * sr.world.ambient_light().radiance();
+                let direct_diffuse_radiance: RGB = sr
+                    .world
+                    .lights()
+                    .iter()
+                    .map(|light| {
+                        let wi = light.direction(sr);
+                        let n_dot_wi = sr.normal.dot(&wi);
+
+                        let visible = || {
+                            !sr.world
+                                .shapes()
+                                .iter()
+                                .any(|shape| shape.hit(&Ray::new(sr.hit_point, wi)))
+                        };
+
+                        if n_dot_wi > 0. && visible() {
+                            diffuse_brdf.f(sr, &wo, &wi) * light.radiance(sr) * n_dot_wi
+                        } else {
+                            RGB::black()
+                        }
+                    })
+                    .sum();
+
+                ambient_radiance + direct_diffuse_radiance
+            }
+        }
     }
 }
 
