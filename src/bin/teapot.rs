@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid camera configuration")?;
 
-    let light1 = PointLight::white(Point3::new(4., -4., 0.));
+    let light1 = PointLight::white(1., Point3::new(4., -4., 0.));
     let t = Transformation::translate(0., 0., -10.).append(&Transformation::scale(5., 5., 5.));
 
     let material = Material::Matte {

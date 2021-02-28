@@ -7,6 +7,7 @@ use crate::sampler::Sampler;
 use crate::shade_rec::ShadeRec;
 use crate::world::World;
 use rayon::prelude::*;
+use crate::shape::Hit;
 
 pub trait Renderer {
     fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> FrameBuffer
@@ -67,14 +68,7 @@ impl DirectIllumination {
                         let wi = light.direction(sr);
                         let n_dot_wi = sr.normal.dot(&wi);
 
-                        let visible = || {
-                            !sr.world
-                                .shapes()
-                                .iter()
-                                .any(|shape| shape.hit(&Ray::new(sr.hit_point, wi)))
-                        };
-
-                        if n_dot_wi > 0. && visible() {
+                        if n_dot_wi > 0. && light.visible(&Ray::new(sr.hit_point, wi), sr) {
                             diffuse_brdf.f(sr, &wo, &wi) * light.radiance(sr) * n_dot_wi
                         } else {
                             RGB::black()

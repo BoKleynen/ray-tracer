@@ -45,8 +45,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 0., 1.)),
     };
 
-    let light = PointLight::white(Point3::new(100., 50., 150.));
-    let light2 = PointLight::white(Point3::new(50., 100., 50.));
+    let light = PointLight::white(1., Point3::new(100., 50., 150.));
+    let light2 = PointLight::white(1., Point3::new(50., 100., 50.));
 
     let world = WorldBuilder::default()
         // .shape(Box::new(TriangleMesh::new(

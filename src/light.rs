@@ -1,6 +1,8 @@
 use crate::film::RGB;
 use crate::shade_rec::ShadeRec;
 use nalgebra::{Point3, Vector3};
+use crate::math::Ray;
+use crate::shape::Hit;
 
 pub struct AmbientLight {
     ls: f64,
@@ -25,6 +27,7 @@ impl AmbientLight {
 pub trait Light: Sync {
     fn direction(&self, sr: &ShadeRec) -> Vector3<f64>;
     fn radiance(&self, sr: &ShadeRec) -> RGB;
+    fn visible(&self, ray: &Ray, sr: &ShadeRec) -> bool;
 }
 
 pub struct PointLight {
@@ -45,9 +48,9 @@ impl PointLight {
         }
     }
 
-    pub fn white(location: Point3<f64>) -> Self {
+    pub fn white(ls: f64, location: Point3<f64>) -> Self {
         Self {
-            ls: 1.0,
+            ls,
             color: RGB::white(),
             location,
         }
@@ -61,6 +64,16 @@ impl Light for PointLight {
 
     fn radiance(&self, _sr: &ShadeRec) -> RGB {
         self.color * self.ls
+    }
+
+    fn visible(&self, ray: &Ray, sr: &ShadeRec) -> bool {
+        !sr.world
+            .shapes()
+            .iter()
+            .any(|shape| match shape.intersect(ray) {
+                None => false,
+                Some(hit) => hit.t < (self.location - ray.origin()).norm()
+            })
     }
 }
 
