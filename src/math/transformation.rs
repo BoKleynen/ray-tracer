@@ -1,5 +1,5 @@
 use nalgebra as na;
-use nalgebra::{Affine3, Matrix4, Point3, Translation3, Vector3};
+use nalgebra::{Affine3, Matrix4, Point3, Rotation3, Translation3, Vector3};
 
 #[derive(Debug)]
 pub struct Transformation {

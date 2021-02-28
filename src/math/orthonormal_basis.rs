@@ -1,43 +1,31 @@
-use nalgebra::Vector3;
+use crate::K_EPSILON;
+use nalgebra::{Unit, Vector3};
 
 #[derive(Debug, Clone)]
 pub struct OrthonormalBasis {
-    pub(crate) u: Vector3<f64>,
-    pub(crate) v: Vector3<f64>,
-    pub(crate) w: Vector3<f64>,
+    pub(crate) u: Unit<Vector3<f64>>,
+    pub(crate) v: Unit<Vector3<f64>>,
+    pub(crate) w: Unit<Vector3<f64>>,
 }
 
 impl OrthonormalBasis {
     pub fn from_vector(a: &Vector3<f64>) -> Option<Self> {
-        let length = a.norm();
-        if length == 0. {
-            return None;
-        }
+        let w = Unit::try_new(*a, K_EPSILON)?;
 
-        let w = a / length;
         let u = if w.x.abs() > w.y.abs() {
-            let inv_length = 1. / w.norm();
-            Vector3::new(-w.z * inv_length, 0., w.x * inv_length)
+            Unit::new_normalize(Vector3::new(-w.z, 0., w.x))
         } else {
-            let inv_length = 1. / w.norm();
-            Vector3::new(0., w.z * inv_length, -w.y * inv_length)
+            Unit::new_normalize(Vector3::new(0., w.z, -w.y))
         };
-        let v = w.cross(&u);
+        let v = Unit::new_normalize(w.cross(&u));
 
         Some(Self { u, v, w })
     }
 
     pub fn from_vectors(a: &Vector3<f64>, b: &Vector3<f64>) -> Option<Self> {
-        let cross = b.cross(&a);
-        let length = cross.norm();
-
-        if length == 0. {
-            return None;
-        }
-
-        let w = a.normalize();
-        let u = cross / length;
-        let v = w.cross(&u);
+        let u = Unit::try_new(b.cross(&a), K_EPSILON)?;
+        let w = Unit::new_normalize(*a);
+        let v = Unit::new_normalize(w.cross(&u));
 
         Some(Self { u, v, w })
     }

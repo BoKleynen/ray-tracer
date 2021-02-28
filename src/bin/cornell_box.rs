@@ -4,13 +4,13 @@ use cg_practicum::film::RGB;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
-use cg_practicum::shape::{Plane, Sphere, Cuboid};
+use cg_practicum::renderer::{DirectIllumination, Renderer};
+use cg_practicum::sampler::Unsampled;
+use cg_practicum::shape::{Cuboid, Plane, Sphere};
+use cg_practicum::world::WorldBuilder;
 use nalgebra::{Point3, Vector3};
 use std::error::Error;
 use std::time::Instant;
-use cg_practicum::world::WorldBuilder;
-use cg_practicum::sampler::Unsampled;
-use cg_practicum::renderer::{DirectIllumination, Renderer};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
@@ -92,7 +92,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let tracer = DirectIllumination::default();
     let buffer = tracer.render_scene(&world, camera, sampler);
 
-    buffer.to_rgba_image(1., 2.2).save("renders/cornell_box.png")?;
+    buffer
+        .to_rgba_image(1., 2.2)
+        .save("renders/cornell_box.png")?;
 
     let duration = start.elapsed();
     println!("render time: {:?}", duration);
