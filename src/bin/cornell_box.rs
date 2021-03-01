@@ -5,7 +5,7 @@ use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
 use cg_practicum::renderer::{DirectIllumination, Renderer};
-use cg_practicum::sampler::Unsampled;
+use cg_practicum::sampler::{JitteredSampler, Unsampled};
 use cg_practicum::shape::{Cuboid, Plane, Sphere};
 use cg_practicum::world::WorldBuilder;
 use nalgebra::{Point3, Vector3};
@@ -15,20 +15,20 @@ use std::time::Instant;
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
 
-    let camera = CameraBuilder::new(Point3::new(0., 0., 2.))
-        .x_res(640)
-        .y_res(640)
+    let camera = CameraBuilder::new(Point3::new(0., 0., 4.))
+        .x_res(1080)
+        .y_res(1080)
         .look_at(Vector3::new(0., 0., -1.))
         .up(Vector3::new(0., 1., 0.))
-        .fov(120.)
+        .fov(90.)
         .build()
         .ok_or("invalid camera configuration")?;
 
-    let light = PointLight::white(1., Point3::new(0., 0., 0.));
+    let light = PointLight::white(1., Point3::new(0., 2., -1.));
 
     let white_material = Material::Matte {
-        ambient_brdf: Lambertian::new(0., RGB::new(1., 1., 1.)),
-        diffuse_brdf: Lambertian::new(0.3, RGB::new(1., 1., 1.)),
+        ambient_brdf: Lambertian::new(0.15, RGB::new(238. / 255., 235. / 255., 227. / 255.)),
+        diffuse_brdf: Lambertian::new(0.5, RGB::new(1., 1., 1.)),
     };
     let red_material = Material::Matte {
         ambient_brdf: Lambertian::new(0.05, RGB::new(1., 0., 0.)),
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         diffuse_brdf: Lambertian::new(0.3, RGB::new(0., 1., 0.)),
     };
     let blue_material = Material::Matte {
-        ambient_brdf: Lambertian::new(0., RGB::new(0., 0., 1.)),
+        ambient_brdf: Lambertian::new(0.15, RGB::new(0., 0., 1.)),
         diffuse_brdf: Lambertian::new(0.45, RGB::new(0., 0., 1.)),
     };
 
@@ -73,8 +73,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         Transformation::identity(),
         green_material,
     );
-    let t1 = Transformation::translate(2., -2., -2.);
-    let sphere = Sphere::new(t1, blue_material);
+
+    let t2 = Transformation::translate(1.75, -3.5, -2.5).append(&Transformation::rotate_y(-40.));
+    let cube = Cuboid::new(Point3::new(1.5, 1.5, 1.5), t2, blue_material.clone());
+
+    let t3 = Transformation::translate(-2.5, -3., -4.).append(&Transformation::rotate_y(35.));
+    let cuboid = Cuboid::new(Point3::new(1.25, 3.5, 1.25), t3, white_material.clone());
 
     let world = WorldBuilder::default()
         .background(RGB::black())
@@ -84,11 +88,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         .shape(Box::new(bottom_plane))
         .shape(Box::new(left_plane))
         .shape(Box::new(right_plane))
-        .shape(Box::new(sphere))
+        .shape(Box::new(cube))
+        .shape(Box::new(cuboid))
         .build()
         .ok_or("invalid world configuration")?;
 
-    let sampler = Unsampled::default();
+    let sampler = JitteredSampler::new(9);
     let tracer = DirectIllumination::default();
     let buffer = tracer.render_scene(&world, camera, sampler);
 

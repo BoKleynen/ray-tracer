@@ -1,7 +1,6 @@
 use crate::film::RGB;
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
-use crate::shape::Hit;
 use nalgebra::{Point3, Unit, Vector3};
 
 pub struct AmbientLight {
@@ -73,9 +72,4 @@ impl Light for PointLight {
                 .map_or(false, |hit| hit.t < (self.location - ray.origin()).norm())
         })
     }
-}
-
-pub struct AreaLight {
-    color: RGB,
-    location: Point3<f64>,
 }

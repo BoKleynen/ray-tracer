@@ -19,7 +19,7 @@ pub struct Lambertian {
 
 impl Lambertian {
     pub fn new(kd: f64, cd: RGB) -> Self {
-        assert!(kd >= 0. && kd <= 1.);
+        assert!((0. ..=1.).contains(&kd));
 
         Lambertian { kd, cd }
     }

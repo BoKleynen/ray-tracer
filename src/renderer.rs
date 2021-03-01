@@ -5,7 +5,6 @@ use crate::material::Material;
 use crate::math::Ray;
 use crate::sampler::Sampler;
 use crate::shade_rec::ShadeRec;
-use crate::shape::Hit;
 use crate::world::World;
 use rayon::prelude::*;
 

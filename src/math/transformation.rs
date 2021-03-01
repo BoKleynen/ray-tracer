@@ -1,5 +1,5 @@
 use nalgebra as na;
-use nalgebra::{Affine3, Matrix4, Point3, Rotation3, Translation3, Vector3};
+use nalgebra::{Affine3, Matrix4, Point3, Rotation3, Translation3, Unit, Vector3};
 
 #[derive(Debug)]
 pub struct Transformation {
@@ -43,6 +43,36 @@ impl Transformation {
         let inverse = na::convert(Translation3::from(Vector3::new(-x, -y, -z)));
 
         Self { matrix, inverse }
+    }
+
+    pub fn rotate(axis: &Unit<Vector3<f64>>, angle: f64) -> Self {
+        let matrix = Rotation3::from_axis_angle(&axis, angle);
+
+        let inverse = na::convert(matrix.inverse());
+        let matrix = na::convert(matrix);
+
+        Self { matrix, inverse }
+    }
+
+    pub fn rotate_x(angle: f64) -> Transformation {
+        let angle = angle.to_radians();
+        let x = Unit::new_unchecked(Vector3::new(1., 0., 0.));
+
+        Self::rotate(&x, angle)
+    }
+
+    pub fn rotate_y(angle: f64) -> Transformation {
+        let angle = angle.to_radians();
+        let y = Unit::new_unchecked(Vector3::new(0., 1., 0.));
+
+        Self::rotate(&y, angle)
+    }
+
+    pub fn rotate_z(angle: f64) -> Transformation {
+        let angle = angle.to_radians();
+        let z = Unit::new_unchecked(Vector3::new(0., 0., 1.));
+
+        Self::rotate(&z, angle)
     }
 
     pub fn scale(x: f64, y: f64, z: f64) -> Self {
