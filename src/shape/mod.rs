@@ -3,6 +3,7 @@ mod compound;
 mod cuboid;
 mod obj;
 mod plane;
+mod rectangle;
 mod sphere;
 mod transformed;
 
@@ -10,6 +11,7 @@ pub use aabb::AABB;
 pub use cuboid::Cuboid;
 pub use obj::{FlatTriangle, Obj, SmoothTriangle};
 pub use plane::Plane;
+pub use rectangle::Rectangle;
 pub use sphere::Sphere;
 
 use crate::material::Material;
