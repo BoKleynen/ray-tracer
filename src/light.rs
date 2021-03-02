@@ -1,6 +1,8 @@
 use crate::film::RGB;
+use crate::material::Emissive;
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
+use crate::shape::Shape;
 use nalgebra::{Point3, Unit, Vector3};
 
 pub struct AmbientLight {
@@ -30,29 +32,19 @@ pub trait Light: Sync {
 }
 
 pub struct PointLight {
-    // radiance scaling factor, in [0, +inf)
-    ls: f64,
-    color: RGB,
     location: Point3<f64>,
+    material: Emissive,
 }
 
 impl PointLight {
     pub fn new(ls: f64, color: RGB, location: Point3<f64>) -> Self {
-        assert!(ls >= 0.);
+        let material = Emissive::new(ls, color);
 
-        Self {
-            ls,
-            color,
-            location,
-        }
+        Self { material, location }
     }
 
     pub fn white(ls: f64, location: Point3<f64>) -> Self {
-        Self {
-            ls,
-            color: RGB::white(),
-            location,
-        }
+        Self::new(ls, RGB::white(), location)
     }
 }
 
@@ -62,7 +54,7 @@ impl Light for PointLight {
     }
 
     fn radiance(&self, _sr: &ShadeRec) -> RGB {
-        self.color * self.ls
+        self.material.ce * self.material.ls
     }
 
     fn visible(&self, ray: &Ray, sr: &ShadeRec) -> bool {
@@ -72,4 +64,9 @@ impl Light for PointLight {
                 .map_or(false, |hit| hit.t < (self.location - ray.origin()).norm())
         })
     }
+}
+
+pub struct AreaLight {
+    shape: Box<dyn Shape>,
+    material: Emissive,
 }

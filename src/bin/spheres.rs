@@ -9,7 +9,7 @@ use cg_practicum::renderer::{
     DirectIllumination, FalseColorIntersectionTests, FalseColorNormals, Renderer,
 };
 use cg_practicum::sampler::{JitteredSampler, RegularSampler, Unsampled};
-use cg_practicum::shape::{GeometricObject, Sphere};
+use cg_practicum::shape::GeometricObject;
 use cg_practicum::world::WorldBuilder;
 use nalgebra::{Point3, Vector3};
 use std::error::Error;
