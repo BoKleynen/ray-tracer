@@ -66,7 +66,7 @@ impl Light for PointLight {
     }
 
     fn visible(&self, ray: &Ray, sr: &ShadeRec) -> bool {
-        !sr.world.shapes().iter().any(|shape| {
+        !sr.world.geometric_objects().iter().any(|shape| {
             shape
                 .intersect(ray)
                 .map_or(false, |hit| hit.t < (self.location - ray.origin()).norm())

@@ -136,7 +136,7 @@ impl Renderer for FalseColorIntersectionTests {
                     let ray = camera.generate_ray(c, r, (0.5, 0.5));
 
                     *nb_intersects = world
-                        .shapes()
+                        .geometric_objects()
                         .iter()
                         .map(|shape| shape.count_intersection_tests(&ray))
                         .sum();

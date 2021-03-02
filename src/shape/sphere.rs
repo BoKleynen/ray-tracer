@@ -8,15 +8,11 @@ use nalgebra::Vector3;
 /// which is transformed by a transformation.
 pub struct Sphere {
     transformation: Transformation,
-    material: Material,
 }
 
 impl Sphere {
-    pub fn new(transformation: Transformation, material: Material) -> Self {
-        Sphere {
-            transformation,
-            material,
-        }
+    pub fn new(transformation: Transformation) -> Self {
+        Sphere { transformation }
     }
 
     fn shading_normal(&self, normal: &Vector3<f64>) -> Vector3<f64> {
@@ -71,10 +67,6 @@ impl Shape for Sphere {
         }
 
         None
-    }
-
-    fn material(&self) -> Material {
-        self.material.clone()
     }
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {

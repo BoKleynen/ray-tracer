@@ -78,12 +78,11 @@ impl Triangle {
 pub struct TriangleMesh {
     triangles: Vec<Triangle>,
     transformation: Transformation,
-    material: Material,
     aabb: AABB,
 }
 
 impl TriangleMesh {
-    pub fn new(obj: Obj, material: Material, transformation: Transformation) -> Self {
+    pub fn new(obj: Obj, transformation: Transformation) -> Self {
         let min_x = obj
             .vertexes
             .iter()
@@ -153,7 +152,6 @@ impl TriangleMesh {
         Self {
             triangles,
             transformation,
-            material,
             aabb,
         }
     }
@@ -171,10 +169,6 @@ impl Shape for TriangleMesh {
             .iter()
             .filter_map(|triangle| triangle.intersect(&inv_ray))
             .min_by(|x, y| x.t.partial_cmp(&y.t).unwrap())
-    }
-
-    fn material(&self) -> Material {
-        self.material.clone()
     }
 
     fn count_intersection_tests(&self, ray: &Ray) -> usize {

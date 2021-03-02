@@ -6,7 +6,7 @@ use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
 use cg_practicum::renderer::{DirectIllumination, Renderer};
 use cg_practicum::sampler::{JitteredSampler, Unsampled};
-use cg_practicum::shape::{Cuboid, Plane, Sphere};
+use cg_practicum::shape::{Cuboid, GeometricObject, Plane, Sphere};
 use cg_practicum::world::WorldBuilder;
 use nalgebra::{Point3, Vector3};
 use std::error::Error;
@@ -43,31 +43,31 @@ fn main() -> Result<(), Box<dyn Error>> {
         diffuse_brdf: Lambertian::new(0.45, RGB::new(0., 0., 1.)),
     };
 
-    let back_plane = Plane::new(
+    let back_plane = GeometricObject::plane(
         Vector3::new(0., 0., 1.),
         Point3::new(0., 0., -5.),
         Transformation::identity(),
         white_material.clone(),
     );
-    let bottom_plane = Plane::new(
+    let bottom_plane = GeometricObject::plane(
         Vector3::new(0., 1., 0.),
         Point3::new(0., -5., 0.),
         Transformation::identity(),
         white_material.clone(),
     );
-    let top_plane = Plane::new(
+    let top_plane = GeometricObject::plane(
         Vector3::new(0., -1., 0.),
         Point3::new(0., 5., 0.),
         Transformation::identity(),
         white_material.clone(),
     );
-    let left_plane = Plane::new(
+    let left_plane = GeometricObject::plane(
         Vector3::new(1., 0., 0.),
         Point3::new(-5., 0., 0.),
         Transformation::identity(),
         red_material,
     );
-    let right_plane = Plane::new(
+    let right_plane = GeometricObject::plane(
         Vector3::new(-1., 0., 0.),
         Point3::new(5., 0., 0.),
         Transformation::identity(),
@@ -75,21 +75,21 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
 
     let t2 = Transformation::translate(1.75, -3.5, -2.5).append(&Transformation::rotate_y(-40.));
-    let cube = Cuboid::new(Point3::new(1.5, 1.5, 1.5), t2, blue_material.clone());
+    let cube = GeometricObject::cuboid(Point3::new(1.5, 1.5, 1.5), t2, blue_material.clone());
 
     let t3 = Transformation::translate(-2.5, -3., -4.).append(&Transformation::rotate_y(35.));
-    let cuboid = Cuboid::new(Point3::new(1.25, 3.5, 1.25), t3, white_material.clone());
+    let cuboid = GeometricObject::cuboid(Point3::new(1.25, 3.5, 1.25), t3, white_material.clone());
 
     let world = WorldBuilder::default()
         .background(RGB::black())
         .light(Box::new(light))
-        .shape(Box::new(back_plane))
-        .shape(Box::new(top_plane))
-        .shape(Box::new(bottom_plane))
-        .shape(Box::new(left_plane))
-        .shape(Box::new(right_plane))
-        .shape(Box::new(cube))
-        .shape(Box::new(cuboid))
+        .geometric_object(back_plane)
+        .geometric_object(top_plane)
+        .geometric_object(bottom_plane)
+        .geometric_object(left_plane)
+        .geometric_object(right_plane)
+        .geometric_object(cube)
+        .geometric_object(cuboid)
         .build()
         .ok_or("invalid world configuration")?;
 

@@ -8,7 +8,7 @@ use cg_practicum::renderer::{
     DirectIllumination, FalseColorIntersectionTests, FalseColorNormals, Renderer,
 };
 use cg_practicum::sampler::{JitteredSampler, RegularSampler, Unsampled};
-use cg_practicum::shape::Sphere;
+use cg_practicum::shape::{GeometricObject, Sphere};
 use cg_practicum::world::WorldBuilder;
 use nalgebra::{Point3, Vector3};
 use std::error::Error;
@@ -59,11 +59,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let world = WorldBuilder::default()
         .light(Box::new(light1))
         .background(RGB::black())
-        .shape(Box::new(Sphere::new(t1, material1)))
-        .shape(Box::new(Sphere::new(t2, material2)))
-        .shape(Box::new(Sphere::new(t3, material3)))
-        .shape(Box::new(Sphere::new(t4, material4)))
-        .shape(Box::new(Sphere::new(t5, material5)))
+        .geometric_object(GeometricObject::sphere(t1, material1))
+        .geometric_object(GeometricObject::sphere(t2, material2))
+        .geometric_object(GeometricObject::sphere(t3, material3))
+        .geometric_object(GeometricObject::sphere(t4, material4))
+        .geometric_object(GeometricObject::sphere(t5, material5))
         .build()
         .ok_or("invalid world configuration")?;
 

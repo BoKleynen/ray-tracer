@@ -6,7 +6,7 @@ use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
 use cg_practicum::renderer::{FalseColorIntersectionTests, FalseColorNormals, Renderer};
 use cg_practicum::sampler::JitteredSampler;
-use cg_practicum::shape::{Obj, TriangleMesh};
+use cg_practicum::shape::{GeometricObject, Obj, TriangleMesh};
 use cg_practicum::world::WorldBuilder;
 use nalgebra::{Point3, Vector3};
 use std::error::Error;
@@ -37,7 +37,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let world = WorldBuilder::default()
         .light(Box::new(light1))
         .background(RGB::black())
-        .shape(Box::new(TriangleMesh::new(object, material, t)))
+        .geometric_object(GeometricObject::triangle_mesh(object, t, material))
         .build()
         .ok_or("invalid world configuration")?;
 

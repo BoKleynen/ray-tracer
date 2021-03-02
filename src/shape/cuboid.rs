@@ -10,7 +10,6 @@ use nalgebra::{Point3, Vector3};
 pub struct Cuboid {
     transformation: Transformation,
     corner: Point3<f64>,
-    material: Material,
 }
 
 enum CuboidFace {
@@ -36,11 +35,10 @@ impl CuboidFace {
 }
 
 impl Cuboid {
-    pub fn new(corner: Point3<f64>, transformation: Transformation, material: Material) -> Self {
+    pub fn new(corner: Point3<f64>, transformation: Transformation) -> Self {
         Self {
             transformation,
             corner,
-            material,
         }
     }
 
@@ -164,10 +162,6 @@ impl Shape for Cuboid {
         } else {
             None
         }
-    }
-
-    fn material(&self) -> Material {
-        self.material.clone()
     }
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {

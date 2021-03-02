@@ -8,21 +8,14 @@ pub struct Plane {
     normal: Vector3<f64>,
     point: Point3<f64>,
     transformation: Transformation,
-    material: Material,
 }
 
 impl Plane {
-    pub fn new(
-        normal: Vector3<f64>,
-        point: Point3<f64>,
-        transformation: Transformation,
-        material: Material,
-    ) -> Self {
+    pub fn new(normal: Vector3<f64>, point: Point3<f64>, transformation: Transformation) -> Self {
         Self {
             normal,
             point,
             transformation,
-            material,
         }
     }
 
@@ -52,10 +45,6 @@ impl Shape for Plane {
         } else {
             None
         }
-    }
-
-    fn material(&self) -> Material {
-        self.material.clone()
     }
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
