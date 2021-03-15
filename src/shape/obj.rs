@@ -77,12 +77,11 @@ impl Triangle {
 
 pub struct TriangleMesh {
     triangles: Vec<Triangle>,
-    transformation: Transformation,
     aabb: AABB,
 }
 
 impl TriangleMesh {
-    pub fn new(obj: Obj, transformation: Transformation) -> Self {
+    pub fn new(obj: Obj) -> Self {
         let min_x = obj
             .vertexes
             .iter()
@@ -149,32 +148,24 @@ impl TriangleMesh {
             })
             .collect();
 
-        Self {
-            triangles,
-            transformation,
-            aabb,
-        }
+        Self { triangles, aabb }
     }
 }
 
 impl Shape for TriangleMesh {
     fn intersect(&self, ray: &Ray) -> Option<Hit> {
-        let inv_ray = self.transformation.apply_inverse(ray);
-
-        if !self.aabb.hit(&inv_ray) {
+        if !self.aabb.hit(&ray) {
             return None;
         }
 
         self.triangles
             .iter()
-            .filter_map(|triangle| triangle.intersect(&inv_ray))
+            .filter_map(|triangle| triangle.intersect(&ray))
             .min_by(|x, y| x.t.partial_cmp(&y.t).unwrap())
     }
 
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
-        let inv_ray = self.transformation.apply_inverse(ray);
-
-        if self.aabb.hit(&inv_ray) {
+        if self.aabb.hit(&ray) {
             1 + self.triangles.len()
         } else {
             1
@@ -182,13 +173,11 @@ impl Shape for TriangleMesh {
     }
 
     fn hit(&self, ray: &Ray) -> bool {
-        let inv_ray = self.transformation.apply_inverse(ray);
-
-        self.aabb.hit(&inv_ray)
+        self.aabb.hit(&ray)
             && self
                 .triangles
                 .iter()
-                .any(|triangle| triangle.intersect(&inv_ray).is_some())
+                .any(|triangle| triangle.intersect(&ray).is_some())
     }
 }
 

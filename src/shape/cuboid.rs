@@ -8,61 +8,24 @@ use nalgebra::{Point3, Vector3};
 /// to the origin.
 #[derive(Debug)]
 pub struct Cuboid {
-    transformation: Transformation,
     corner: Point3<f64>,
 }
 
-enum CuboidFace {
-    Left,
-    Bottom,
-    Back,
-    Right,
-    Top,
-    Front,
-}
-
-impl CuboidFace {
-    fn normal(self) -> Vector3<f64> {
-        match self {
-            CuboidFace::Left => Vector3::new(-1., 0., 0.),
-            CuboidFace::Bottom => Vector3::new(0., -1., 0.),
-            CuboidFace::Back => Vector3::new(0., 0., -1.),
-            CuboidFace::Right => Vector3::new(1., 0., 0.),
-            CuboidFace::Top => Vector3::new(0., 1., 0.),
-            CuboidFace::Front => Vector3::new(0., 0., 1.),
-        }
-    }
-}
-
 impl Cuboid {
-    pub fn new(corner: Point3<f64>, transformation: Transformation) -> Self {
-        Self {
-            transformation,
-            corner,
-        }
-    }
-
-    fn shading_normal(&self, normal: &Vector3<f64>) -> Vector3<f64> {
-        self.transformation
-            .inverse()
-            .matrix()
-            .transpose()
-            .transform_vector(normal)
-            .normalize()
+    pub fn new(corner: Point3<f64>) -> Self {
+        Self { corner }
     }
 }
 
 impl Shape for Cuboid {
     fn intersect(&self, ray: &Ray) -> Option<Hit> {
-        let inv_ray = self.transformation.apply_inverse(ray);
+        let ox = ray.origin().x;
+        let oy = ray.origin().y;
+        let oz = ray.origin().z;
 
-        let ox = inv_ray.origin().x;
-        let oy = inv_ray.origin().y;
-        let oz = inv_ray.origin().z;
-
-        let dx = inv_ray.direction().x;
-        let dy = inv_ray.direction().y;
-        let dz = inv_ray.direction().z;
+        let dx = ray.direction().x;
+        let dy = ray.direction().y;
+        let dz = ray.direction().z;
 
         let a = 1. / dx;
         let (tx_min, tx_max) = if a >= 0. {
@@ -149,13 +112,13 @@ impl Shape for Cuboid {
             if t0 > K_EPSILON {
                 Some(Hit {
                     t: t0,
-                    normal: self.shading_normal(&face_in.normal()),
+                    normal: face_in.normal(),
                     local_hit_point: ray.origin() + t0 * ray.direction(),
                 })
             } else {
                 Some(Hit {
                     t: t1,
-                    normal: self.shading_normal(&face_out.normal()),
+                    normal: face_out.normal(),
                     local_hit_point: ray.origin() + t1 * ray.direction(),
                 })
             }
@@ -166,5 +129,27 @@ impl Shape for Cuboid {
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
+    }
+}
+
+enum CuboidFace {
+    Left,
+    Bottom,
+    Back,
+    Right,
+    Top,
+    Front,
+}
+
+impl CuboidFace {
+    fn normal(self) -> Vector3<f64> {
+        match self {
+            CuboidFace::Left => Vector3::new(-1., 0., 0.),
+            CuboidFace::Bottom => Vector3::new(0., -1., 0.),
+            CuboidFace::Back => Vector3::new(0., 0., -1.),
+            CuboidFace::Right => Vector3::new(1., 0., 0.),
+            CuboidFace::Top => Vector3::new(0., 1., 0.),
+            CuboidFace::Front => Vector3::new(0., 0., 1.),
+        }
     }
 }

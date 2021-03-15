@@ -1,9 +1,10 @@
+use crate::bvh::{BVHNode, BVH};
 use crate::film::RGB;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
-use crate::shape::{GeometricObject, Shape};
-use nalgebra::Vector3;
+use crate::shape::{GeometricObject, Shape, AABB};
+use nalgebra::{Point3, Vector3};
 
 pub struct World {
     shapes: Vec<GeometricObject>,
@@ -36,6 +37,19 @@ impl World {
         });
 
         sr
+    }
+
+    pub fn build_bvh(&self) -> BVH {
+        let root_node = BVHNode {
+            left: None,
+            right: None,
+            aabb: AABB::new(Point3::origin(), Point3::origin()),
+        };
+
+        BVH {
+            world: self,
+            root_node,
+        }
     }
 
     pub fn geometric_objects(&self) -> &[GeometricObject] {

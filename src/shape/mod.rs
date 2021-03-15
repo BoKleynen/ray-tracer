@@ -3,7 +3,9 @@ mod cuboid;
 mod obj;
 mod plane;
 mod sphere;
+mod transformed;
 
+pub use aabb::AABB;
 pub use cuboid::Cuboid;
 pub use obj::{Obj, TriangleMesh};
 pub use plane::Plane;
@@ -11,7 +13,7 @@ pub use sphere::Sphere;
 
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
-use image::imageops::FilterType::Triangle;
+use crate::shape::transformed::Transformed;
 use nalgebra::{Point3, Vector3};
 
 pub struct GeometricObject {
@@ -41,13 +43,13 @@ impl GeometricObject {
     }
 
     pub fn sphere(transformation: Transformation, material: Material) -> Self {
-        let shape = Box::new(Sphere::new(transformation));
+        let shape = Box::new(Transformed::sphere(transformation));
 
         Self { shape, material }
     }
 
     pub fn cuboid(corner: Point3<f64>, transformation: Transformation, material: Material) -> Self {
-        let shape = Box::new(Cuboid::new(corner, transformation));
+        let shape = Box::new(Transformed::cuboid(corner, transformation));
 
         Self { shape, material }
     }
@@ -58,51 +60,17 @@ impl GeometricObject {
         transformation: Transformation,
         material: Material,
     ) -> Self {
-        let shape = Box::new(Plane::new(normal, point, transformation));
+        let shape = Box::new(Transformed::plane(normal, point, transformation));
 
         Self { shape, material }
     }
 
     pub fn triangle_mesh(obj: Obj, transformation: Transformation, material: Material) -> Self {
-        let shape = Box::new(TriangleMesh::new(obj, transformation));
+        let shape = Box::new(Transformed::triangle_mesh(obj, transformation));
 
         Self { shape, material }
     }
 }
-
-// impl GeometricObject<Sphere> {
-//     pub fn sphere(transformation: Transformation, material: Material) -> Self {
-//         let shape = Box::new(Sphere::new(transformation));
-//
-//         Self { shape, material }
-//     }
-// }
-//
-// impl GeometricObject<Cuboid> {
-//     pub fn cuboid(corner: Point3<f64>, transformation: Transformation, material: Material) -> Self {
-//         let shape = Box::new(Cuboid::new(corner, transformation));
-//
-//         Self { shape, material }
-//     }
-// }
-//
-// impl GeometricObject<Plane> {
-//     pub fn plane(normal: Vector3<f64>,
-//                  point: Point3<f64>,
-//                  transformation: Transformation, material: Material) -> Self {
-//         let shape = Box::new(Plane::new(normal, point, transformation));
-//
-//         Self { shape, material }
-//     }
-// }
-//
-// impl GeometricObject<TriangleMesh> {
-//     pub fn triangle_mesh(obj: Obj, transformation: Transformation, material: Material) -> Self {
-//         let shape = Box::new(TriangleMesh::new(obj, transformation));
-//
-//         Self { shape, material }
-//     }
-// }
 
 pub trait Shape: Sync + Send {
     fn intersect(&self, ray: &Ray) -> Option<Hit>;
