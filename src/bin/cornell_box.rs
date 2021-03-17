@@ -74,10 +74,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         green_material,
     );
 
-    let t2 = Transformation::translate(1.75, -3.5, -2.5).append(&Transformation::rotate_y(-40.));
+    let t2 = Transformation::rotate_y(-40.).then(&Transformation::translate(1.75, -3.5, -2.5));
     let cube = GeometricObject::cuboid(Point3::new(1.5, 1.5, 1.5), t2, blue_material.clone());
 
-    let t3 = Transformation::translate(-2.5, -3., -4.).append(&Transformation::rotate_y(35.));
+    let t3 = Transformation::rotate_y(35.).then(&Transformation::translate(-2.5, -3., -4.));
     let cuboid = GeometricObject::cuboid(Point3::new(1.25, 3.5, 1.25), t3, white_material.clone());
 
     let world = WorldBuilder::default()

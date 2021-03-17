@@ -2,6 +2,7 @@ use crate::math::{Ray, Transformation};
 use crate::shape::compound::Compound;
 use crate::shape::obj::SmoothTriangle;
 use crate::shape::{Cuboid, Hit, Obj, Plane, Shape, Sphere, AABB};
+use itertools::Itertools;
 use nalgebra::{min, Point3, Vector3};
 
 pub struct Transformed<S> {
@@ -27,29 +28,45 @@ impl<S> Transformed<S> {
     }
 
     fn transform_bounding_box(&self, aabb: AABB) -> AABB {
-        let AABB { p0: p1, p1: p2 } = aabb;
-        let p1 = self.transformation.apply(&p1);
-        let p2 = self.transformation.apply(&p2);
-
-        let (x_min, x_max) = if p1.x < p2.x {
-            (p1.x, p2.x)
-        } else {
-            (p2.x, p1.x)
-        };
-        let (y_min, y_max) = if p1.y < p2.y {
-            (p1.y, p2.y)
-        } else {
-            (p2.y, p1.y)
-        };
-        let (z_min, z_max) = if p1.z < p2.z {
-            (p1.z, p2.z)
-        } else {
-            (p2.z, p1.z)
-        };
+        let vertices = aabb
+            .vertices()
+            .iter()
+            .map(|p| self.transformation.apply(p))
+            .collect_vec();
+        let min_x = vertices
+            .iter()
+            .map(|p| p.x)
+            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let max_x = vertices
+            .iter()
+            .map(|p| p.x)
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let min_y = vertices
+            .iter()
+            .map(|p| p.y)
+            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let max_y = vertices
+            .iter()
+            .map(|p| p.y)
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let min_z = vertices
+            .iter()
+            .map(|p| p.z)
+            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let max_z = vertices
+            .iter()
+            .map(|p| p.z)
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
 
         AABB::new(
-            Point3::new(x_min, y_min, z_min),
-            Point3::new(x_max, y_max, z_max),
+            Point3::new(min_x, min_y, min_z),
+            Point3::new(max_x, max_y, max_z),
         )
     }
 }

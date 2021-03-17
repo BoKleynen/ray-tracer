@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .ok_or("invalid camera configuration")?;
 
     let light1 = PointLight::white(1., Point3::new(4., -4., 0.));
-    let t = Transformation::translate(0., 0., -10.).append(&Transformation::scale(5., 5., 5.));
+    let t = Transformation::translate(0., 0., -10.).then(&Transformation::scale(5., 5., 5.));
 
     let material = Material::Matte {
         ambient_brdf: Lambertian::new(0.15, RGB::new(1., 1., 1.)),

@@ -54,4 +54,24 @@ impl AABB {
 
         t0 < t1 && t1 > K_EPSILON
     }
+
+    pub fn vertices(&self) -> Vec<Point3<f64>> {
+        let x0 = self.p0.x;
+        let y0 = self.p0.y;
+        let z0 = self.p0.z;
+        let x1 = self.p1.x;
+        let y1 = self.p1.y;
+        let z1 = self.p1.z;
+
+        vec![
+            Point3::new(x0, y0, z0),
+            Point3::new(x0, y0, z1),
+            Point3::new(x0, y1, z0),
+            Point3::new(x0, y1, z1),
+            Point3::new(x1, y0, z0),
+            Point3::new(x1, y0, z1),
+            Point3::new(x1, y1, z0),
+            Point3::new(x1, y1, z1),
+        ]
+    }
 }

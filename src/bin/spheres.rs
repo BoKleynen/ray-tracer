@@ -30,11 +30,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let light1 = PointLight::white(1., Point3::new(4., -4., 0.));
 
-    let t1 = Transformation::translate(0., 0., -10.).append(&Transformation::scale(5., 5., 5.));
-    let t2 = Transformation::translate(4., -4., -12.).append(&Transformation::scale(4., 4., 3.));
-    let t3 = Transformation::translate(-4., -4., -12.).append(&Transformation::scale(4., 4., 3.));
-    let t4 = Transformation::translate(4., 4., -12.).append(&Transformation::scale(4., 4., 4.));
-    let t5 = Transformation::translate(-4., 4., -12.).append(&Transformation::scale(4., 4., 4.));
+    let t1 = Transformation::scale(5., 5., 5.).then(&Transformation::translate(0., 0., -10.));
+    let t2 = Transformation::scale(4., 4., 3.).then(&Transformation::translate(4., -4., -12.));
+    let t3 = Transformation::scale(4., 4., 3.).then(&Transformation::translate(-4., -4., -12.));
+    let t4 = Transformation::scale(4., 4., 4.).then(&Transformation::translate(4., 4., -12.));
+    let t5 = Transformation::scale(4., 4., 4.).then(&Transformation::translate(-4., 4., -12.));
 
     let material1 = Material::Matte {
         ambient_brdf: Lambertian::new(0.15, RGB::new(1., 1., 1.)),
@@ -71,7 +71,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let sampler = RegularSampler::new(16);
     // let sampler = Unsampled::default();
     let sampler = JitteredSampler::new(16);
-    let tracer = FalseColorNormals::default();
+    let tracer = DirectIllumination::default();
     let buffer = tracer.render_scene(&world, camera, sampler);
 
     buffer.to_rgba_image(1., 2.2).save("renders/spheres.png")?;

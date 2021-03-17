@@ -23,6 +23,10 @@ pub struct GeometricObject {
 }
 
 impl GeometricObject {
+    pub fn new(shape: Box<dyn Shape>, material: Material) -> Self {
+        Self { shape, material }
+    }
+
     pub fn shape(&self) -> &dyn Shape {
         self.shape.as_ref()
     }

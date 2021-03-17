@@ -176,3 +176,54 @@ impl CuboidFace {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Cuboid;
+    use crate::math::Ray;
+    use crate::shape::Shape;
+    use nalgebra::{Point3, Vector3};
+
+    #[test]
+    fn obj_hit() {
+        for ray in test_rays() {
+            for cuboid in test_cuboids() {
+                if cuboid.hit(&ray) {
+                    assert!(cuboid.bounding_box().hit(&ray));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn bounding_box_mis() {
+        for ray in test_rays() {
+            for cuboid in test_cuboids() {
+                if !cuboid.bounding_box().hit(&ray) {
+                    assert!(!cuboid.hit(&ray));
+                }
+            }
+        }
+    }
+
+    fn test_cuboids() -> Vec<Cuboid> {
+        vec![
+            Cuboid::new(Point3::new(1., 1., 1.)),
+            Cuboid::new(Point3::new(-1., -1., -1.)),
+        ]
+    }
+
+    fn test_rays() -> Vec<Ray> {
+        vec![
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 0., 0.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(0., 1., 0.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(0., 0., 1.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 1., 0.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 1., 0.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 0., 1.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 0., 1.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(0., 1., 1.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(0., 1., 1.)),
+        ]
+    }
+}
