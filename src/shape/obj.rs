@@ -3,36 +3,90 @@ use crate::math::{Ray, Transformation};
 use crate::shape::aabb::AABB;
 use crate::shape::{Hit, Shape};
 use crate::K_EPSILON;
-use nalgebra::{Point3, Vector3};
+use nalgebra::{Point3, Unit, Vector3};
+use std::collections::{BTreeMap, HashMap};
 use std::fs::File;
 use std::io::Read;
+use std::sync::Arc;
+
+#[derive(Default)]
+pub struct Mesh {
+    vertexes: Vec<Point3<f64>>,
+    normals: Vec<Unit<Vector3<f64>>>,
+}
+
+pub struct SmoothTriangle {
+    inner: Triangle,
+}
+
+impl Shape for SmoothTriangle {
+    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+        self.inner.intersect(ray).map(|hit| {
+            let beta = hit.beta;
+            let gamma = hit.gamma;
+            let normal = beta * *self.inner.n1()
+                + gamma * *self.inner.n2()
+                + (1. - beta - gamma) * *self.inner.n0();
+
+            Hit {
+                t: hit.t,
+                normal,
+                local_hit_point: hit.local_hit_point,
+            }
+        })
+    }
+
+    fn count_intersection_tests(&self, _ray: &Ray) -> usize {
+        1
+    }
+}
+
+pub struct FlatTriangle {
+    inner: Triangle,
+}
+
+impl Shape for FlatTriangle {
+    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+        self.inner.intersect(ray).map(|hit| Hit {
+            t: hit.t,
+            normal: *self.inner.normal,
+            local_hit_point: hit.local_hit_point,
+        })
+    }
+
+    fn count_intersection_tests(&self, _ray: &Ray) -> usize {
+        1
+    }
+}
 
 struct Triangle {
-    v0: Point3<f64>,
-    v1: Point3<f64>,
-    v2: Point3<f64>,
-
-    n0: Vector3<f64>,
-    n1: Vector3<f64>,
-    n2: Vector3<f64>,
+    mesh: Arc<Mesh>,
+    idx0: usize,
+    idx1: usize,
+    idx2: usize,
+    normal: Unit<Vector3<f64>>,
 }
 
 impl Triangle {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
-        let a = self.v0.x - self.v1.x;
-        let b = self.v0.x - self.v2.x;
+    fn intersect(&self, ray: &Ray) -> Option<TriangleHit> {
+        let v0 = self.mesh.vertexes[self.idx0];
+        let v1 = self.mesh.vertexes[self.idx1];
+        let v2 = self.mesh.vertexes[self.idx2];
+
+        let a = v0.x - v1.x;
+        let b = v0.x - v2.x;
         let c = ray.direction().x;
-        let d = self.v0.x - ray.origin().x;
+        let d = v0.x - ray.origin().x;
 
-        let e = self.v0.y - self.v1.y;
-        let f = self.v0.y - self.v2.y;
+        let e = v0.y - v1.y;
+        let f = v0.y - v2.y;
         let g = ray.direction().y;
-        let h = self.v0.y - ray.origin().y;
+        let h = v0.y - ray.origin().y;
 
-        let i = self.v0.z - self.v1.z;
-        let j = self.v0.z - self.v2.z;
+        let i = v0.z - v1.z;
+        let j = v0.z - v2.z;
         let k = ray.direction().z;
-        let l = self.v0.z - ray.origin().z;
+        let l = v0.z - ray.origin().z;
 
         let m = f * k - g * j;
         let n = h * k - g * l;
@@ -64,19 +118,37 @@ impl Triangle {
             return None;
         }
 
-        let shading_normal = beta * self.n1 + gamma * self.n2 + (1. - beta - gamma) * self.n0;
         let local_hit_point = ray.origin() + t * ray.direction();
-
-        Some(Hit {
+        return Some(TriangleHit {
             t,
-            normal: shading_normal,
             local_hit_point,
-        })
+            beta,
+            gamma,
+        });
+    }
+
+    fn n0(&self) -> Unit<Vector3<f64>> {
+        self.mesh.normals[self.idx0]
+    }
+
+    fn n1(&self) -> Unit<Vector3<f64>> {
+        self.mesh.normals[self.idx1]
+    }
+
+    fn n2(&self) -> Unit<Vector3<f64>> {
+        self.mesh.normals[self.idx2]
     }
 }
 
+struct TriangleHit {
+    t: f64,
+    local_hit_point: Point3<f64>,
+    beta: f64,
+    gamma: f64,
+}
+
 pub struct TriangleMesh {
-    triangles: Vec<Triangle>,
+    triangles: Vec<SmoothTriangle>,
     aabb: AABB,
 }
 
@@ -125,25 +197,46 @@ impl TriangleMesh {
             Point3::new(max_x, max_y, max_z),
         );
 
+        let mut normals = vec![Vec::new(); obj.vertexes.len()];
+        obj.triangles.iter().for_each(|ObjTriangle(a, b, c)| {
+            normals
+                .get_mut(a.vertex_idx)
+                .map(|ns| ns.push(obj.vertex_normals[a.normal_idx]));
+            normals
+                .get_mut(b.vertex_idx)
+                .map(|ns| ns.push(obj.vertex_normals[b.normal_idx]));
+            normals
+                .get_mut(c.vertex_idx)
+                .map(|ns| ns.push(obj.vertex_normals[c.normal_idx]));
+        });
+        let normals = normals
+            .iter()
+            .map(|ns| Unit::new_normalize(ns.iter().sum::<Vector3<f64>>() / ns.len() as f64))
+            .collect();
+
+        let mesh = Arc::new(Mesh {
+            vertexes: obj.vertexes,
+            normals,
+        });
+
         let triangles = obj
             .triangles
             .iter()
             .map(|ObjTriangle(a, b, c)| {
-                let v0 = obj.vertexes[a.vertex_idx];
-                let v1 = obj.vertexes[b.vertex_idx];
-                let v2 = obj.vertexes[c.vertex_idx];
+                let n0 = mesh.normals[a.vertex_idx];
+                let n1 = mesh.normals[b.vertex_idx];
+                let n2 = mesh.normals[c.vertex_idx];
 
-                let n0 = obj.vertex_normals[a.normal_idx];
-                let n1 = obj.vertex_normals[b.normal_idx];
-                let n2 = obj.vertex_normals[c.normal_idx];
+                let normal = Unit::new_normalize((*n0 + *n1 + *n2) / 3.);
 
-                Triangle {
-                    v0,
-                    v1,
-                    v2,
-                    n0,
-                    n1,
-                    n2,
+                SmoothTriangle {
+                    inner: Triangle {
+                        mesh: mesh.clone(),
+                        idx0: a.vertex_idx,
+                        idx1: b.vertex_idx,
+                        idx2: c.vertex_idx,
+                        normal,
+                    },
                 }
             })
             .collect();

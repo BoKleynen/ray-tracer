@@ -4,7 +4,7 @@ use cg_practicum::film::RGB;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
-use cg_practicum::renderer::{FalseColorIntersectionTests, FalseColorNormals, Renderer};
+use cg_practicum::renderer::{FalseColorIntersectionTests, FalseColorNormals, Renderer, DirectIllumination};
 use cg_practicum::sampler::JitteredSampler;
 use cg_practicum::shape::{GeometricObject, Obj, TriangleMesh};
 use cg_practicum::world::WorldBuilder;
@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .ok_or("invalid world configuration")?;
 
     let sampler = JitteredSampler::new(16);
-    let tracer = FalseColorIntersectionTests::default();
+    let tracer = DirectIllumination::default();
     let buffer = tracer.render_scene(&world, camera, sampler);
 
     buffer.to_rgba_image(1., 2.2).save("renders/teapot.png")?;
