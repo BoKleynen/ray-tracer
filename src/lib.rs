@@ -1,6 +1,7 @@
 #![allow(clippy::many_single_char_names)]
 
 pub mod brdf;
+pub mod bvh;
 pub mod camera;
 pub mod film;
 pub mod light;

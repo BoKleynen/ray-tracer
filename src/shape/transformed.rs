@@ -25,6 +25,33 @@ impl<S> Transformed<S> {
             .transform_vector(normal)
             .normalize()
     }
+
+    fn transform_bounding_box(&self, aabb: AABB) -> AABB {
+        let AABB { p0: p1, p1: p2 } = aabb;
+        let p1 = self.transformation.apply(&p1);
+        let p2 = self.transformation.apply(&p2);
+
+        let (x_min, x_max) = if p1.x < p2.x {
+            (p1.x, p2.x)
+        } else {
+            (p2.x, p1.x)
+        };
+        let (y_min, y_max) = if p1.y < p2.y {
+            (p1.y, p2.y)
+        } else {
+            (p2.y, p1.y)
+        };
+        let (z_min, z_max) = if p1.z < p2.z {
+            (p1.z, p2.z)
+        } else {
+            (p2.z, p1.z)
+        };
+
+        AABB::new(
+            Point3::new(x_min, y_min, z_min),
+            Point3::new(x_max, y_max, z_max),
+        )
+    }
 }
 
 impl Transformed<Cuboid> {
@@ -80,6 +107,10 @@ impl<S: Shape> Shape for Transformed<S> {
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
         let inv_ray = self.transformation.apply_inverse(ray);
         self.shape.count_intersection_tests(&inv_ray)
+    }
+
+    fn bounding_box(&self) -> AABB {
+        self.transform_bounding_box(self.shape.bounding_box())
     }
 
     fn hit(&self, ray: &Ray) -> bool {

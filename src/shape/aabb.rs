@@ -3,14 +3,17 @@ use crate::K_EPSILON;
 use nalgebra::Point3;
 
 pub struct AABB {
-    // p1 > p2
-    p1: Point3<f64>,
-    p2: Point3<f64>,
+    pub(crate) p0: Point3<f64>,
+    pub(crate) p1: Point3<f64>,
 }
 
 impl AABB {
-    pub fn new(p1: Point3<f64>, p2: Point3<f64>) -> Self {
-        Self { p1, p2 }
+    pub fn new(p0: Point3<f64>, p1: Point3<f64>) -> Self {
+        assert!(p0.x < p1.x);
+        assert!(p0.y < p1.y);
+        assert!(p0.z < p1.z);
+
+        Self { p0, p1 }
     }
 
     pub fn hit(&self, ray: &Ray) -> bool {
@@ -24,23 +27,23 @@ impl AABB {
 
         let a = 1. / dx;
         let (tx_min, tx_max) = if a >= 0. {
-            ((self.p1.x - ox) * a, (self.p2.x - ox) * a)
+            ((self.p0.x - ox) * a, (self.p1.x - ox) * a)
         } else {
-            ((self.p2.x - ox) * a, (self.p1.x - ox) * a)
+            ((self.p1.x - ox) * a, (self.p0.x - ox) * a)
         };
 
         let b = 1. / dy;
         let (ty_min, ty_max) = if b >= 0. {
-            ((self.p1.y - oy) * b, (self.p2.y - oy) * b)
+            ((self.p0.y - oy) * b, (self.p1.y - oy) * b)
         } else {
-            ((self.p2.y - oy) * b, (self.p1.y - oy) * b)
+            ((self.p1.y - oy) * b, (self.p0.y - oy) * b)
         };
 
         let c = 1. / dz;
         let (tz_min, tz_max) = if c >= 0. {
-            ((self.p1.z - oz) * c, (self.p2.z - oz) * c)
+            ((self.p0.z - oz) * c, (self.p1.z - oz) * c)
         } else {
-            ((self.p2.z - oz) * c, (self.p1.z - oz) * c)
+            ((self.p1.z - oz) * c, (self.p0.z - oz) * c)
         };
 
         // find largest entering t value

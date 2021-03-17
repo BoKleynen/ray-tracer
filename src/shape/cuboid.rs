@@ -1,6 +1,6 @@
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
-use crate::shape::{Hit, Shape};
+use crate::shape::{Hit, Shape, AABB};
 use crate::K_EPSILON;
 use nalgebra::{Point3, Vector3};
 
@@ -129,6 +129,10 @@ impl Shape for Cuboid {
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
+    }
+
+    fn bounding_box(&self) -> AABB {
+        AABB::new(-self.corner, self.corner)
     }
 }
 

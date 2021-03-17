@@ -78,6 +78,8 @@ pub trait Shape: Sync + Send {
 
     fn count_intersection_tests(&self, ray: &Ray) -> usize;
 
+    fn bounding_box(&self) -> AABB;
+
     fn hit(&self, ray: &Ray) -> bool {
         self.intersect(ray).is_some()
     }

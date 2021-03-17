@@ -42,6 +42,10 @@ impl Shape for SmoothTriangle {
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
     }
+
+    fn bounding_box(&self) -> AABB {
+        self.inner.bounding_box()
+    }
 }
 
 #[repr(transparent)]
@@ -61,6 +65,10 @@ impl Shape for FlatTriangle {
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
     }
+
+    fn bounding_box(&self) -> AABB {
+        self.inner.bounding_box()
+    }
 }
 
 struct Triangle {
@@ -72,6 +80,24 @@ struct Triangle {
 }
 
 impl Triangle {
+    fn bounding_box(&self) -> AABB {
+        let v0 = self.v0();
+        let v1 = self.v1();
+        let v2 = self.v2();
+
+        let min_x = v0.x.min(v1.x).min(v2.x);
+        let max_x = v0.x.max(v1.x).max(v2.x);
+        let min_y = v0.y.min(v1.y).min(v2.y);
+        let max_y = v0.y.max(v1.y).max(v2.y);
+        let min_z = v0.z.min(v1.z).min(v2.z);
+        let max_z = v0.z.max(v1.z).max(v2.z);
+
+        AABB::new(
+            Point3::new(min_x, min_y, min_z),
+            Point3::new(max_x, max_y, max_z),
+        )
+    }
+
     fn intersect(&self, ray: &Ray) -> Option<TriangleHit> {
         let v0 = self.mesh.vertexes[self.idx0];
         let v1 = self.mesh.vertexes[self.idx1];
@@ -141,6 +167,18 @@ impl Triangle {
 
     fn n2(&self) -> Unit<Vector3<f64>> {
         self.mesh.normals[self.idx2]
+    }
+
+    fn v0(&self) -> Point3<f64> {
+        self.mesh.vertexes[self.idx0]
+    }
+
+    fn v1(&self) -> Point3<f64> {
+        self.mesh.vertexes[self.idx1]
+    }
+
+    fn v2(&self) -> Point3<f64> {
+        self.mesh.vertexes[self.idx2]
     }
 }
 

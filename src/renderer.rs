@@ -7,6 +7,9 @@ use crate::sampler::Sampler;
 use crate::shade_rec::ShadeRec;
 use crate::world::World;
 use rayon::prelude::*;
+use crate::bvh::ShapeNode;
+use itertools::Itertools;
+use nalgebra::Vector3;
 
 pub trait Renderer {
     fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> FrameBuffer
@@ -18,6 +21,33 @@ pub trait Renderer {
 #[derive(Default, Debug)]
 pub struct DirectIllumination {}
 
+fn hit_objects<'a>(world: &'a World, nodes: &[ShapeNode], ray: &Ray) -> Option<ShadeRec<'a>> {
+    let mut sr: Option<ShadeRec> = None;
+    let mut t_min = f64::INFINITY;
+
+    nodes.iter().for_each(|ShapeNode { aabb, obj }| {
+        if aabb.hit(ray) {
+            if let Some(hit) = obj.intersect(&ray) {
+                if hit.t < t_min {
+                    t_min = hit.t;
+
+                    sr = Some(ShadeRec {
+                        hit_point: ray.origin() + hit.t * ray.direction(),
+                        local_hit_point: hit.local_hit_point,
+                        normal: hit.normal,
+                        material: obj.material(),
+                        depth: 0,
+                        direction: Vector3::default(),
+                        world,
+                    })
+                }
+            }
+        }
+    });
+
+    sr
+}
+
 impl Renderer for DirectIllumination {
     fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> FrameBuffer
     where
@@ -26,6 +56,12 @@ impl Renderer for DirectIllumination {
     {
         let (x_res, y_res) = camera.resolution();
         let mut buffer = FrameBuffer::new(x_res, y_res);
+
+        let nodes = world.geometric_objects().iter().map(|obj| {
+            let aabb = obj.shape().bounding_box();
+            ShapeNode { aabb, obj }
+        }).collect_vec();
+
         buffer
             .buffer()
             .par_chunks_exact_mut(x_res)
@@ -35,7 +71,7 @@ impl Renderer for DirectIllumination {
                     let color = sampler.average(|sample| {
                         let ray = camera.generate_ray(c, r, sample);
 
-                        match world.hit_objects(&ray) {
+                        match hit_objects(world, &nodes, &ray) {
                             None => world.background_color(),
                             Some(sr) => Self::shade(&sr.material, &sr, &ray),
                         }

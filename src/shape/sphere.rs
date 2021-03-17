@@ -1,8 +1,8 @@
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
-use crate::shape::{Hit, Shape};
+use crate::shape::{Hit, Shape, AABB};
 use crate::K_EPSILON;
-use nalgebra::Vector3;
+use nalgebra::{Point3, Vector3};
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
 /// which is transformed by a transformation.
@@ -58,5 +58,9 @@ impl Shape for Sphere {
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
+    }
+
+    fn bounding_box(&self) -> AABB {
+        AABB::new(Point3::new(-1., -1., -1.), Point3::new(1., 1., 1.))
     }
 }
