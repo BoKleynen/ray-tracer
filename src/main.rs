@@ -6,7 +6,7 @@ use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
 use cg_practicum::renderer::{DirectIllumination, Renderer};
 use cg_practicum::sampler::Unsampled;
-use cg_practicum::shape::{Cuboid, GeometricObject, Obj, Plane, Sphere, TriangleMesh};
+use cg_practicum::shape::{Cuboid, GeometricObject, Obj, Plane, Sphere};
 use cg_practicum::world::WorldBuilder;
 use clap::Clap;
 use nalgebra::{Point3, Vector3};

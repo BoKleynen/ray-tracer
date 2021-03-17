@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::camera::{Camera, CameraBuilder};
 use cg_practicum::film::RGB;

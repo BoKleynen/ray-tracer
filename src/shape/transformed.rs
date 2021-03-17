@@ -1,6 +1,8 @@
 use crate::math::{Ray, Transformation};
-use crate::shape::{Cuboid, Hit, Obj, Plane, Shape, Sphere, TriangleMesh};
-use nalgebra::{Point3, Vector3};
+use crate::shape::compound::Compound;
+use crate::shape::obj::SmoothTriangle;
+use crate::shape::{Cuboid, Hit, Obj, Plane, Shape, Sphere, AABB};
+use nalgebra::{min, Point3, Vector3};
 
 pub struct Transformed<S> {
     shape: S,
@@ -35,9 +37,9 @@ impl Transformed<Cuboid> {
     }
 }
 
-impl Transformed<TriangleMesh> {
-    pub fn triangle_mesh(obj: Obj, transformation: Transformation) -> Self {
-        let shape = TriangleMesh::new(obj);
+impl Transformed<Compound<SmoothTriangle>> {
+    pub fn smooth_mesh(obj: Obj, transformation: Transformation) -> Self {
+        let shape = obj.smooth();
         Self {
             shape,
             transformation,

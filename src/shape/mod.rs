@@ -1,4 +1,5 @@
 mod aabb;
+mod compound;
 mod cuboid;
 mod obj;
 mod plane;
@@ -7,7 +8,7 @@ mod transformed;
 
 pub use aabb::AABB;
 pub use cuboid::Cuboid;
-pub use obj::{Obj, TriangleMesh};
+pub use obj::{FlatTriangle, Obj, SmoothTriangle};
 pub use plane::Plane;
 pub use sphere::Sphere;
 
@@ -66,7 +67,7 @@ impl GeometricObject {
     }
 
     pub fn triangle_mesh(obj: Obj, transformation: Transformation, material: Material) -> Self {
-        let shape = Box::new(Transformed::triangle_mesh(obj, transformation));
+        let shape = Box::new(Transformed::smooth_mesh(obj, transformation));
 
         Self { shape, material }
     }

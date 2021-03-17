@@ -1,12 +1,15 @@
+#[allow(unused_imports)]
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::camera::{Camera, CameraBuilder};
 use cg_practicum::film::RGB;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
-use cg_practicum::renderer::{FalseColorIntersectionTests, FalseColorNormals, Renderer, DirectIllumination};
+use cg_practicum::renderer::{
+    DirectIllumination, FalseColorIntersectionTests, FalseColorNormals, Renderer,
+};
 use cg_practicum::sampler::JitteredSampler;
-use cg_practicum::shape::{GeometricObject, Obj, TriangleMesh};
+use cg_practicum::shape::{GeometricObject, Obj};
 use cg_practicum::world::WorldBuilder;
 use nalgebra::{Point3, Vector3};
 use std::error::Error;

@@ -6,7 +6,7 @@ use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
 use cg_practicum::renderer::{DirectIllumination, Renderer};
 use cg_practicum::sampler::{JitteredSampler, Unsampled};
-use cg_practicum::shape::{Cuboid, GeometricObject, Plane, Sphere};
+use cg_practicum::shape::GeometricObject;
 use cg_practicum::world::WorldBuilder;
 use nalgebra::{Point3, Vector3};
 use std::error::Error;
