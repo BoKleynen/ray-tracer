@@ -1,9 +1,9 @@
-use crate::shape::{AABB, GeometricObject};
+use crate::shape::{GeometricObject, AABB};
 use crate::world::World;
 
 pub struct ShapeNode<'a> {
     pub(crate) aabb: AABB,
-    pub(crate) obj: &'a GeometricObject
+    pub(crate) obj: &'a GeometricObject,
 }
 
 pub struct BVH<'a> {

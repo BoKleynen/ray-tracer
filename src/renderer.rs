@@ -1,4 +1,5 @@
 use crate::brdf::BRDF;
+use crate::bvh::ShapeNode;
 use crate::camera::Camera;
 use crate::film::{FrameBuffer, RGB};
 use crate::material::Material;
@@ -6,10 +7,9 @@ use crate::math::Ray;
 use crate::sampler::Sampler;
 use crate::shade_rec::ShadeRec;
 use crate::world::World;
-use rayon::prelude::*;
-use crate::bvh::ShapeNode;
 use itertools::Itertools;
 use nalgebra::Vector3;
+use rayon::prelude::*;
 
 pub trait Renderer {
     fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> FrameBuffer
@@ -57,10 +57,14 @@ impl Renderer for DirectIllumination {
         let (x_res, y_res) = camera.resolution();
         let mut buffer = FrameBuffer::new(x_res, y_res);
 
-        let nodes = world.geometric_objects().iter().map(|obj| {
-            let aabb = obj.shape().bounding_box();
-            ShapeNode { aabb, obj }
-        }).collect_vec();
+        let nodes = world
+            .geometric_objects()
+            .iter()
+            .map(|obj| {
+                let aabb = obj.shape().bounding_box();
+                ShapeNode { aabb, obj }
+            })
+            .collect_vec();
 
         buffer
             .buffer()

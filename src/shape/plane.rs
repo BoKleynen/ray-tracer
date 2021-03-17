@@ -37,8 +37,8 @@ impl Shape for Plane {
 
     fn bounding_box(&self) -> AABB {
         AABB::new(
-            Point3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY),
-            Point3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY),
+            Point3::new(f64::MIN, f64::MIN, f64::MIN),
+            Point3::new(f64::MAX, f64::MAX, f64::MAX),
         )
     }
 }

@@ -132,7 +132,26 @@ impl Shape for Cuboid {
     }
 
     fn bounding_box(&self) -> AABB {
-        AABB::new(-self.corner, self.corner)
+        let (min_x, max_x) = if self.corner.x > 0. {
+            (-self.corner.x, self.corner.x)
+        } else {
+            (self.corner.x, -self.corner.x)
+        };
+        let (min_y, max_y) = if self.corner.y > 0. {
+            (-self.corner.y, self.corner.y)
+        } else {
+            (self.corner.y, -self.corner.y)
+        };
+        let (min_z, max_z) = if self.corner.z > 0. {
+            (-self.corner.x, self.corner.z)
+        } else {
+            (self.corner.z, -self.corner.z)
+        };
+
+        AABB::new(
+            Point3::new(min_x, min_y, min_z),
+            Point3::new(max_x, max_y, max_z),
+        )
     }
 }
 
