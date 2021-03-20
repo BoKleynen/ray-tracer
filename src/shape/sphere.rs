@@ -60,7 +60,7 @@ impl Shape for Sphere {
         1
     }
 
-    fn bounding_box(&self) -> AABB {
+    fn bbox(&self) -> AABB {
         AABB::new(Point3::new(-1., -1., -1.), Point3::new(1., 1., 1.))
     }
 }

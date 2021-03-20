@@ -26,7 +26,7 @@ fn hit_objects<'a>(world: &'a World, nodes: &[ShapeNode], ray: &Ray) -> Option<S
     let mut t_min = f64::INFINITY;
 
     nodes.iter().for_each(|ShapeNode { aabb, obj }| {
-        if aabb.hit(ray) {
+        if aabb.intersect(ray).is_some() {
             if let Some(hit) = obj.intersect(&ray) {
                 if hit.t < t_min {
                     t_min = hit.t;
@@ -61,7 +61,7 @@ impl Renderer for DirectIllumination {
             .geometric_objects()
             .iter()
             .map(|obj| {
-                let aabb = obj.shape().bounding_box();
+                let aabb = obj.shape().bbox();
                 ShapeNode { aabb, obj }
             })
             .collect_vec();

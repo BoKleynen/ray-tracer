@@ -131,7 +131,7 @@ impl Shape for Cuboid {
         1
     }
 
-    fn bounding_box(&self) -> AABB {
+    fn bbox(&self) -> AABB {
         let (min_x, max_x) = if self.corner.x > 0. {
             (-self.corner.x, self.corner.x)
         } else {
@@ -189,7 +189,7 @@ mod tests {
         for ray in test_rays() {
             for cuboid in test_cuboids() {
                 if cuboid.hit(&ray) {
-                    assert!(cuboid.bounding_box().hit(&ray));
+                    assert!(cuboid.bbox().intersect(&ray));
                 }
             }
         }
@@ -199,7 +199,7 @@ mod tests {
     fn bounding_box_mis() {
         for ray in test_rays() {
             for cuboid in test_cuboids() {
-                if !cuboid.bounding_box().hit(&ray) {
+                if !cuboid.bbox().intersect(&ray) {
                     assert!(!cuboid.hit(&ray));
                 }
             }

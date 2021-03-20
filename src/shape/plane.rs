@@ -35,7 +35,7 @@ impl Shape for Plane {
         1
     }
 
-    fn bounding_box(&self) -> AABB {
+    fn bbox(&self) -> AABB {
         AABB::new(
             Point3::new(f64::MIN, f64::MIN, f64::MIN),
             Point3::new(f64::MAX, f64::MAX, f64::MAX),

@@ -126,8 +126,8 @@ impl<S: Shape> Shape for Transformed<S> {
         self.shape.count_intersection_tests(&inv_ray)
     }
 
-    fn bounding_box(&self) -> AABB {
-        self.transform_bounding_box(self.shape.bounding_box())
+    fn bbox(&self) -> AABB {
+        self.transform_bounding_box(self.shape.bbox())
     }
 
     fn hit(&self, ray: &Ray) -> bool {

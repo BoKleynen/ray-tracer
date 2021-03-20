@@ -1,4 +1,3 @@
-use crate::bvh::{BVHNode, BVH};
 use crate::film::RGB;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
@@ -39,18 +38,18 @@ impl World {
         sr
     }
 
-    pub fn build_bvh(&self) -> BVH {
-        let root_node = BVHNode {
-            left: None,
-            right: None,
-            aabb: AABB::new(Point3::origin(), Point3::origin()),
-        };
-
-        BVH {
-            world: self,
-            root_node,
-        }
-    }
+    // pub fn build_bvh(&self) -> BVH {
+    //     let root_node = BVHNode {
+    //         left: None,
+    //         right: None,
+    //         aabb: AABB::new(Point3::origin(), Point3::origin()),
+    //     };
+    //
+    //     BVH {
+    //         world: self,
+    //         root_node,
+    //     }
+    // }
 
     pub fn geometric_objects(&self) -> &[GeometricObject] {
         self.shapes.as_slice()

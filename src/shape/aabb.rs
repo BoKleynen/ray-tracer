@@ -2,6 +2,7 @@ use crate::math::Ray;
 use crate::K_EPSILON;
 use nalgebra::Point3;
 
+#[derive(Copy, Clone)]
 pub struct AABB {
     pub(crate) p0: Point3<f64>,
     pub(crate) p1: Point3<f64>,
@@ -16,7 +17,7 @@ impl AABB {
         Self { p0, p1 }
     }
 
-    pub fn hit(&self, ray: &Ray) -> bool {
+    pub fn intersect(&self, ray: &Ray) -> Option<f64> {
         let ox = ray.origin().x;
         let oy = ray.origin().y;
         let oz = ray.origin().z;
@@ -52,7 +53,15 @@ impl AABB {
         // find smallest exiting t value
         let t1 = tx_max.min(ty_max).min(tz_max);
 
-        t0 < t1 && t1 > K_EPSILON
+        if t0 < t1 && t1 > K_EPSILON {
+            if t0 > K_EPSILON {
+                Some(t0)
+            } else {
+                Some(t1)
+            }
+        } else {
+            None
+        }
     }
 
     pub fn vertices(&self) -> Vec<Point3<f64>> {

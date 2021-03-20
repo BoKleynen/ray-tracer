@@ -16,6 +16,7 @@ use crate::material::Material;
 use crate::math::{Ray, Transformation};
 use crate::shape::transformed::Transformed;
 use nalgebra::{Point3, Vector3};
+use std::cmp::Ordering;
 
 pub struct GeometricObject {
     shape: Box<dyn Shape>,
@@ -82,10 +83,32 @@ pub trait Shape: Sync + Send {
 
     fn count_intersection_tests(&self, ray: &Ray) -> usize;
 
-    fn bounding_box(&self) -> AABB;
+    fn bbox(&self) -> AABB;
 
     fn hit(&self, ray: &Ray) -> bool {
         self.intersect(ray).is_some()
+    }
+}
+
+impl<T: Shape + ?Sized> Shape for Box<T> {
+    #[inline]
+    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+        (**self).intersect(ray)
+    }
+
+    #[inline]
+    fn count_intersection_tests(&self, ray: &Ray) -> usize {
+        (**self).count_intersection_tests(ray)
+    }
+
+    #[inline]
+    fn bbox(&self) -> AABB {
+        (**self).bbox()
+    }
+
+    #[inline]
+    fn hit(&self, ray: &Ray) -> bool {
+        (**self).hit(ray)
     }
 }
 

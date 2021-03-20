@@ -43,7 +43,7 @@ impl Shape for SmoothTriangle {
         1
     }
 
-    fn bounding_box(&self) -> AABB {
+    fn bbox(&self) -> AABB {
         self.inner.bounding_box()
     }
 }
@@ -66,7 +66,7 @@ impl Shape for FlatTriangle {
         1
     }
 
-    fn bounding_box(&self) -> AABB {
+    fn bbox(&self) -> AABB {
         self.inner.bounding_box()
     }
 }
@@ -149,12 +149,12 @@ impl Triangle {
         }
 
         let local_hit_point = ray.origin() + t * ray.direction();
-        return Some(TriangleHit {
+        Some(TriangleHit {
             t,
             local_hit_point,
             beta,
             gamma,
-        });
+        })
     }
 
     fn n0(&self) -> Unit<Vector3<f64>> {
@@ -277,15 +277,15 @@ impl Obj {
     fn triangles(self) -> Vec<Triangle> {
         let mut normals = vec![Vec::new(); self.vertexes.len()];
         self.triangles.iter().for_each(|ObjTriangle(a, b, c)| {
-            normals
-                .get_mut(a.vertex_idx)
-                .map(|ns| ns.push(self.vertex_normals[a.normal_idx]));
-            normals
-                .get_mut(b.vertex_idx)
-                .map(|ns| ns.push(self.vertex_normals[b.normal_idx]));
-            normals
-                .get_mut(c.vertex_idx)
-                .map(|ns| ns.push(self.vertex_normals[c.normal_idx]));
+            if let Some(ns) = normals.get_mut(a.vertex_idx) {
+                ns.push(self.vertex_normals[a.normal_idx])
+            }
+            if let Some(ns) = normals.get_mut(b.vertex_idx) {
+                ns.push(self.vertex_normals[b.normal_idx])
+            }
+            if let Some(ns) = normals.get_mut(c.vertex_idx) {
+                ns.push(self.vertex_normals[c.normal_idx])
+            }
         });
         let normals = normals
             .iter()
