@@ -6,7 +6,7 @@ use nalgebra::Point3;
 
 pub struct Compound<S> {
     // shapes: Vec<S>,
-    bvh: BVH<S>
+    bvh: BVH<S>,
 }
 
 impl<S: Shape> Compound<S> {
@@ -24,7 +24,7 @@ impl<S: Shape> Shape for Compound<S> {
     }
 
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
-        unimplemented!()
+        self.bvh.count_intersection_tests(ray)
     }
 
     fn bbox(&self) -> AABB {

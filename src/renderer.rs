@@ -1,5 +1,4 @@
 use crate::brdf::BRDF;
-use crate::bvh::ShapeNode;
 use crate::camera::Camera;
 use crate::film::{FrameBuffer, RGB};
 use crate::material::Material;
@@ -21,33 +20,6 @@ pub trait Renderer {
 #[derive(Default, Debug)]
 pub struct DirectIllumination {}
 
-fn hit_objects<'a>(world: &'a World, nodes: &[ShapeNode], ray: &Ray) -> Option<ShadeRec<'a>> {
-    let mut sr: Option<ShadeRec> = None;
-    let mut t_min = f64::INFINITY;
-
-    nodes.iter().for_each(|ShapeNode { aabb, obj }| {
-        if aabb.intersect(ray).is_some() {
-            if let Some(hit) = obj.intersect(&ray) {
-                if hit.t < t_min {
-                    t_min = hit.t;
-
-                    sr = Some(ShadeRec {
-                        hit_point: ray.origin() + hit.t * ray.direction(),
-                        local_hit_point: hit.local_hit_point,
-                        normal: hit.normal,
-                        material: obj.material(),
-                        depth: 0,
-                        direction: Vector3::default(),
-                        world,
-                    })
-                }
-            }
-        }
-    });
-
-    sr
-}
-
 impl Renderer for DirectIllumination {
     fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> FrameBuffer
     where
@@ -56,15 +28,6 @@ impl Renderer for DirectIllumination {
     {
         let (x_res, y_res) = camera.resolution();
         let mut buffer = FrameBuffer::new(x_res, y_res);
-
-        let nodes = world
-            .geometric_objects()
-            .iter()
-            .map(|obj| {
-                let aabb = obj.shape().bbox();
-                ShapeNode { aabb, obj }
-            })
-            .collect_vec();
 
         buffer
             .buffer()
@@ -75,7 +38,7 @@ impl Renderer for DirectIllumination {
                     let color = sampler.average(|sample| {
                         let ray = camera.generate_ray(c, r, sample);
 
-                        match hit_objects(world, &nodes, &ray) {
+                        match world.hit_objects(&ray) {
                             None => world.background_color(),
                             Some(sr) => Self::shade(&sr.material, &sr, &ray),
                         }

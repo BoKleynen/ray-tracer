@@ -16,13 +16,8 @@ pub struct BVH<S> {
 }
 
 impl<S: Shape> BVH<S> {
-    pub fn new(mut shapes: Vec<S>) -> Self {
-        shapes.sort_unstable_by(|s0, s1| {
-            let m0 = s0.bbox().p1.x - s0.bbox().p0.x;
-            let m1 = s1.bbox().p1.x - s1.bbox().p0.x;
-
-            m0.partial_cmp(&m1).unwrap()
-        });
+    pub fn new(shapes: Vec<S>) -> Self {
+        // let bboxes = shapes.iter().map(|shape| (shape.bbox(), shape as *const S)).collect_vec();
 
         let node = Node::new(shapes);
         Self { node }
@@ -34,6 +29,10 @@ impl<S: Shape> BVH<S> {
 
     pub fn bbox(&self) -> AABB {
         self.node.bbox
+    }
+
+    pub fn count_intersection_tests(&self, ray: &Ray) -> usize {
+        self.node.count_intersection_tests(ray)
     }
 }
 
@@ -52,10 +51,54 @@ struct Node<S> {
     node_type: NodeType<S>,
 }
 
+// impl<S: Shape> Node<S> {
+//     fn new(bboxes: Vec<(AABB, *const S)>) -> Self {
+//
+//     }
+// }
+//
+// fn bounding_box<T>(shapes: &[(AABB, T)]) -> AABB {
+//     let min_x = shapes
+//         .iter()
+//         .map(|(bbox,_)| bbox.p0.x)
+//         .min_by(|a, b| a.partial_cmp(b).unwrap())
+//         .unwrap();
+//     let max_x = shapes
+//         .iter()
+//         .map(|(bbox,_)| bbox.p1.x)
+//         .max_by(|a, b| a.partial_cmp(b).unwrap())
+//         .unwrap();
+//     let min_y = shapes
+//         .iter()
+//         .map(|(bbox,_)| bbox.p0.y)
+//         .min_by(|a, b| a.partial_cmp(b).unwrap())
+//         .unwrap();
+//     let max_y = shapes
+//         .iter()
+//         .map(|(bbox,_)| bbox.p1.y)
+//         .max_by(|a, b| a.partial_cmp(b).unwrap())
+//         .unwrap();
+//     let min_z = shapes
+//         .iter()
+//         .map(|(bbox,_)| bbox.p0.z)
+//         .min_by(|a, b| a.partial_cmp(b).unwrap())
+//         .unwrap();
+//     let max_z = shapes
+//         .iter()
+//         .map(|(bbox,_)| bbox.p1.z)
+//         .max_by(|a, b| a.partial_cmp(b).unwrap())
+//         .unwrap();
+//
+//     AABB::new(
+//         Point3::new(min_x, min_y, min_z),
+//         Point3::new(max_x, max_y, max_z),
+//     )
+// }
+
 impl<S: Shape> Node<S> {
     fn new(mut shapes: Vec<S>) -> Self {
         let bbox = bounding_box(&shapes);
-        if shapes.len() <= 3 {
+        if shapes.len() <= 2 {
             Self {
                 bbox,
                 node_type: Leaf { shapes },
@@ -80,20 +123,92 @@ impl<S: Shape> Node<S> {
                 .filter_map(|shape| shape.intersect(&ray))
                 .min_by(|x, y| x.t.partial_cmp(&y.t).unwrap()),
             NodeType::Internal { left, right } => {
-                let left_hit = left.bbox.intersect(ray);
-                let right_hit = right.bbox.intersect(ray);
-
-                match (left_hit, right_hit) {
+                match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
                     (Some(left_t), Some(right_t)) => {
                         if left_t < right_t {
-                            left.intersect(ray).or_else(|| right.intersect(ray))
+                            match left.intersect(ray) {
+                                None => right.intersect(ray),
+                                Some(hit) => {
+                                    if hit.t >= right_t {
+                                        match right.intersect(ray) {
+                                            None => Some(hit),
+                                            Some(right_hit) => {
+                                                if hit.t < right_hit.t {
+                                                    Some(hit)
+                                                } else {
+                                                    Some(right_hit)
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        Some(hit)
+                                    }
+                                }
+                            }
                         } else {
-                            right.intersect(ray).or_else(|| left.intersect(ray))
+                            match right.intersect(ray) {
+                                None => left.intersect(ray),
+                                Some(hit) => {
+                                    if hit.t >= left_t {
+                                        match left.intersect(ray) {
+                                            None => Some(hit),
+                                            Some(left_hit) => {
+                                                if hit.t < left_hit.t {
+                                                    Some(hit)
+                                                } else {
+                                                    Some(left_hit)
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        Some(hit)
+                                    }
+                                }
+                            }
                         }
                     }
                     (Some(_), None) => left.intersect(ray),
                     (None, Some(_)) => right.intersect(ray),
                     (None, None) => None,
+                }
+            }
+        }
+    }
+
+    fn count_intersection_tests(&self, ray: &Ray) -> usize {
+        match &self.node_type {
+            NodeType::Leaf { shapes } => shapes
+                .iter()
+                .map(|shape| shape.count_intersection_tests(ray))
+                .sum(),
+            NodeType::Internal { left, right } => {
+                match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
+                    (Some(left_t), Some(right_t)) => {
+                        if left_t < right_t {
+                            match left.intersect(ray) {
+                                Some(hit) if hit.t < right_t => {
+                                    2 + left.count_intersection_tests(ray)
+                                }
+                                _ => {
+                                    2 + left.count_intersection_tests(ray)
+                                        + right.count_intersection_tests(ray)
+                                }
+                            }
+                        } else {
+                            match right.intersect(ray) {
+                                Some(hit) if hit.t >= left_t => {
+                                    2 + right.count_intersection_tests(ray)
+                                }
+                                _ => {
+                                    2 + left.count_intersection_tests(ray)
+                                        + right.count_intersection_tests(ray)
+                                }
+                            }
+                        }
+                    }
+                    (Some(_), None) => 2 + left.count_intersection_tests(ray),
+                    (None, Some(_)) => 2 + right.count_intersection_tests(ray),
+                    (None, None) => 2,
                 }
             }
         }

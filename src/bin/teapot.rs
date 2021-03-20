@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .ok_or("invalid camera configuration")?;
 
     let light1 = PointLight::white(1., Point3::new(4., -4., 0.));
-    let t = Transformation::translate(0., 0., -10.).then(&Transformation::scale(5., 5., 5.));
+    let t = Transformation::scale(5., 5., 5.).then(&Transformation::translate(0., 0., -10.));
 
     let material = Material::Matte {
         ambient_brdf: Lambertian::new(0.15, RGB::new(1., 1., 1.)),
@@ -44,8 +44,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid world configuration")?;
 
+    let duration = start.elapsed();
+    println!("done building world: {:?}", duration);
+
     let sampler = JitteredSampler::new(16);
+    // let tracer = FalseColorIntersectionTests::default();
     let tracer = DirectIllumination::default();
+
+    let start = Instant::now();
+
     let buffer = tracer.render_scene(&world, camera, sampler);
 
     buffer.to_rgba_image(1., 2.2).save("renders/teapot.png")?;
