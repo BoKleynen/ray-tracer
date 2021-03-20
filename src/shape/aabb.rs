@@ -83,4 +83,8 @@ impl AABB {
             Point3::new(x1, y1, z1),
         ]
     }
+
+    pub fn centroid(&self) -> Point3<f64> {
+        self.p0 + 0.5 * (self.p1 - self.p0)
+    }
 }

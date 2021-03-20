@@ -16,7 +16,6 @@ use crate::material::Material;
 use crate::math::{Ray, Transformation};
 use crate::shape::transformed::Transformed;
 use nalgebra::{Point3, Vector3};
-use std::cmp::Ordering;
 
 pub struct GeometricObject {
     shape: Box<dyn Shape>,

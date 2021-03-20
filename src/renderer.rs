@@ -6,8 +6,6 @@ use crate::math::Ray;
 use crate::sampler::Sampler;
 use crate::shade_rec::ShadeRec;
 use crate::world::World;
-use itertools::Itertools;
-use nalgebra::Vector3;
 use rayon::prelude::*;
 
 pub trait Renderer {

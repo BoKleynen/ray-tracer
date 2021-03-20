@@ -1,8 +1,7 @@
-use crate::material::Material;
-use crate::math::{Ray, Transformation};
+use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
 use crate::K_EPSILON;
-use nalgebra::{Point3, Vector3};
+use nalgebra::Point3;
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
 /// which is transformed by a transformation.
@@ -10,7 +9,7 @@ pub struct Sphere {}
 
 impl Sphere {
     pub fn new() -> Self {
-        Sphere {}
+        Sphere::default()
     }
 }
 
@@ -62,5 +61,11 @@ impl Shape for Sphere {
 
     fn bbox(&self) -> AABB {
         AABB::new(Point3::new(-1., -1., -1.), Point3::new(1., 1., 1.))
+    }
+}
+
+impl Default for Sphere {
+    fn default() -> Self {
+        Self {}
     }
 }

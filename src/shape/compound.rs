@@ -1,8 +1,6 @@
 use crate::bvh::BVH;
 use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
-use itertools::Itertools;
-use nalgebra::Point3;
 
 pub struct Compound<S> {
     // shapes: Vec<S>,

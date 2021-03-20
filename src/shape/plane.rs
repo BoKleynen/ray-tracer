@@ -1,5 +1,4 @@
-use crate::material::Material;
-use crate::math::{Ray, Transformation};
+use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
 use crate::K_EPSILON;
 use nalgebra::{Point3, Vector3};

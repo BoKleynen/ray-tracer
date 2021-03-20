@@ -1,15 +1,7 @@
 use crate::bvh::NodeType::{Internal, Leaf};
 use crate::math::Ray;
-use crate::shape::{GeometricObject, Hit, Shape, AABB};
-use crate::world::World;
-use itertools::Itertools;
+use crate::shape::{Hit, Shape, AABB};
 use nalgebra::Point3;
-use std::mem::ManuallyDrop;
-
-pub struct ShapeNode<'a> {
-    pub(crate) aabb: AABB,
-    pub(crate) obj: &'a GeometricObject,
-}
 
 pub struct BVH<S> {
     node: Node<S>,
@@ -128,22 +120,15 @@ impl<S: Shape> Node<S> {
                         if left_t < right_t {
                             match left.intersect(ray) {
                                 None => right.intersect(ray),
-                                Some(hit) => {
-                                    if hit.t >= right_t {
+                                Some(hit) =>
+                                    if hit.t >= right_t  {
                                         match right.intersect(ray) {
-                                            None => Some(hit),
-                                            Some(right_hit) => {
-                                                if hit.t < right_hit.t {
-                                                    Some(hit)
-                                                } else {
-                                                    Some(right_hit)
-                                                }
-                                            }
+                                            Some(right_hit) if hit.t > right_hit.t => Some(right_hit),
+                                            _ => Some(hit),
                                         }
                                     } else {
                                         Some(hit)
                                     }
-                                }
                             }
                         } else {
                             match right.intersect(ray) {
@@ -151,14 +136,8 @@ impl<S: Shape> Node<S> {
                                 Some(hit) => {
                                     if hit.t >= left_t {
                                         match left.intersect(ray) {
-                                            None => Some(hit),
-                                            Some(left_hit) => {
-                                                if hit.t < left_hit.t {
-                                                    Some(hit)
-                                                } else {
-                                                    Some(left_hit)
-                                                }
-                                            }
+                                            Some(left_hit) if hit.t > left_hit.t => Some(left_hit),
+                                            _ => Some(hit),
                                         }
                                     } else {
                                         Some(hit)

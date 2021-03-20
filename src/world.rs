@@ -2,8 +2,8 @@ use crate::film::RGB;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
-use crate::shape::{GeometricObject, Shape, AABB};
-use nalgebra::{Point3, Vector3};
+use crate::shape::GeometricObject;
+use nalgebra::Vector3;
 
 pub struct World {
     shapes: Vec<GeometricObject>,
