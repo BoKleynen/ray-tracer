@@ -9,10 +9,7 @@ pub struct BVH<S> {
 
 impl<S: Shape> BVH<S> {
     pub fn new(shapes: Vec<S>) -> Self {
-        // let bboxes = shapes.iter().map(|shape| (shape.bbox(), shape as *const S)).collect_vec();
-
-        let node = Node::new(shapes);
-        Self { node }
+        Self { node: Node::new(shapes) }
     }
 
     pub fn intersect(&self, ray: &Ray) -> Option<Hit> {
@@ -43,53 +40,9 @@ struct Node<S> {
     node_type: NodeType<S>,
 }
 
-// impl<S: Shape> Node<S> {
-//     fn new(bboxes: Vec<(AABB, *const S)>) -> Self {
-//
-//     }
-// }
-//
-// fn bounding_box<T>(shapes: &[(AABB, T)]) -> AABB {
-//     let min_x = shapes
-//         .iter()
-//         .map(|(bbox,_)| bbox.p0.x)
-//         .min_by(|a, b| a.partial_cmp(b).unwrap())
-//         .unwrap();
-//     let max_x = shapes
-//         .iter()
-//         .map(|(bbox,_)| bbox.p1.x)
-//         .max_by(|a, b| a.partial_cmp(b).unwrap())
-//         .unwrap();
-//     let min_y = shapes
-//         .iter()
-//         .map(|(bbox,_)| bbox.p0.y)
-//         .min_by(|a, b| a.partial_cmp(b).unwrap())
-//         .unwrap();
-//     let max_y = shapes
-//         .iter()
-//         .map(|(bbox,_)| bbox.p1.y)
-//         .max_by(|a, b| a.partial_cmp(b).unwrap())
-//         .unwrap();
-//     let min_z = shapes
-//         .iter()
-//         .map(|(bbox,_)| bbox.p0.z)
-//         .min_by(|a, b| a.partial_cmp(b).unwrap())
-//         .unwrap();
-//     let max_z = shapes
-//         .iter()
-//         .map(|(bbox,_)| bbox.p1.z)
-//         .max_by(|a, b| a.partial_cmp(b).unwrap())
-//         .unwrap();
-//
-//     AABB::new(
-//         Point3::new(min_x, min_y, min_z),
-//         Point3::new(max_x, max_y, max_z),
-//     )
-// }
-
 impl<S: Shape> Node<S> {
     fn new(mut shapes: Vec<S>) -> Self {
-        let bbox = bounding_box(&shapes);
+        let bbox = AABB::from_multiple(&shapes);
         if shapes.len() <= 2 {
             Self {
                 bbox,
@@ -182,42 +135,4 @@ impl<S: Shape> Node<S> {
             }
         }
     }
-}
-
-fn bounding_box<S: Shape>(shapes: &[S]) -> AABB {
-    let min_x = shapes
-        .iter()
-        .map(|shape| shape.bbox().p0.x)
-        .min_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap();
-    let max_x = shapes
-        .iter()
-        .map(|shape| shape.bbox().p1.x)
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap();
-    let min_y = shapes
-        .iter()
-        .map(|shape| shape.bbox().p0.y)
-        .min_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap();
-    let max_y = shapes
-        .iter()
-        .map(|shape| shape.bbox().p1.y)
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap();
-    let min_z = shapes
-        .iter()
-        .map(|shape| shape.bbox().p0.z)
-        .min_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap();
-    let max_z = shapes
-        .iter()
-        .map(|shape| shape.bbox().p1.z)
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap();
-
-    AABB::new(
-        Point3::new(min_x, min_y, min_z),
-        Point3::new(max_x, max_y, max_z),
-    )
 }

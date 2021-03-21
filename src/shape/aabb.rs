@@ -1,6 +1,7 @@
 use crate::math::Ray;
 use crate::K_EPSILON;
 use nalgebra::Point3;
+use crate::shape::Shape;
 
 #[derive(Copy, Clone)]
 pub struct AABB {
@@ -86,5 +87,43 @@ impl AABB {
 
     pub fn centroid(&self) -> Point3<f64> {
         self.p0 + 0.5 * (self.p1 - self.p0)
+    }
+
+    pub fn from_multiple<S: Shape>(shapes: &[S]) -> AABB {
+        let min_x = shapes
+            .iter()
+            .map(|shape| shape.bbox().p0.x)
+            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let max_x = shapes
+            .iter()
+            .map(|shape| shape.bbox().p1.x)
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let min_y = shapes
+            .iter()
+            .map(|shape| shape.bbox().p0.y)
+            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let max_y = shapes
+            .iter()
+            .map(|shape| shape.bbox().p1.y)
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let min_z = shapes
+            .iter()
+            .map(|shape| shape.bbox().p0.z)
+            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let max_z = shapes
+            .iter()
+            .map(|shape| shape.bbox().p1.z)
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+
+        AABB::new(
+            Point3::new(min_x, min_y, min_z),
+            Point3::new(max_x, max_y, max_z),
+        )
     }
 }
