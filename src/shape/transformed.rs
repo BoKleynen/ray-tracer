@@ -74,40 +74,28 @@ impl<S> Transformed<S> {
 impl Transformed<Cuboid> {
     pub fn cuboid(corner: Point3<f64>, transformation: Transformation) -> Self {
         let shape = Cuboid::new(corner);
-        Self {
-            shape,
-            transformation,
-        }
+        Self::new(shape, transformation)
     }
 }
 
 impl Transformed<Compound<SmoothTriangle>> {
     pub fn smooth_mesh(obj: Obj, transformation: Transformation) -> Self {
         let shape = obj.smooth();
-        Self {
-            shape,
-            transformation,
-        }
+        Self::new(shape, transformation)
     }
 }
 
 impl Transformed<Plane> {
     pub fn plane(normal: Vector3<f64>, point: Point3<f64>, transformation: Transformation) -> Self {
         let shape = Plane::new(normal, point);
-        Self {
-            shape,
-            transformation,
-        }
+        Self::new(shape, transformation)
     }
 }
 
 impl Transformed<Sphere> {
     pub fn sphere(transformation: Transformation) -> Self {
         let shape = Sphere::new();
-        Self {
-            shape,
-            transformation,
-        }
+        Self::new(shape, transformation)
     }
 }
 

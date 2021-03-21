@@ -1,7 +1,6 @@
 use crate::bvh::NodeType::{Internal, Leaf};
 use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
-use nalgebra::Point3;
 
 pub struct BVH<S> {
     node: Node<S>,
@@ -9,7 +8,9 @@ pub struct BVH<S> {
 
 impl<S: Shape> BVH<S> {
     pub fn new(shapes: Vec<S>) -> Self {
-        Self { node: Node::new(shapes) }
+        Self {
+            node: Node::new(shapes),
+        }
     }
 
     pub fn intersect(&self, ray: &Ray) -> Option<Hit> {
@@ -73,15 +74,18 @@ impl<S: Shape> Node<S> {
                         if left_t < right_t {
                             match left.intersect(ray) {
                                 None => right.intersect(ray),
-                                Some(hit) =>
-                                    if hit.t >= right_t  {
+                                Some(hit) => {
+                                    if hit.t >= right_t {
                                         match right.intersect(ray) {
-                                            Some(right_hit) if hit.t > right_hit.t => Some(right_hit),
+                                            Some(right_hit) if hit.t > right_hit.t => {
+                                                Some(right_hit)
+                                            }
                                             _ => Some(hit),
                                         }
                                     } else {
                                         Some(hit)
                                     }
+                                }
                             }
                         } else {
                             match right.intersect(ray) {
@@ -117,15 +121,17 @@ impl<S: Shape> Node<S> {
                 2 + match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
                     (Some(left_t), Some(right_t)) => {
                         if left_t < right_t {
-                            left.count_intersection_tests(ray) + match left.intersect(ray) {
-                                Some(hit) if hit.t < right_t => 0,
-                                _ => right.count_intersection_tests(ray)
-                            }
+                            left.count_intersection_tests(ray)
+                                + match left.intersect(ray) {
+                                    Some(hit) if hit.t < right_t => 0,
+                                    _ => right.count_intersection_tests(ray),
+                                }
                         } else {
-                            right.count_intersection_tests(ray) + match right.intersect(ray) {
-                                Some(hit) if hit.t >= left_t => 0,
-                                _ => left.count_intersection_tests(ray)
-                            }
+                            right.count_intersection_tests(ray)
+                                + match right.intersect(ray) {
+                                    Some(hit) if hit.t >= left_t => 0,
+                                    _ => left.count_intersection_tests(ray),
+                                }
                         }
                     }
                     (Some(_), None) => left.count_intersection_tests(ray),

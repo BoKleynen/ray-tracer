@@ -38,7 +38,11 @@ impl<S: Shape> Shape for Compound<S> {
             return 1;
         }
 
-        1 + self.shapes.iter().map(|shape| shape.count_intersection_tests(ray)).sum::<usize>()
+        1 + self
+            .shapes
+            .iter()
+            .map(|shape| shape.count_intersection_tests(ray))
+            .sum::<usize>()
     }
 
     fn bbox(&self) -> AABB {
@@ -48,7 +52,6 @@ impl<S: Shape> Shape for Compound<S> {
 
 #[cfg(feature = "bvh")]
 pub struct Compound<S> {
-    // shapes: Vec<S>,
     bvh: BVH<S>,
 }
 
