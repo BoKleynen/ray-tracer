@@ -161,33 +161,23 @@ impl<S: Shape> Node<S> {
                 .map(|shape| shape.count_intersection_tests(ray))
                 .sum(),
             NodeType::Internal { left, right } => {
-                match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
+                2 + match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
                     (Some(left_t), Some(right_t)) => {
                         if left_t < right_t {
-                            match left.intersect(ray) {
-                                Some(hit) if hit.t < right_t => {
-                                    2 + left.count_intersection_tests(ray)
-                                }
-                                _ => {
-                                    2 + left.count_intersection_tests(ray)
-                                        + right.count_intersection_tests(ray)
-                                }
+                            left.count_intersection_tests(ray) + match left.intersect(ray) {
+                                Some(hit) if hit.t < right_t => 0,
+                                _ => right.count_intersection_tests(ray)
                             }
                         } else {
-                            match right.intersect(ray) {
-                                Some(hit) if hit.t >= left_t => {
-                                    2 + right.count_intersection_tests(ray)
-                                }
-                                _ => {
-                                    2 + left.count_intersection_tests(ray)
-                                        + right.count_intersection_tests(ray)
-                                }
+                            right.count_intersection_tests(ray) + match right.intersect(ray) {
+                                Some(hit) if hit.t >= left_t => 0,
+                                _ => left.count_intersection_tests(ray)
                             }
                         }
                     }
-                    (Some(_), None) => 2 + left.count_intersection_tests(ray),
-                    (None, Some(_)) => 2 + right.count_intersection_tests(ray),
-                    (None, None) => 2,
+                    (Some(_), None) => left.count_intersection_tests(ray),
+                    (None, Some(_)) => right.count_intersection_tests(ray),
+                    (None, None) => 0,
                 }
             }
         }

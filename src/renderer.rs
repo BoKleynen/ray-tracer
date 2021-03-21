@@ -7,6 +7,8 @@ use crate::sampler::Sampler;
 use crate::shade_rec::ShadeRec;
 use crate::world::World;
 use rayon::prelude::*;
+use itertools::Itertools;
+use std::io::Write;
 
 pub trait Renderer {
     fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> FrameBuffer
@@ -104,7 +106,7 @@ impl Renderer for FalseColorNormals {
 
                         match world.hit_objects(&ray) {
                             None => world.background_color(),
-                            Some(sr) => RGB::new(sr.normal.x, sr.normal.y, sr.normal.z),
+                            Some(sr) => RGB::new(sr.normal.x.abs(), sr.normal.y.abs(), sr.normal.z.abs()),
                         }
                     });
 
@@ -143,6 +145,13 @@ impl Renderer for FalseColorIntersectionTests {
                         .sum();
                 })
             });
+
+        let normalized_intersection_counts = intersection_counts
+            .iter()
+            .map(|count| count.to_string())
+            .collect::<Vec<String>>();
+
+        std::fs::File::create("output.txt").unwrap().write_all(normalized_intersection_counts.join(",").as_bytes()).unwrap();
 
         let mut buffer = FrameBuffer::new(x_res, y_res);
         buffer
