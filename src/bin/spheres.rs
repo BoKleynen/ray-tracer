@@ -1,5 +1,6 @@
+#[allow(unused_imports)]
 use cg_practicum::brdf::Lambertian;
-use cg_practicum::camera::{Camera, CameraBuilder};
+use cg_practicum::camera::CameraBuilder;
 use cg_practicum::film::RGB;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
@@ -8,7 +9,7 @@ use cg_practicum::renderer::{
     DirectIllumination, FalseColorIntersectionTests, FalseColorNormals, Renderer,
 };
 use cg_practicum::sampler::{JitteredSampler, RegularSampler, Unsampled};
-use cg_practicum::shape::Sphere;
+use cg_practicum::shape::{GeometricObject, Sphere};
 use cg_practicum::world::WorldBuilder;
 use nalgebra::{Point3, Vector3};
 use std::error::Error;
@@ -27,13 +28,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid camera configuration")?;
 
-    let light1 = PointLight::white(Point3::new(4., -4., 0.));
+    let light1 = PointLight::white(1., Point3::new(4., -4., 0.));
 
-    let t1 = Transformation::translate(0., 0., -10.).append(&Transformation::scale(5., 5., 5.));
-    let t2 = Transformation::translate(4., -4., -12.).append(&Transformation::scale(4., 4., 3.));
-    let t3 = Transformation::translate(-4., -4., -12.).append(&Transformation::scale(4., 4., 3.));
-    let t4 = Transformation::translate(4., 4., -12.).append(&Transformation::scale(4., 4., 4.));
-    let t5 = Transformation::translate(-4., 4., -12.).append(&Transformation::scale(4., 4., 4.));
+    let t1 = Transformation::scale(5., 5., 5.).then(&Transformation::translate(0., 0., -10.));
+    let t2 = Transformation::scale(4., 4., 3.).then(&Transformation::translate(4., -4., -12.));
+    let t3 = Transformation::scale(4., 4., 3.).then(&Transformation::translate(-4., -4., -12.));
+    let t4 = Transformation::scale(4., 4., 4.).then(&Transformation::translate(4., 4., -12.));
+    let t5 = Transformation::scale(4., 4., 4.).then(&Transformation::translate(-4., 4., -12.));
 
     let material1 = Material::Matte {
         ambient_brdf: Lambertian::new(0.15, RGB::new(1., 1., 1.)),
@@ -59,18 +60,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     let world = WorldBuilder::default()
         .light(Box::new(light1))
         .background(RGB::black())
-        .shape(Box::new(Sphere::new(t1, material1)))
-        .shape(Box::new(Sphere::new(t2, material2)))
-        .shape(Box::new(Sphere::new(t3, material3)))
-        .shape(Box::new(Sphere::new(t4, material4)))
-        .shape(Box::new(Sphere::new(t5, material5)))
+        .geometric_object(GeometricObject::sphere(t1, material1))
+        .geometric_object(GeometricObject::sphere(t2, material2))
+        .geometric_object(GeometricObject::sphere(t3, material3))
+        .geometric_object(GeometricObject::sphere(t4, material4))
+        .geometric_object(GeometricObject::sphere(t5, material5))
         .build()
         .ok_or("invalid world configuration")?;
 
     // let sampler = RegularSampler::new(16);
     // let sampler = Unsampled::default();
     let sampler = JitteredSampler::new(16);
-    let tracer = FalseColorIntersectionTests::default();
+    let tracer = DirectIllumination::default();
     let buffer = tracer.render_scene(&world, camera, sampler);
 
     buffer.to_rgba_image(1., 2.2).save("renders/spheres.png")?;

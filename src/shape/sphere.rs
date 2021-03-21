@@ -1,40 +1,22 @@
-use crate::material::Material;
-use crate::math::{Ray, Transformation};
-use crate::shape::{Hit, Shape};
+use crate::math::Ray;
+use crate::shape::{Hit, Shape, AABB};
 use crate::K_EPSILON;
-use nalgebra::Vector3;
+use nalgebra::Point3;
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
 /// which is transformed by a transformation.
-pub struct Sphere {
-    transformation: Transformation,
-    material: Material,
-}
+pub struct Sphere {}
 
 impl Sphere {
-    pub fn new(transformation: Transformation, material: Material) -> Self {
-        Sphere {
-            transformation,
-            material,
-        }
-    }
-
-    fn shading_normal(&self, normal: &Vector3<f64>) -> Vector3<f64> {
-        self.transformation
-            .inverse()
-            .matrix()
-            .transpose()
-            .transform_vector(normal)
-            .normalize()
+    pub fn new() -> Self {
+        Sphere::default()
     }
 }
 
 impl Shape for Sphere {
     fn intersect(&self, ray: &Ray) -> Option<Hit> {
-        let transformed_ray = self.transformation.apply_inverse(ray);
-
-        let origin = transformed_ray.origin();
-        let direction = transformed_ray.direction();
+        let origin = ray.origin();
+        let direction = ray.direction();
 
         let a = direction.norm_squared();
         let b = 2. * &origin.coords.dot(direction);
@@ -54,7 +36,7 @@ impl Shape for Sphere {
 
             return Some(Hit {
                 t,
-                normal: self.shading_normal(&local_hit_point.coords),
+                normal: local_hit_point.coords,
                 local_hit_point,
             });
         }
@@ -65,7 +47,7 @@ impl Shape for Sphere {
 
             return Some(Hit {
                 t,
-                normal: self.shading_normal(&local_hit_point.coords),
+                normal: local_hit_point.coords,
                 local_hit_point,
             });
         }
@@ -73,11 +55,17 @@ impl Shape for Sphere {
         None
     }
 
-    fn material(&self) -> Material {
-        self.material.clone()
-    }
-
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
+    }
+
+    fn bbox(&self) -> AABB {
+        AABB::new(Point3::new(-1., -1., -1.), Point3::new(1., 1., 1.))
+    }
+}
+
+impl Default for Sphere {
+    fn default() -> Self {
+        Self {}
     }
 }

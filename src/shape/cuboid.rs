@@ -1,6 +1,5 @@
-use crate::material::Material;
-use crate::math::{Ray, Transformation};
-use crate::shape::{Hit, Shape};
+use crate::math::Ray;
+use crate::shape::{Hit, Shape, AABB};
 use crate::K_EPSILON;
 use nalgebra::{Point3, Vector3};
 
@@ -8,63 +7,24 @@ use nalgebra::{Point3, Vector3};
 /// to the origin.
 #[derive(Debug)]
 pub struct Cuboid {
-    transformation: Transformation,
     corner: Point3<f64>,
-    material: Material,
-}
-
-enum CuboidFace {
-    Left,
-    Bottom,
-    Back,
-    Right,
-    Top,
-    Front,
-}
-
-impl CuboidFace {
-    fn normal(self) -> Vector3<f64> {
-        match self {
-            CuboidFace::Left => Vector3::new(-1., 0., 0.),
-            CuboidFace::Bottom => Vector3::new(0., -1., 0.),
-            CuboidFace::Back => Vector3::new(0., 0., -1.),
-            CuboidFace::Right => Vector3::new(1., 0., 0.),
-            CuboidFace::Top => Vector3::new(0., 1., 0.),
-            CuboidFace::Front => Vector3::new(0., 0., 1.),
-        }
-    }
 }
 
 impl Cuboid {
-    pub fn new(corner: Point3<f64>, transformation: Transformation, material: Material) -> Self {
-        Self {
-            transformation,
-            corner,
-            material,
-        }
-    }
-
-    fn shading_normal(&self, normal: &Vector3<f64>) -> Vector3<f64> {
-        self.transformation
-            .inverse()
-            .matrix()
-            .transpose()
-            .transform_vector(normal)
-            .normalize()
+    pub fn new(corner: Point3<f64>) -> Self {
+        Self { corner }
     }
 }
 
 impl Shape for Cuboid {
     fn intersect(&self, ray: &Ray) -> Option<Hit> {
-        let inv_ray = self.transformation.apply_inverse(ray);
+        let ox = ray.origin().x;
+        let oy = ray.origin().y;
+        let oz = ray.origin().z;
 
-        let ox = inv_ray.origin().x;
-        let oy = inv_ray.origin().y;
-        let oz = inv_ray.origin().z;
-
-        let dx = inv_ray.direction().x;
-        let dy = inv_ray.direction().y;
-        let dz = inv_ray.direction().z;
+        let dx = ray.direction().x;
+        let dy = ray.direction().y;
+        let dz = ray.direction().z;
 
         let a = 1. / dx;
         let (tx_min, tx_max) = if a >= 0. {
@@ -151,13 +111,13 @@ impl Shape for Cuboid {
             if t0 > K_EPSILON {
                 Some(Hit {
                     t: t0,
-                    normal: self.shading_normal(&face_in.normal()),
+                    normal: face_in.normal(),
                     local_hit_point: ray.origin() + t0 * ray.direction(),
                 })
             } else {
                 Some(Hit {
                     t: t1,
-                    normal: self.shading_normal(&face_out.normal()),
+                    normal: face_out.normal(),
                     local_hit_point: ray.origin() + t1 * ray.direction(),
                 })
             }
@@ -166,11 +126,103 @@ impl Shape for Cuboid {
         }
     }
 
-    fn material(&self) -> Material {
-        self.material.clone()
-    }
-
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
+    }
+
+    fn bbox(&self) -> AABB {
+        let (min_x, max_x) = if self.corner.x > 0. {
+            (-self.corner.x, self.corner.x)
+        } else {
+            (self.corner.x, -self.corner.x)
+        };
+        let (min_y, max_y) = if self.corner.y > 0. {
+            (-self.corner.y, self.corner.y)
+        } else {
+            (self.corner.y, -self.corner.y)
+        };
+        let (min_z, max_z) = if self.corner.z > 0. {
+            (-self.corner.x, self.corner.z)
+        } else {
+            (self.corner.z, -self.corner.z)
+        };
+
+        AABB::new(
+            Point3::new(min_x, min_y, min_z),
+            Point3::new(max_x, max_y, max_z),
+        )
+    }
+}
+
+enum CuboidFace {
+    Left,
+    Bottom,
+    Back,
+    Right,
+    Top,
+    Front,
+}
+
+impl CuboidFace {
+    fn normal(self) -> Vector3<f64> {
+        match self {
+            CuboidFace::Left => Vector3::new(-1., 0., 0.),
+            CuboidFace::Bottom => Vector3::new(0., -1., 0.),
+            CuboidFace::Back => Vector3::new(0., 0., -1.),
+            CuboidFace::Right => Vector3::new(1., 0., 0.),
+            CuboidFace::Top => Vector3::new(0., 1., 0.),
+            CuboidFace::Front => Vector3::new(0., 0., 1.),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Cuboid;
+    use crate::math::Ray;
+    use crate::shape::Shape;
+    use nalgebra::{Point3, Vector3};
+
+    #[test]
+    fn obj_hit() {
+        for ray in test_rays() {
+            for cuboid in test_cuboids() {
+                if cuboid.hit(&ray) {
+                    assert!(cuboid.bbox().intersect(&ray));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn bounding_box_mis() {
+        for ray in test_rays() {
+            for cuboid in test_cuboids() {
+                if !cuboid.bbox().intersect(&ray) {
+                    assert!(!cuboid.hit(&ray));
+                }
+            }
+        }
+    }
+
+    fn test_cuboids() -> Vec<Cuboid> {
+        vec![
+            Cuboid::new(Point3::new(1., 1., 1.)),
+            Cuboid::new(Point3::new(-1., -1., -1.)),
+        ]
+    }
+
+    fn test_rays() -> Vec<Ray> {
+        vec![
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 0., 0.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(0., 1., 0.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(0., 0., 1.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 1., 0.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 1., 0.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 0., 1.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 0., 1.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(0., 1., 1.)),
+            Ray::new(Point3::new(0., 0., 0.), Vector3::new(0., 1., 1.)),
+        ]
     }
 }

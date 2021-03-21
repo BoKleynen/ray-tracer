@@ -29,7 +29,7 @@ impl Camera for PerspectiveCamera {
         let xv = self.width * ((column as f64 + sample_x) * self.inv_x_res - 0.5);
         let yv = self.height * ((row as f64 + sample_y) * self.inv_y_res - 0.5);
 
-        let direction = self.basis.u * xv + self.basis.v * yv - self.basis.w;
+        let direction = *self.basis.u * xv + *self.basis.v * yv - *self.basis.w;
 
         Ray::new(self.origin, direction)
     }

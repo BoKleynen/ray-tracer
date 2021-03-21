@@ -2,11 +2,11 @@ use crate::film::RGB;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
-use crate::shape::Shape;
+use crate::shape::GeometricObject;
 use nalgebra::Vector3;
 
 pub struct World {
-    shapes: Vec<Box<dyn Shape>>,
+    shapes: Vec<GeometricObject>,
     ambient_light: AmbientLight,
     lights: Vec<Box<dyn Light>>,
     background_color: RGB,
@@ -38,7 +38,20 @@ impl World {
         sr
     }
 
-    pub fn shapes(&self) -> &[Box<dyn Shape>] {
+    // pub fn build_bvh(&self) -> BVH {
+    //     let root_node = BVHNode {
+    //         left: None,
+    //         right: None,
+    //         aabb: AABB::new(Point3::origin(), Point3::origin()),
+    //     };
+    //
+    //     BVH {
+    //         world: self,
+    //         root_node,
+    //     }
+    // }
+
+    pub fn geometric_objects(&self) -> &[GeometricObject] {
         self.shapes.as_slice()
     }
 
@@ -56,7 +69,7 @@ impl World {
 }
 
 pub struct WorldBuilder {
-    shapes: Vec<Box<dyn Shape>>,
+    shapes: Vec<GeometricObject>,
     lights: Vec<Box<dyn Light>>,
     ambient_light: Option<AmbientLight>,
     background_color: Option<RGB>,
@@ -67,8 +80,8 @@ impl WorldBuilder {
         Self::default()
     }
 
-    pub fn shape(mut self, shape: Box<dyn Shape>) -> Self {
-        self.shapes.push(shape);
+    pub fn geometric_object(mut self, geometric_object: GeometricObject) -> Self {
+        self.shapes.push(geometric_object);
         self
     }
 

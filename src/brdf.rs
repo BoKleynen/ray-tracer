@@ -11,12 +11,16 @@ pub trait BRDF {
 
 #[derive(Debug, Copy, Clone)]
 pub struct Lambertian {
-    kd: f64, // diffuse reflection coefficient
-    cd: RGB, // diffuse color
+    // diffuse reflection coefficient, in [0, 1]
+    kd: f64,
+    // diffuse color
+    cd: RGB,
 }
 
 impl Lambertian {
     pub fn new(kd: f64, cd: RGB) -> Self {
+        assert!((0. ..=1.).contains(&kd));
+
         Lambertian { kd, cd }
     }
 }

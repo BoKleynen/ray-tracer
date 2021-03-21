@@ -1,8 +1,13 @@
+use crate::brdf::BRDF;
 use crate::camera::Camera;
 use crate::film::{FrameBuffer, RGB};
+use crate::material::Material;
+use crate::math::Ray;
 use crate::sampler::Sampler;
+use crate::shade_rec::ShadeRec;
 use crate::world::World;
 use rayon::prelude::*;
+use std::io::Write;
 
 pub trait Renderer {
     fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> FrameBuffer
@@ -22,6 +27,7 @@ impl Renderer for DirectIllumination {
     {
         let (x_res, y_res) = camera.resolution();
         let mut buffer = FrameBuffer::new(x_res, y_res);
+
         buffer
             .buffer()
             .par_chunks_exact_mut(x_res)
@@ -33,7 +39,7 @@ impl Renderer for DirectIllumination {
 
                         match world.hit_objects(&ray) {
                             None => world.background_color(),
-                            Some(sr) => sr.material.shade(&sr, &ray),
+                            Some(sr) => Self::shade(&sr.material, &sr, &ray),
                         }
                     });
 
@@ -42,6 +48,38 @@ impl Renderer for DirectIllumination {
             });
 
         buffer
+    }
+}
+
+impl DirectIllumination {
+    fn shade(material: &Material, sr: &ShadeRec, ray: &Ray) -> RGB {
+        match material {
+            Material::Matte {
+                ambient_brdf,
+                diffuse_brdf,
+            } => {
+                let wo = -ray.direction();
+                let ambient_radiance =
+                    ambient_brdf.rho(sr, &wo) * sr.world.ambient_light().radiance();
+                let direct_diffuse_radiance: RGB = sr
+                    .world
+                    .lights()
+                    .iter()
+                    .map(|light| {
+                        let wi = light.direction(sr);
+                        let n_dot_wi = sr.normal.dot(&wi);
+
+                        if n_dot_wi > 0. && light.visible(&Ray::new(sr.hit_point, *wi), sr) {
+                            diffuse_brdf.f(sr, &wo, &wi) * light.radiance(sr) * n_dot_wi
+                        } else {
+                            RGB::black()
+                        }
+                    })
+                    .sum();
+
+                ambient_radiance + direct_diffuse_radiance
+            }
+        }
     }
 }
 
@@ -67,7 +105,9 @@ impl Renderer for FalseColorNormals {
 
                         match world.hit_objects(&ray) {
                             None => world.background_color(),
-                            Some(sr) => RGB::new(sr.normal.x, sr.normal.y, sr.normal.z),
+                            Some(sr) => {
+                                RGB::new(sr.normal.x.abs(), sr.normal.y.abs(), sr.normal.z.abs())
+                            }
                         }
                     });
 
@@ -100,12 +140,22 @@ impl Renderer for FalseColorIntersectionTests {
                     let ray = camera.generate_ray(c, r, (0.5, 0.5));
 
                     *nb_intersects = world
-                        .shapes()
+                        .geometric_objects()
                         .iter()
                         .map(|shape| shape.count_intersection_tests(&ray))
                         .sum();
                 })
             });
+
+        let normalized_intersection_counts = intersection_counts
+            .iter()
+            .map(|count| count.to_string())
+            .collect::<Vec<String>>();
+
+        std::fs::File::create("output.txt")
+            .unwrap()
+            .write_all(normalized_intersection_counts.join(",").as_bytes())
+            .unwrap();
 
         let mut buffer = FrameBuffer::new(x_res, y_res);
         buffer

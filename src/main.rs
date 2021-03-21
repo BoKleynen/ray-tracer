@@ -6,7 +6,7 @@ use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
 use cg_practicum::renderer::{DirectIllumination, Renderer};
 use cg_practicum::sampler::Unsampled;
-use cg_practicum::shape::{Cuboid, Obj, Plane, Sphere, TriangleMesh};
+use cg_practicum::shape::{Cuboid, GeometricObject, Obj, Plane, Sphere};
 use cg_practicum::world::WorldBuilder;
 use clap::Clap;
 use nalgebra::{Point3, Vector3};
@@ -27,12 +27,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid camera configuration")?;
 
-    let t1 = Transformation::translate(0., 0., -10.).append(&Transformation::scale(5., 5., 5.));
-    let t2 = Transformation::translate(4., -4., -12.).append(&Transformation::scale(4., 4., 3.));
-    let t3 = Transformation::translate(-4., -4., -12.).append(&Transformation::scale(4., 4., 3.));
-    let t4 = Transformation::translate(4., 4., -12.).append(&Transformation::scale(4., 4., 4.));
-    let t5 = Transformation::translate(-4., 4., -12.).append(&Transformation::scale(4., 4., 4.));
-
     // let object = Obj::load("models/teapot.obj").unwrap();
 
     let material1 = Material::Matte {
@@ -45,33 +39,19 @@ fn main() -> Result<(), Box<dyn Error>> {
         diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 0., 1.)),
     };
 
-    let light = PointLight::white(Point3::new(100., 50., 150.));
-    let light2 = PointLight::white(Point3::new(50., 100., 50.));
+    let light = PointLight::white(1., Point3::new(100., 50., 150.));
+    let light2 = PointLight::white(1., Point3::new(50., 100., 50.));
 
     let world = WorldBuilder::default()
-        // .shape(Box::new(TriangleMesh::new(
-        //     object,
-        //     material1,
-        //     Transformation::identity(),
-        // )))
-        .shape(Box::new(Sphere::new(
+        .geometric_object(GeometricObject::sphere(
             Transformation::translate(1., 1., 0.),
             material1,
-        )))
-        .shape(Box::new(Cuboid::new(
+        ))
+        .geometric_object(GeometricObject::cuboid(
             Point3::new(1., 1., 1.),
             Transformation::translate(0., 0., -1.),
             material2.clone(),
-        )))
-        // .shape(Box::new(Sphere::new(t2, material2.clone())))
-        // .shape(Box::new(Sphere::new(t3, green)))
-        // .shape(Box::new(Sphere::new(t4, green)))
-        // .shape(Box::new(Sphere::new(t5, green)))
-        // .add_shape(Box::new(Plane::new(
-        //     Vector3::new(1., 1., 0.),
-        //     Point3::new(-10., -10., -10.),
-        //     Transformation::identity(),
-        // )))
+        ))
         .light(Box::new(light))
         .light(Box::new(light2))
         .background(RGB::new(0.1, 0.1, 0.1))
