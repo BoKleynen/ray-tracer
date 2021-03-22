@@ -10,7 +10,9 @@ use rayon::prelude::*;
 use std::io::Write;
 
 pub trait Renderer {
-    fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> FrameBuffer
+    type Output;
+
+    fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> Self::Output
     where
         C: Camera + Sync,
         S: Sampler + Sync;
@@ -20,7 +22,9 @@ pub trait Renderer {
 pub struct DirectIllumination {}
 
 impl Renderer for DirectIllumination {
-    fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> FrameBuffer
+    type Output = FrameBuffer;
+
+    fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> Self::Output
     where
         C: Camera + Sync,
         S: Sampler + Sync,
@@ -87,7 +91,9 @@ impl DirectIllumination {
 pub struct FalseColorNormals {}
 
 impl Renderer for FalseColorNormals {
-    fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> FrameBuffer
+    type Output = FrameBuffer;
+
+    fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> Self::Output
     where
         C: Camera + Sync,
         S: Sampler + Sync,
@@ -119,12 +125,28 @@ impl Renderer for FalseColorNormals {
     }
 }
 
-#[derive(Default, Debug)]
-pub struct FalseColorIntersectionTests {}
+#[derive(Debug)]
+pub struct FalseColorIntersectionTests {
+    path: String,
+}
+
+impl FalseColorIntersectionTests {
+    pub fn new(path: String) -> Self {
+        Self { path }
+    }
+}
+
+impl Default for FalseColorIntersectionTests {
+    fn default() -> Self {
+        Self::new("renders/intersection_count.txt".to_owned())
+    }
+}
 
 impl Renderer for FalseColorIntersectionTests {
+    type Output = std::io::Result<()>;
+
     // I don't think using sample points makes a lot of sense for this
-    fn render_scene<C, S>(&self, world: &World, camera: C, _sampler: S) -> FrameBuffer
+    fn render_scene<C, S>(&self, world: &World, camera: C, _sampler: S) -> Self::Output
     where
         C: Camera + Sync,
         S: Sampler + Sync,
@@ -152,26 +174,8 @@ impl Renderer for FalseColorIntersectionTests {
             .map(|count| count.to_string())
             .collect::<Vec<String>>();
 
-        std::fs::File::create("output.txt")
+        std::fs::File::create(&self.path)
             .unwrap()
             .write_all(normalized_intersection_counts.join(",").as_bytes())
-            .unwrap();
-
-        let mut buffer = FrameBuffer::new(x_res, y_res);
-        buffer
-            .buffer()
-            .iter_mut()
-            .enumerate()
-            .for_each(|(idx, pixel)| {
-                let count = intersection_counts[idx];
-
-                let r = (count & 0b1111_1111 << 16) >> 16;
-                let g = (count & 0b1111_1111 << 8) >> 8;
-                let b = count & 0b_1111_1111;
-
-                pixel.set(RGB::new(r as f64, g as f64, b as f64));
-            });
-
-        buffer
     }
 }
