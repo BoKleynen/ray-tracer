@@ -10,6 +10,8 @@ pub struct Emissive {
 
 impl Emissive {
     pub fn new(ls: f64, ce: RGB) -> Self {
+        assert!(ls >= 0.);
+
         Self { ls, ce }
     }
 }
@@ -21,4 +23,5 @@ pub enum Material {
         ambient_brdf: Lambertian,
         diffuse_brdf: Lambertian,
     },
+    Emissive(Emissive),
 }

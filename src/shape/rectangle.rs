@@ -1,13 +1,34 @@
 use crate::math::Ray;
+use crate::sampler::Sample;
 use crate::shape::{Hit, Shape, AABB};
 use crate::K_EPSILON;
 use nalgebra::{Point3, Unit, Vector3};
 
+#[derive(Clone)]
 pub struct Rectangle {
     p: Point3<f64>,
     a: Vector3<f64>,
     b: Vector3<f64>,
     normal: Unit<Vector3<f64>>,
+}
+
+impl Rectangle {
+    pub fn new(p: Point3<f64>, a: Vector3<f64>, b: Vector3<f64>) -> Self {
+        let normal = Unit::new_normalize(a.cross(&b));
+        Self { p, a, b, normal }
+    }
+
+    pub fn area(&self) -> f64 {
+        self.a.cross(&self.b).norm()
+    }
+
+    pub fn sample(&self, sample: &Sample) -> Point3<f64> {
+        self.p + sample.0 * self.a + sample.1 * self.b
+    }
+
+    pub fn normal_at(&self, _p: &Point3<f64>) -> Unit<Vector3<f64>> {
+        self.normal
+    }
 }
 
 impl Shape for Rectangle {
