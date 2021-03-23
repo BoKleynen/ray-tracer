@@ -48,12 +48,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("done building world: {:?}", duration);
 
     let sampler = JitteredSampler::new(16);
-    let tracer = FalseColorIntersectionTests::default();
-    // let tracer = DirectIllumination::default();
+    // let tracer = FalseColorIntersectionTests::default();
+    let tracer = DirectIllumination::default();
 
     let start = Instant::now();
 
     let buffer = tracer.render_scene(&world, camera, sampler);
+    // tracer.render_scene(&world, camera, sampler)?;
 
     let duration = start.elapsed();
     println!("render time: {:?}", duration);

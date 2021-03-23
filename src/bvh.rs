@@ -1,13 +1,15 @@
 use crate::bvh::NodeType::{Internal, Leaf};
 use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
+use rand::prelude::*;
+use std::borrow::BorrowMut;
 
 pub struct BVH<S> {
     node: Node<S>,
 }
 
 impl<S: Shape> BVH<S> {
-    pub fn new(shapes: Vec<S>) -> Self {
+    pub fn new(mut shapes: Vec<S>) -> Self {
         Self {
             node: Node::new(shapes),
         }
@@ -42,24 +44,144 @@ struct Node<S> {
 }
 
 impl<S: Shape> Node<S> {
-    fn new(mut shapes: Vec<S>) -> Self {
+    fn new(shapes: Vec<S>) -> Self {
+        Self::new_x(shapes)
+    }
+
+    fn new_x(shapes: Vec<S>) -> Node<S> {
         let bbox = AABB::from_multiple(&shapes);
+
         if shapes.len() <= 2 {
             Self {
                 bbox,
                 node_type: Leaf { shapes },
             }
         } else {
-            let right = shapes.split_off(shapes.len() / 2);
+            let (left, right) = Self::split_x(shapes);
 
-            Self {
-                bbox,
-                node_type: Internal {
-                    left: Box::new(Self::new(shapes)),
-                    right: Box::new(Self::new(right)),
-                },
+            if left.is_empty() {
+                Self {
+                    bbox,
+                    node_type: Leaf { shapes: right },
+                }
+            } else if right.is_empty() {
+                Self {
+                    bbox,
+                    node_type: Leaf { shapes: left },
+                }
+            } else {
+                Self {
+                    bbox,
+                    node_type: Internal {
+                        left: Box::new(Self::new_y(left)),
+                        right: Box::new(Self::new_y(right)),
+                    },
+                }
             }
         }
+    }
+
+    fn new_y(shapes: Vec<S>) -> Node<S> {
+        let bbox = AABB::from_multiple(&shapes);
+
+        if shapes.len() <= 2 {
+            Self {
+                bbox,
+                node_type: Leaf { shapes },
+            }
+        } else {
+            let (left, right) = Self::split_y(shapes);
+
+
+            if left.is_empty() {
+                Self {
+                    bbox,
+                    node_type: Leaf { shapes: right },
+                }
+            } else if right.is_empty() {
+                Self {
+                    bbox,
+                    node_type: Leaf { shapes: left },
+                }
+            } else {
+                Self {
+                    bbox,
+                    node_type: Internal {
+                        left: Box::new(Self::new_z(left)),
+                        right: Box::new(Self::new_z(right)),
+                    },
+                }
+            }
+        }
+    }
+
+    fn new_z(shapes: Vec<S>) -> Node<S> {
+        let bbox = AABB::from_multiple(&shapes);
+
+        if shapes.len() <= 2 {
+            Self {
+                bbox,
+                node_type: Leaf { shapes },
+            }
+        } else {
+            let (left, right) = Self::split_z(shapes);
+
+            if left.is_empty() {
+                Self {
+                    bbox,
+                    node_type: Leaf { shapes: right },
+                }
+            } else if right.is_empty() {
+                Self {
+                    bbox,
+                    node_type: Leaf { shapes: left },
+                }
+            } else {
+                Self {
+                    bbox,
+                    node_type: Internal {
+                        left: Box::new(Self::new_x(left)),
+                        right: Box::new(Self::new_x(right)),
+                    },
+                }
+            }
+        }
+    }
+
+    fn split_x(shapes: Vec<S>) -> (Vec<S>, Vec<S>) {
+        let nb_samples = 20.min(shapes.len() - 1);
+        let split = shapes.iter()
+            // .choose_multiple(thread_rng().borrow_mut(), nb_samples)
+            .map(|sample| sample.bbox().centroid().x)
+            .sum::<f64>()
+            / shapes.len() as f64;
+        shapes
+            .into_iter()
+            .partition(|shape| shape.bbox().centroid().x < split)
+    }
+
+    fn split_y(shapes: Vec<S>) -> (Vec<S>, Vec<S>) {
+        let nb_samples = 20.min(shapes.len() - 1);
+        let split = shapes.iter()
+            // .choose_multiple(thread_rng().borrow_mut(), nb_samples)
+            .map(|sample| sample.bbox().centroid().y)
+            .sum::<f64>()
+            / shapes.len() as f64;
+        shapes
+            .into_iter()
+            .partition(|shape| shape.bbox().centroid().y < split)
+    }
+
+    fn split_z(shapes: Vec<S>) -> (Vec<S>, Vec<S>) {
+        let nb_samples = 20.min(shapes.len() - 1);
+        let split = shapes.iter()
+            // .choose_multiple(thread_rng().borrow_mut(), nb_samples)
+            .map(|sample| sample.bbox().centroid().z)
+            .sum::<f64>()
+            / shapes.len() as f64;
+        shapes
+            .into_iter()
+            .partition(|shape| shape.bbox().centroid().z < split)
     }
 
     fn intersect(&self, ray: &Ray) -> Option<Hit> {
