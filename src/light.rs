@@ -132,7 +132,7 @@ impl Light for AreaLight {
                 normal,
             };
 
-            f(light_sample)
+            f(light_sample) / self.area
         })
     }
 
