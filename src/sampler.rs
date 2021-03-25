@@ -1,6 +1,7 @@
-use crate::film::RGB;
 use itertools::Itertools;
 use rand::prelude::*;
+
+use crate::film::RGB;
 
 pub type Sample = (f64, f64);
 

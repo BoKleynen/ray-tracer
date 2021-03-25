@@ -1,7 +1,8 @@
-use crate::film::RGB;
-use crate::shade_rec::ShadeRec;
 use nalgebra::Vector3;
 use std::f64;
+
+use crate::film::RGB;
+use crate::shade_rec::ShadeRec;
 
 pub trait BRDF {
     fn f(&self, sr: &ShadeRec, wi: &Vector3<f64>, wo: &Vector3<f64>) -> RGB;

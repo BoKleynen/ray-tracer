@@ -14,4 +14,4 @@ pub mod shade_rec;
 pub mod shape;
 pub mod world;
 
-const K_EPSILON: f64 = 1e-10;
+const K_EPSILON: f64 = 1e-8;

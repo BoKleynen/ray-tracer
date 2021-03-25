@@ -1,8 +1,9 @@
+use nalgebra::{Point3, Unit, Vector3};
+
 use crate::math::Ray;
 use crate::sampler::Sample;
 use crate::shape::{Hit, Shape, AABB};
 use crate::K_EPSILON;
-use nalgebra::{Point3, Unit, Vector3};
 
 #[derive(Clone)]
 pub struct Rectangle {

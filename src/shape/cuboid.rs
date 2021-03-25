@@ -1,7 +1,8 @@
+use nalgebra::{Point3, Vector3};
+
 use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
 use crate::K_EPSILON;
-use nalgebra::{Point3, Vector3};
 
 /// A three-dimensional cuboid bounded by a corner and it's mirror with respect
 /// to the origin.

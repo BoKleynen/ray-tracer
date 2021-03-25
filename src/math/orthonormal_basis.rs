@@ -1,5 +1,6 @@
-use crate::K_EPSILON;
 use nalgebra::{Unit, Vector3};
+
+use crate::K_EPSILON;
 
 #[derive(Debug, Clone)]
 pub struct OrthonormalBasis {

@@ -1,11 +1,9 @@
-mod aabb;
-mod compound;
-mod cuboid;
-mod obj;
-mod plane;
-mod rectangle;
-mod sphere;
-mod transformed;
+use nalgebra::{Point3, Vector3};
+
+use crate::material::Material;
+use crate::math::{Ray, Transformation};
+use crate::sampler::{Sample, Sampler};
+use crate::shape::transformed::Transformed;
 
 pub use aabb::AABB;
 pub use cuboid::Cuboid;
@@ -14,11 +12,14 @@ pub use plane::Plane;
 pub use rectangle::Rectangle;
 pub use sphere::Sphere;
 
-use crate::material::Material;
-use crate::math::{Ray, Transformation};
-use crate::sampler::{Sample, Sampler};
-use crate::shape::transformed::Transformed;
-use nalgebra::{Point3, Vector3};
+mod aabb;
+mod compound;
+mod cuboid;
+mod obj;
+mod plane;
+mod rectangle;
+mod sphere;
+mod transformed;
 
 pub struct GeometricObject {
     shape: Box<dyn Shape>,

@@ -1,7 +1,8 @@
+use nalgebra::Point3;
+
 use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
 use crate::K_EPSILON;
-use nalgebra::Point3;
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
 /// which is transformed by a transformation.

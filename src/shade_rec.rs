@@ -1,6 +1,7 @@
+use nalgebra::{Point3, Vector3};
+
 use crate::material::Material;
 use crate::world::World;
-use nalgebra::{Point3, Vector3};
 
 pub struct ShadeRec<'a> {
     pub hit_point: Point3<f64>,

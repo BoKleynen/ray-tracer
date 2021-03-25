@@ -1,8 +1,9 @@
+use rand::prelude::*;
+use std::borrow::BorrowMut;
+
 use crate::bvh::NodeType::{Internal, Leaf};
 use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
-use rand::prelude::*;
-use std::borrow::BorrowMut;
 
 pub struct BVH<S> {
     node: Node<S>,

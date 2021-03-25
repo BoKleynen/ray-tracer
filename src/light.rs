@@ -1,3 +1,5 @@
+use nalgebra::{Point3, Unit, Vector3};
+
 use crate::film::RGB;
 use crate::material::{Emissive, Material};
 use crate::math::Ray;
@@ -5,7 +7,6 @@ use crate::sampler::{Sampler, UniformSampler};
 use crate::shade_rec::ShadeRec;
 use crate::shape::{GeometricObject, Rectangle, Shape};
 use crate::K_EPSILON;
-use nalgebra::{Point3, Unit, Vector3};
 
 pub struct AmbientLight {
     ls: f64,
@@ -110,7 +111,7 @@ pub struct AreaLight {
 impl AreaLight {
     pub fn new(shape: Rectangle, material: Emissive) -> Self {
         let area = shape.area();
-        let sampler = UniformSampler::new(2);
+        let sampler = UniformSampler::new(1);
 
         Self {
             shape,

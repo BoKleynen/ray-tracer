@@ -1,7 +1,8 @@
+use nalgebra::{Point3, Vector3};
+
 use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
 use crate::K_EPSILON;
-use nalgebra::{Point3, Vector3};
 
 pub struct Plane {
     normal: Vector3<f64>,

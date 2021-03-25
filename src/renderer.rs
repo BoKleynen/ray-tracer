@@ -1,3 +1,6 @@
+use rayon::prelude::*;
+use std::io::Write;
+
 use crate::brdf::BRDF;
 use crate::camera::Camera;
 use crate::film::{FrameBuffer, RGB};
@@ -6,8 +9,6 @@ use crate::math::Ray;
 use crate::sampler::Sampler;
 use crate::shade_rec::ShadeRec;
 use crate::world::World;
-use rayon::prelude::*;
-use std::io::Write;
 
 pub trait Renderer {
     type Output;

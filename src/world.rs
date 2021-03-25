@@ -1,9 +1,10 @@
+use nalgebra::Vector3;
+
 use crate::film::RGB;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
 use crate::shape::{GeometricObject, Hit};
-use nalgebra::Vector3;
 
 pub struct World {
     shapes: Vec<GeometricObject>,

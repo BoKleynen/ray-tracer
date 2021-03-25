@@ -1,5 +1,6 @@
-use super::Transformable;
 use nalgebra::{Affine3, Point3, Vector3};
+
+use super::Transformable;
 
 #[derive(Debug, Clone)]
 pub struct Ray {

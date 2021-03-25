@@ -1,5 +1,6 @@
-use super::{Pixel, RGB};
 use image::{ImageBuffer, RgbaImage};
+
+use super::{Pixel, RGB};
 
 pub struct FrameBuffer {
     buffer: Vec<Pixel>,

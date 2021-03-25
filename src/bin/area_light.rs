@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Vector3::new(0., 0., 2.),
         Vector3::new(-2., 0., 0.),
     );
-    let emissive = Emissive::new(1., RGB::white());
+    let emissive = Emissive::new(2., RGB::white());
     let light = AreaLight::new(rectangle, emissive);
 
     let material1 = Material::Matte {
@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid world configuration")?;
 
-    let sampler = JitteredSampler::new(128);
+    let sampler = JitteredSampler::new(256);
     let tracer = DirectIllumination::default();
     let buffer = tracer.render_scene(&world, camera, sampler);
 
