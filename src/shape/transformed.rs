@@ -1,9 +1,10 @@
+use itertools::Itertools;
+use nalgebra::{Point3, Vector3};
+
 use crate::math::{Ray, Transformation};
 use crate::shape::compound::Compound;
 use crate::shape::obj::SmoothTriangle;
 use crate::shape::{Cuboid, Hit, Obj, Plane, Shape, Sphere, AABB};
-use itertools::Itertools;
-use nalgebra::{Point3, Vector3};
 
 pub struct Transformed<S> {
     shape: S,

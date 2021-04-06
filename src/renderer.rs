@@ -1,3 +1,6 @@
+use rayon::prelude::*;
+use std::io::Write;
+
 use crate::brdf::BRDF;
 use crate::camera::Camera;
 use crate::film::{FrameBuffer, RGB};
@@ -6,8 +9,6 @@ use crate::math::Ray;
 use crate::sampler::Sampler;
 use crate::shade_rec::ShadeRec;
 use crate::world::World;
-use rayon::prelude::*;
-use std::io::Write;
 
 pub trait Renderer {
     type Output;
@@ -70,19 +71,24 @@ impl DirectIllumination {
                     .lights()
                     .iter()
                     .map(|light| {
-                        let wi = light.direction(sr);
-                        let n_dot_wi = sr.normal.dot(&wi);
+                        light.average(&|sample| {
+                            let wi = sample.direction(sr);
+                            let n_dot_wi = sr.normal.dot(&wi);
 
-                        if n_dot_wi > 0. && light.visible(&Ray::new(sr.hit_point, *wi), sr) {
-                            diffuse_brdf.f(sr, &wo, &wi) * light.radiance(sr) * n_dot_wi
-                        } else {
-                            RGB::black()
-                        }
+                            if n_dot_wi > 0. && sample.visible(&Ray::new(sr.hit_point, *wi), sr) {
+                                diffuse_brdf.f(sr, &wo, &wi)
+                                    * sample.light().radiance(sr)
+                                    * n_dot_wi
+                            } else {
+                                RGB::black()
+                            }
+                        })
                     })
                     .sum();
 
                 ambient_radiance + direct_diffuse_radiance
             }
+            Material::Emissive(emissive) => emissive.ce * emissive.ls,
         }
     }
 }

@@ -1,21 +1,25 @@
-mod aabb;
-mod compound;
-mod cuboid;
-mod obj;
-mod plane;
-mod sphere;
-mod transformed;
+use nalgebra::{Point3, Vector3};
+
+use crate::material::Material;
+use crate::math::{Ray, Transformation};
+use crate::sampler::{Sample, Sampler};
+use crate::shape::transformed::Transformed;
 
 pub use aabb::AABB;
 pub use cuboid::Cuboid;
 pub use obj::{FlatTriangle, Obj, SmoothTriangle};
 pub use plane::Plane;
+pub use rectangle::Rectangle;
 pub use sphere::Sphere;
 
-use crate::material::Material;
-use crate::math::{Ray, Transformation};
-use crate::shape::transformed::Transformed;
-use nalgebra::{Point3, Vector3};
+mod aabb;
+mod compound;
+mod cuboid;
+mod obj;
+mod plane;
+mod rectangle;
+mod sphere;
+mod transformed;
 
 pub struct GeometricObject {
     shape: Box<dyn Shape>,
@@ -49,14 +53,12 @@ impl GeometricObject {
 
     pub fn sphere(transformation: Transformation, material: Material) -> Self {
         let shape = Box::new(Transformed::sphere(transformation));
-
-        Self { shape, material }
+        Self::new(shape, material)
     }
 
     pub fn cuboid(corner: Point3<f64>, transformation: Transformation, material: Material) -> Self {
         let shape = Box::new(Transformed::cuboid(corner, transformation));
-
-        Self { shape, material }
+        Self::new(shape, material)
     }
 
     pub fn plane(
@@ -66,14 +68,12 @@ impl GeometricObject {
         material: Material,
     ) -> Self {
         let shape = Box::new(Transformed::plane(normal, point, transformation));
-
-        Self { shape, material }
+        Self::new(shape, material)
     }
 
     pub fn triangle_mesh(obj: Obj, transformation: Transformation, material: Material) -> Self {
         let shape = Box::new(Transformed::smooth_mesh(obj, transformation));
-
-        Self { shape, material }
+        Self::new(shape, material)
     }
 }
 
@@ -109,6 +109,10 @@ impl<T: Shape + ?Sized> Shape for Box<T> {
     fn hit(&self, ray: &Ray) -> bool {
         (**self).hit(ray)
     }
+}
+
+pub trait SampleShape: Shape {
+    fn average<B, S: Sampler, F: Fn(Point3<f64>) -> B>(&self) -> B;
 }
 
 pub struct Hit {

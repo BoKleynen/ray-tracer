@@ -1,13 +1,14 @@
-use crate::math::Ray;
-use crate::shape::aabb::AABB;
-use crate::shape::compound::Compound;
-use crate::shape::{Hit, Shape};
-use crate::K_EPSILON;
 use nalgebra::{Point3, Unit, Vector3};
 use std::fs::File;
 use std::io::Read;
 use std::mem;
 use std::sync::Arc;
+
+use crate::math::Ray;
+use crate::shape::aabb::AABB;
+use crate::shape::compound::Compound;
+use crate::shape::{Hit, Shape};
+use crate::K_EPSILON;
 
 #[derive(Default)]
 pub struct Mesh {

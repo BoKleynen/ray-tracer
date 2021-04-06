@@ -1,7 +1,8 @@
+use nalgebra::Point3;
+
 use crate::math::Ray;
 use crate::shape::Shape;
 use crate::K_EPSILON;
-use nalgebra::Point3;
 
 #[derive(Copy, Clone)]
 pub struct AABB {

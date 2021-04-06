@@ -1,6 +1,7 @@
-use crate::film::RGB;
 use itertools::Itertools;
 use rand::prelude::*;
+
+use crate::film::RGB;
 
 pub type Sample = (f64, f64);
 
@@ -77,6 +78,26 @@ impl Sampler for JitteredSampler {
 
                 f((x, y))
             })
+            .sum::<RGB>()
+            / self.nb_samples as f64
+    }
+}
+
+pub struct UniformSampler {
+    nb_samples: usize,
+}
+
+impl UniformSampler {
+    pub fn new(nb_samples: usize) -> Self {
+        Self { nb_samples }
+    }
+}
+
+impl Sampler for UniformSampler {
+    fn average<F: Fn(Sample) -> RGB>(&self, f: F) -> RGB {
+        std::iter::repeat_with(|| thread_rng().gen::<(f64, f64)>())
+            .take(self.nb_samples)
+            .map(f)
             .sum::<RGB>()
             / self.nb_samples as f64
     }

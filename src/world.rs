@@ -1,9 +1,10 @@
+use nalgebra::Vector3;
+
 use crate::film::RGB;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
-use crate::shape::GeometricObject;
-use nalgebra::Vector3;
+use crate::shape::{GeometricObject, Hit};
 
 pub struct World {
     shapes: Vec<GeometricObject>,
@@ -38,18 +39,14 @@ impl World {
         sr
     }
 
-    // pub fn build_bvh(&self) -> BVH {
-    //     let root_node = BVHNode {
-    //         left: None,
-    //         right: None,
-    //         aabb: AABB::new(Point3::origin(), Point3::origin()),
-    //     };
-    //
-    //     BVH {
-    //         world: self,
-    //         root_node,
-    //     }
-    // }
+    pub fn hit_any_object_where<F>(&self, ray: &Ray, f: F) -> bool
+    where
+        F: Fn(Hit) -> bool,
+    {
+        self.shapes
+            .iter()
+            .any(|shape| shape.intersect(ray).map_or(false, |hit| f(hit)))
+    }
 
     pub fn geometric_objects(&self) -> &[GeometricObject] {
         self.shapes.as_slice()
@@ -96,7 +93,12 @@ impl WorldBuilder {
     }
 
     pub fn build(self) -> Option<World> {
-        let shapes = self.shapes;
+        let mut shapes = self.shapes;
+        shapes.extend(
+            self.lights
+                .iter()
+                .filter_map(|light| light.geometric_object()),
+        );
         let lights = self.lights;
         let ambient_light = self
             .ambient_light

@@ -1,15 +1,16 @@
+use rand::prelude::*;
+use std::borrow::BorrowMut;
+
 use crate::bvh::NodeType::{Internal, Leaf};
 use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
-use rand::prelude::*;
-use std::borrow::BorrowMut;
 
 pub struct BVH<S> {
     node: Node<S>,
 }
 
 impl<S: Shape> BVH<S> {
-    pub fn new(mut shapes: Vec<S>) -> Self {
+    pub fn new(shapes: Vec<S>) -> Self {
         Self {
             node: Node::new(shapes),
         }
@@ -92,7 +93,6 @@ impl<S: Shape> Node<S> {
         } else {
             let (left, right) = Self::split_y(shapes);
 
-
             if left.is_empty() {
                 Self {
                     bbox,
@@ -150,7 +150,8 @@ impl<S: Shape> Node<S> {
 
     fn split_x(shapes: Vec<S>) -> (Vec<S>, Vec<S>) {
         let nb_samples = 20.min(shapes.len() - 1);
-        let split = shapes.iter()
+        let split = shapes
+            .iter()
             // .choose_multiple(thread_rng().borrow_mut(), nb_samples)
             .map(|sample| sample.bbox().centroid().x)
             .sum::<f64>()
@@ -162,7 +163,8 @@ impl<S: Shape> Node<S> {
 
     fn split_y(shapes: Vec<S>) -> (Vec<S>, Vec<S>) {
         let nb_samples = 20.min(shapes.len() - 1);
-        let split = shapes.iter()
+        let split = shapes
+            .iter()
             // .choose_multiple(thread_rng().borrow_mut(), nb_samples)
             .map(|sample| sample.bbox().centroid().y)
             .sum::<f64>()
@@ -174,7 +176,8 @@ impl<S: Shape> Node<S> {
 
     fn split_z(shapes: Vec<S>) -> (Vec<S>, Vec<S>) {
         let nb_samples = 20.min(shapes.len() - 1);
-        let split = shapes.iter()
+        let split = shapes
+            .iter()
             // .choose_multiple(thread_rng().borrow_mut(), nb_samples)
             .map(|sample| sample.bbox().centroid().z)
             .sum::<f64>()

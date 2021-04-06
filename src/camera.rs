@@ -1,8 +1,9 @@
-use crate::math::{OrthonormalBasis, Ray};
-use crate::sampler::Sample;
 use nalgebra::{Point3, Vector3};
 use std::f64;
 use std::ops::Neg;
+
+use crate::math::{OrthonormalBasis, Ray};
+use crate::sampler::Sample;
 
 pub trait Camera {
     fn generate_ray(&self, column: usize, row: usize, sample: Sample) -> Ray;
