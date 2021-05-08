@@ -11,26 +11,26 @@ use cg_practicum::renderer::{
 use cg_practicum::sampler::{JitteredSampler, RegularSampler, Unsampled};
 use cg_practicum::shape::{GeometricObject, Rectangle};
 use cg_practicum::world::WorldBuilder;
-use nalgebra::{Point3, Vector3};
+use cg_practicum::{Point, Vector};
 use std::error::Error;
 use std::time::Instant;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
 
-    let camera = CameraBuilder::new(Point3::new(0., 0., 7.))
+    let camera = CameraBuilder::new(Point::new(0., 0., 7.))
         .x_res(1920)
         .y_res(1080)
-        .destination(Point3::new(0., 0., 0.))
-        .up(Vector3::new(0., 1., 0.))
+        .destination(Point::new(0., 0., 0.))
+        .up(Vector::new(0., 1., 0.))
         .fov(120.)
         .build()
         .ok_or("invalid camera configuration")?;
 
     let rectangle = Rectangle::new(
-        Point3::new(1., 5., -1.),
-        Vector3::new(0., 0., 2.),
-        Vector3::new(-2., 0., 0.),
+        Point::new(1., 5., -1.),
+        Vector::new(0., 0., 2.),
+        Vector::new(-2., 0., 0.),
     );
     let emissive = Emissive::new(2., RGB::white());
     let light = AreaLight::new(rectangle, emissive);
@@ -46,8 +46,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 1., 1.)),
     };
     let plane = GeometricObject::plane(
-        Vector3::new(0., 1., 0.),
-        Point3::new(0., -4., 0.),
+        Vector::new(0., 1., 0.),
+        Point::new(0., -4., 0.),
         Transformation::identity(),
         material2,
     );

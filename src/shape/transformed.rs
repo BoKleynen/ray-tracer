@@ -1,10 +1,10 @@
 use itertools::Itertools;
-use nalgebra::{Point3, Vector3};
 
 use crate::math::{Ray, Transformation};
 use crate::shape::compound::Compound;
 use crate::shape::obj::SmoothTriangle;
 use crate::shape::{Cuboid, Hit, Obj, Plane, Shape, Sphere, AABB};
+use crate::{Point, Vector};
 
 pub struct Transformed<S> {
     shape: S,
@@ -19,7 +19,7 @@ impl<S> Transformed<S> {
         }
     }
 
-    fn inverse_transform_normal(&self, normal: &Vector3<f64>) -> Vector3<f64> {
+    fn inverse_transform_normal(&self, normal: &Vector) -> Vector {
         self.transformation
             .inverse()
             .matrix()
@@ -66,14 +66,14 @@ impl<S> Transformed<S> {
             .unwrap();
 
         AABB::new(
-            Point3::new(min_x, min_y, min_z),
-            Point3::new(max_x, max_y, max_z),
+            Point::new(min_x, min_y, min_z),
+            Point::new(max_x, max_y, max_z),
         )
     }
 }
 
 impl Transformed<Cuboid> {
-    pub fn cuboid(corner: Point3<f64>, transformation: Transformation) -> Self {
+    pub fn cuboid(corner: Point, transformation: Transformation) -> Self {
         let shape = Cuboid::new(corner);
         Self::new(shape, transformation)
     }
@@ -87,7 +87,7 @@ impl Transformed<Compound<SmoothTriangle>> {
 }
 
 impl Transformed<Plane> {
-    pub fn plane(normal: Vector3<f64>, point: Point3<f64>, transformation: Transformation) -> Self {
+    pub fn plane(normal: Vector, point: Point, transformation: Transformation) -> Self {
         let shape = Plane::new(normal, point);
         Self::new(shape, transformation)
     }

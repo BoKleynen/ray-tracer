@@ -1,18 +1,16 @@
-use nalgebra::{Point3, Vector3};
-
 use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
-use crate::K_EPSILON;
+use crate::{Point, Vector, K_EPSILON};
 
 /// A three-dimensional cuboid bounded by a corner and it's mirror with respect
 /// to the origin.
 #[derive(Debug)]
 pub struct Cuboid {
-    corner: Point3<f64>,
+    corner: Point,
 }
 
 impl Cuboid {
-    pub fn new(corner: Point3<f64>) -> Self {
+    pub fn new(corner: Point) -> Self {
         Self { corner }
     }
 }
@@ -149,8 +147,8 @@ impl Shape for Cuboid {
         };
 
         AABB::new(
-            Point3::new(min_x, min_y, min_z),
-            Point3::new(max_x, max_y, max_z),
+            Point::new(min_x, min_y, min_z),
+            Point::new(max_x, max_y, max_z),
         )
     }
 }
@@ -165,14 +163,14 @@ enum CuboidFace {
 }
 
 impl CuboidFace {
-    fn normal(self) -> Vector3<f64> {
+    fn normal(self) -> Vector {
         match self {
-            CuboidFace::Left => Vector3::new(-1., 0., 0.),
-            CuboidFace::Bottom => Vector3::new(0., -1., 0.),
-            CuboidFace::Back => Vector3::new(0., 0., -1.),
-            CuboidFace::Right => Vector3::new(1., 0., 0.),
-            CuboidFace::Top => Vector3::new(0., 1., 0.),
-            CuboidFace::Front => Vector3::new(0., 0., 1.),
+            CuboidFace::Left => Vector::new(-1., 0., 0.),
+            CuboidFace::Bottom => Vector::new(0., -1., 0.),
+            CuboidFace::Back => Vector::new(0., 0., -1.),
+            CuboidFace::Right => Vector::new(1., 0., 0.),
+            CuboidFace::Top => Vector::new(0., 1., 0.),
+            CuboidFace::Front => Vector::new(0., 0., 1.),
         }
     }
 }
@@ -182,7 +180,7 @@ mod tests {
     use super::Cuboid;
     use crate::math::Ray;
     use crate::shape::Shape;
-    use nalgebra::{Point3, Vector3};
+    use nalgebra::{Point, Vector};
 
     #[test]
     fn obj_hit() {
@@ -208,22 +206,22 @@ mod tests {
 
     fn test_cuboids() -> Vec<Cuboid> {
         vec![
-            Cuboid::new(Point3::new(1., 1., 1.)),
-            Cuboid::new(Point3::new(-1., -1., -1.)),
+            Cuboid::new(Point::new(1., 1., 1.)),
+            Cuboid::new(Point::new(-1., -1., -1.)),
         ]
     }
 
     fn test_rays() -> Vec<Ray> {
         vec![
-            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 0., 0.)),
-            Ray::new(Point3::new(0., 0., 0.), Vector3::new(0., 1., 0.)),
-            Ray::new(Point3::new(0., 0., 0.), Vector3::new(0., 0., 1.)),
-            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 1., 0.)),
-            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 1., 0.)),
-            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 0., 1.)),
-            Ray::new(Point3::new(0., 0., 0.), Vector3::new(1., 0., 1.)),
-            Ray::new(Point3::new(0., 0., 0.), Vector3::new(0., 1., 1.)),
-            Ray::new(Point3::new(0., 0., 0.), Vector3::new(0., 1., 1.)),
+            Ray::new(Point::new(0., 0., 0.), Vector::new(1., 0., 0.)),
+            Ray::new(Point::new(0., 0., 0.), Vector::new(0., 1., 0.)),
+            Ray::new(Point::new(0., 0., 0.), Vector::new(0., 0., 1.)),
+            Ray::new(Point::new(0., 0., 0.), Vector::new(1., 1., 0.)),
+            Ray::new(Point::new(0., 0., 0.), Vector::new(1., 1., 0.)),
+            Ray::new(Point::new(0., 0., 0.), Vector::new(1., 0., 1.)),
+            Ray::new(Point::new(0., 0., 0.), Vector::new(1., 0., 1.)),
+            Ray::new(Point::new(0., 0., 0.), Vector::new(0., 1., 1.)),
+            Ray::new(Point::new(0., 0., 0.), Vector::new(0., 1., 1.)),
         ]
     }
 }

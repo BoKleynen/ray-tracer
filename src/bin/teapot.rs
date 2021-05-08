@@ -11,23 +11,23 @@ use cg_practicum::renderer::{
 use cg_practicum::sampler::JitteredSampler;
 use cg_practicum::shape::{GeometricObject, Obj};
 use cg_practicum::world::WorldBuilder;
-use nalgebra::{Point3, Vector3};
+use cg_practicum::{Point, Vector};
 use std::error::Error;
 use std::time::Instant;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
 
-    let camera = CameraBuilder::new(Point3::new(0., 0., 0.))
+    let camera = CameraBuilder::new(Point::new(0., 0., 0.))
         .x_res(1920)
         .y_res(1080)
-        .destination(Point3::new(0., 0., -1.))
-        .up(Vector3::new(0., 1., 0.))
+        .destination(Point::new(0., 0., -1.))
+        .up(Vector::new(0., 1., 0.))
         .fov(90.)
         .build()
         .ok_or("invalid camera configuration")?;
 
-    let light1 = PointLight::white(1., Point3::new(4., -4., 0.));
+    let light1 = PointLight::white(1., Point::new(4., -4., 0.));
     let t = Transformation::scale(5., 5., 5.).then(&Transformation::translate(0., -2., -10.));
 
     let material = Material::Matte {

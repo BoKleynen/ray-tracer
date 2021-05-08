@@ -1,16 +1,14 @@
-use nalgebra::{Point3, Vector3};
-
 use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
-use crate::K_EPSILON;
+use crate::{Point, Vector, K_EPSILON};
 
 pub struct Plane {
-    normal: Vector3<f64>,
-    point: Point3<f64>,
+    normal: Vector,
+    point: Point,
 }
 
 impl Plane {
-    pub fn new(normal: Vector3<f64>, point: Point3<f64>) -> Self {
+    pub fn new(normal: Vector, point: Point) -> Self {
         Self { normal, point }
     }
 }
@@ -37,8 +35,8 @@ impl Shape for Plane {
 
     fn bbox(&self) -> AABB {
         AABB::new(
-            Point3::new(f64::MIN, f64::MIN, f64::MIN),
-            Point3::new(f64::MAX, f64::MAX, f64::MAX),
+            Point::new(f64::MIN, f64::MIN, f64::MIN),
+            Point::new(f64::MAX, f64::MAX, f64::MAX),
         )
     }
 }

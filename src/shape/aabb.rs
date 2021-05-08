@@ -1,17 +1,15 @@
-use nalgebra::Point3;
-
 use crate::math::Ray;
 use crate::shape::Shape;
-use crate::K_EPSILON;
+use crate::{Point, K_EPSILON};
 
 #[derive(Copy, Clone)]
 pub struct AABB {
-    pub(crate) p0: Point3<f64>,
-    pub(crate) p1: Point3<f64>,
+    pub(crate) p0: Point,
+    pub(crate) p1: Point,
 }
 
 impl AABB {
-    pub fn new(p0: Point3<f64>, p1: Point3<f64>) -> Self {
+    pub fn new(p0: Point, p1: Point) -> Self {
         assert!(p0.x < p1.x);
         assert!(p0.y < p1.y);
         assert!(p0.z < p1.z);
@@ -66,7 +64,7 @@ impl AABB {
         }
     }
 
-    pub fn vertices(&self) -> Vec<Point3<f64>> {
+    pub fn vertices(&self) -> Vec<Point> {
         let x0 = self.p0.x;
         let y0 = self.p0.y;
         let z0 = self.p0.z;
@@ -75,18 +73,18 @@ impl AABB {
         let z1 = self.p1.z;
 
         vec![
-            Point3::new(x0, y0, z0),
-            Point3::new(x0, y0, z1),
-            Point3::new(x0, y1, z0),
-            Point3::new(x0, y1, z1),
-            Point3::new(x1, y0, z0),
-            Point3::new(x1, y0, z1),
-            Point3::new(x1, y1, z0),
-            Point3::new(x1, y1, z1),
+            Point::new(x0, y0, z0),
+            Point::new(x0, y0, z1),
+            Point::new(x0, y1, z0),
+            Point::new(x0, y1, z1),
+            Point::new(x1, y0, z0),
+            Point::new(x1, y0, z1),
+            Point::new(x1, y1, z0),
+            Point::new(x1, y1, z1),
         ]
     }
 
-    pub fn centroid(&self) -> Point3<f64> {
+    pub fn centroid(&self) -> Point {
         self.p0 + 0.5 * (self.p1 - self.p0)
     }
 
@@ -123,8 +121,8 @@ impl AABB {
             .unwrap();
 
         AABB::new(
-            Point3::new(min_x, min_y, min_z),
-            Point3::new(max_x, max_y, max_z),
+            Point::new(min_x, min_y, min_z),
+            Point::new(max_x, max_y, max_z),
         )
     }
 }

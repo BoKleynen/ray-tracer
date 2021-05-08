@@ -8,15 +8,15 @@ use cg_practicum::renderer::{DirectIllumination, Renderer};
 use cg_practicum::sampler::Unsampled;
 use cg_practicum::shape::{GeometricObject, Obj};
 use cg_practicum::world::WorldBuilder;
+use cg_practicum::{Point, Vector};
 use clap::Clap;
-use nalgebra::{Point3, Vector3};
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cfg = Config::parse();
-    let eye = Point3::new(-3., 2., 5.);
-    let destination = Point3::new(5., 0., -1.);
-    let up = Vector3::new(0., 1., 0.);
+    let eye = Point::new(-3., 2., 5.);
+    let destination = Point::new(5., 0., -1.);
+    let up = Vector::new(0., 1., 0.);
 
     let camera = CameraBuilder::new(eye)
         .x_res(cfg.width)
@@ -39,8 +39,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 0., 1.)),
     };
 
-    let light = PointLight::white(1., Point3::new(100., 50., 150.));
-    let light2 = PointLight::white(1., Point3::new(50., 100., 50.));
+    let light = PointLight::white(1., Point::new(100., 50., 150.));
+    let light2 = PointLight::white(1., Point::new(50., 100., 50.));
 
     let world = WorldBuilder::default()
         .geometric_object(GeometricObject::sphere(
@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             material1,
         ))
         .geometric_object(GeometricObject::cuboid(
-            Point3::new(1., 1., 1.),
+            Point::new(1., 1., 1.),
             Transformation::translate(0., 0., -1.),
             material2.clone(),
         ))

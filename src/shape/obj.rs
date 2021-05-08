@@ -1,4 +1,4 @@
-use nalgebra::{Point3, Unit, Vector3};
+use nalgebra::Unit;
 use std::fs::File;
 use std::io::Read;
 use std::mem;
@@ -8,12 +8,12 @@ use crate::math::Ray;
 use crate::shape::aabb::AABB;
 use crate::shape::compound::Compound;
 use crate::shape::{Hit, Shape};
-use crate::K_EPSILON;
+use crate::{Point, Vector, K_EPSILON};
 
 #[derive(Default)]
 pub struct Mesh {
-    vertexes: Vec<Point3<f64>>,
-    normals: Vec<Unit<Vector3<f64>>>,
+    vertexes: Vec<Point>,
+    normals: Vec<Unit<Vector>>,
 }
 
 #[repr(transparent)]
@@ -75,7 +75,7 @@ struct Triangle {
     idx0: usize,
     idx1: usize,
     idx2: usize,
-    normal: Unit<Vector3<f64>>,
+    normal: Unit<Vector>,
 }
 
 impl Triangle {
@@ -92,8 +92,8 @@ impl Triangle {
         let max_z = v0.z.max(v1.z).max(v2.z);
 
         AABB::new(
-            Point3::new(min_x, min_y, min_z),
-            Point3::new(max_x, max_y, max_z),
+            Point::new(min_x, min_y, min_z),
+            Point::new(max_x, max_y, max_z),
         )
     }
 
@@ -156,42 +156,42 @@ impl Triangle {
         })
     }
 
-    fn n0(&self) -> Unit<Vector3<f64>> {
+    fn n0(&self) -> Unit<Vector> {
         self.mesh.normals[self.idx0]
     }
 
-    fn n1(&self) -> Unit<Vector3<f64>> {
+    fn n1(&self) -> Unit<Vector> {
         self.mesh.normals[self.idx1]
     }
 
-    fn n2(&self) -> Unit<Vector3<f64>> {
+    fn n2(&self) -> Unit<Vector> {
         self.mesh.normals[self.idx2]
     }
 
-    fn v0(&self) -> Point3<f64> {
+    fn v0(&self) -> Point {
         self.mesh.vertexes[self.idx0]
     }
 
-    fn v1(&self) -> Point3<f64> {
+    fn v1(&self) -> Point {
         self.mesh.vertexes[self.idx1]
     }
 
-    fn v2(&self) -> Point3<f64> {
+    fn v2(&self) -> Point {
         self.mesh.vertexes[self.idx2]
     }
 }
 
 struct TriangleHit {
     t: f64,
-    local_hit_point: Point3<f64>,
+    local_hit_point: Point,
     beta: f64,
     gamma: f64,
 }
 
 pub struct Obj {
-    vertexes: Vec<Point3<f64>>,
+    vertexes: Vec<Point>,
     texture_coordinates: Vec<(f64, f64)>,
-    vertex_normals: Vec<Vector3<f64>>,
+    vertex_normals: Vec<Vector>,
     triangles: Vec<ObjTriangle>,
 }
 
@@ -214,7 +214,7 @@ impl Obj {
                     let y = parts.next()?.parse().ok()?;
                     let z = parts.next()?.parse().ok()?;
 
-                    obj.vertexes.push(Point3::new(x, y, z));
+                    obj.vertexes.push(Point::new(x, y, z));
                 }
                 "vt" => {
                     let u = parts.next()?.parse().ok()?;
@@ -227,7 +227,7 @@ impl Obj {
                     let y = parts.next()?.parse().ok()?;
                     let z = parts.next()?.parse().ok()?;
 
-                    obj.vertex_normals.push(Vector3::new(x, y, z));
+                    obj.vertex_normals.push(Vector::new(x, y, z));
                 }
                 "f" => {
                     let a = ObjTriangleCorner::parse(parts.next()?)?;
@@ -288,7 +288,7 @@ impl Obj {
         });
         let normals = normals
             .iter()
-            .map(|ns| Unit::new_normalize(ns.iter().sum::<Vector3<f64>>() / ns.len() as f64))
+            .map(|ns| Unit::new_normalize(ns.iter().sum::<Vector>() / ns.len() as f64))
             .collect();
 
         let mesh = Arc::new(Mesh {

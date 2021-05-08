@@ -1,13 +1,13 @@
-use nalgebra::Vector3;
 use std::f64;
 
 use crate::film::RGB;
 use crate::shade_rec::ShadeRec;
+use crate::Vector;
 
 pub trait BRDF {
-    fn f(&self, sr: &ShadeRec, wi: &Vector3<f64>, wo: &Vector3<f64>) -> RGB;
-    fn sample_f(&self, _sr: &ShadeRec, _wo: &Vector3<f64>) -> (RGB, Vector3<f64>);
-    fn rho(&self, sr: &ShadeRec, wo: &Vector3<f64>) -> RGB;
+    fn f(&self, sr: &ShadeRec, wi: &Vector, wo: &Vector) -> RGB;
+    fn sample_f(&self, _sr: &ShadeRec, _wo: &Vector) -> (RGB, Vector);
+    fn rho(&self, sr: &ShadeRec, wo: &Vector) -> RGB;
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -27,15 +27,15 @@ impl Lambertian {
 }
 
 impl BRDF for Lambertian {
-    fn f(&self, _sr: &ShadeRec, _wi: &Vector3<f64>, _wo: &Vector3<f64>) -> RGB {
+    fn f(&self, _sr: &ShadeRec, _wi: &Vector, _wo: &Vector) -> RGB {
         self.cd * (self.kd * f64::consts::FRAC_1_PI)
     }
 
-    fn sample_f(&self, _sr: &ShadeRec, _wo: &Vector3<f64>) -> (RGB, Vector3<f64>) {
+    fn sample_f(&self, _sr: &ShadeRec, _wo: &Vector) -> (RGB, Vector) {
         unimplemented!()
     }
 
-    fn rho(&self, _sr: &ShadeRec, _wo: &Vector3<f64>) -> RGB {
+    fn rho(&self, _sr: &ShadeRec, _wo: &Vector) -> RGB {
         self.cd * self.kd
     }
 }

@@ -1,10 +1,9 @@
-use nalgebra::{Point3, Vector3};
-
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
 use crate::sampler::{Sample, Sampler};
 use crate::shape::transformed::Transformed;
 
+use crate::{Point, Vector};
 pub use aabb::AABB;
 pub use cuboid::Cuboid;
 pub use obj::{FlatTriangle, Obj, SmoothTriangle};
@@ -56,14 +55,14 @@ impl GeometricObject {
         Self::new(shape, material)
     }
 
-    pub fn cuboid(corner: Point3<f64>, transformation: Transformation, material: Material) -> Self {
+    pub fn cuboid(corner: Point, transformation: Transformation, material: Material) -> Self {
         let shape = Box::new(Transformed::cuboid(corner, transformation));
         Self::new(shape, material)
     }
 
     pub fn plane(
-        normal: Vector3<f64>,
-        point: Point3<f64>,
+        normal: Vector,
+        point: Point,
         transformation: Transformation,
         material: Material,
     ) -> Self {
@@ -112,11 +111,11 @@ impl<T: Shape + ?Sized> Shape for Box<T> {
 }
 
 pub trait SampleShape: Shape {
-    fn average<B, S: Sampler, F: Fn(Point3<f64>) -> B>(&self) -> B;
+    fn average<B, S: Sampler, F: Fn(Point) -> B>(&self) -> B;
 }
 
 pub struct Hit {
     pub t: f64,
-    pub normal: Vector3<f64>,
-    pub local_hit_point: Point3<f64>,
+    pub normal: Vector,
+    pub local_hit_point: Point,
 }

@@ -1,10 +1,9 @@
-use nalgebra::Vector3;
-
 use crate::film::RGB;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
 use crate::shape::{GeometricObject, Hit};
+use crate::Vector;
 
 pub struct World {
     shapes: Vec<GeometricObject>,
@@ -29,7 +28,7 @@ impl World {
                         normal: hit.normal,
                         material: shape.material(),
                         depth: 0,
-                        direction: Vector3::default(),
+                        direction: Vector::default(),
                         world: self,
                     })
                 }

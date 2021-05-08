@@ -1,4 +1,4 @@
-use nalgebra::{Point3, Unit, Vector3};
+use nalgebra::Unit;
 
 use crate::film::RGB;
 use crate::material::{Emissive, Material};
@@ -6,7 +6,7 @@ use crate::math::Ray;
 use crate::sampler::{Sampler, UniformSampler};
 use crate::shade_rec::ShadeRec;
 use crate::shape::{GeometricObject, Rectangle, Shape};
-use crate::K_EPSILON;
+use crate::{Point, Vector, K_EPSILON};
 
 pub struct AmbientLight {
     ls: f64,
@@ -52,12 +52,12 @@ impl<T: Light> Light for Box<T> {
 
 pub struct LightSample<'a> {
     light: &'a dyn Light,
-    location: Point3<f64>,
-    normal: Unit<Vector3<f64>>,
+    location: Point,
+    normal: Unit<Vector>,
 }
 
 impl<'a> LightSample<'a> {
-    pub fn direction(&self, sr: &ShadeRec) -> Unit<Vector3<f64>> {
+    pub fn direction(&self, sr: &ShadeRec) -> Unit<Vector> {
         Unit::new_normalize(self.location - sr.hit_point)
     }
 }
@@ -75,18 +75,18 @@ impl<'a> LightSample<'a> {
 }
 
 pub struct PointLight {
-    location: Point3<f64>,
+    location: Point,
     material: Emissive,
 }
 
 impl PointLight {
-    pub fn new(ls: f64, color: RGB, location: Point3<f64>) -> Self {
+    pub fn new(ls: f64, color: RGB, location: Point) -> Self {
         let material = Emissive::new(ls, color);
 
         Self { material, location }
     }
 
-    pub fn white(ls: f64, location: Point3<f64>) -> Self {
+    pub fn white(ls: f64, location: Point) -> Self {
         Self::new(ls, RGB::white(), location)
     }
 }

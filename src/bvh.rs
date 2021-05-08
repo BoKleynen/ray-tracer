@@ -4,6 +4,7 @@ use std::borrow::BorrowMut;
 use crate::bvh::NodeType::{Internal, Leaf};
 use crate::math::Ray;
 use crate::shape::{Hit, Shape, AABB};
+use crate::Point;
 
 pub struct BVH<S> {
     node: Node<S>,
@@ -42,6 +43,12 @@ enum NodeType<S> {
 struct Node<S> {
     bbox: AABB,
     node_type: NodeType<S>,
+}
+
+struct Bar<'a, S: Shape> {
+    shape: &'a S,
+    bbox: AABB,
+    centroid: Point,
 }
 
 impl<S: Shape> Node<S> {
@@ -197,35 +204,9 @@ impl<S: Shape> Node<S> {
                 match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
                     (Some(left_t), Some(right_t)) => {
                         if left_t < right_t {
-                            match left.intersect(ray) {
-                                None => right.intersect(ray),
-                                Some(hit) => {
-                                    if hit.t >= right_t {
-                                        match right.intersect(ray) {
-                                            Some(right_hit) if hit.t > right_hit.t => {
-                                                Some(right_hit)
-                                            }
-                                            _ => Some(hit),
-                                        }
-                                    } else {
-                                        Some(hit)
-                                    }
-                                }
-                            }
+                            Self::intersect_overlapping_bbox(ray, left, right, right_t)
                         } else {
-                            match right.intersect(ray) {
-                                None => left.intersect(ray),
-                                Some(hit) => {
-                                    if hit.t >= left_t {
-                                        match left.intersect(ray) {
-                                            Some(left_hit) if hit.t > left_hit.t => Some(left_hit),
-                                            _ => Some(hit),
-                                        }
-                                    } else {
-                                        Some(hit)
-                                    }
-                                }
-                            }
+                            Self::intersect_overlapping_bbox(ray, right, left, left_t)
                         }
                     }
                     (Some(_), None) => left.intersect(ray),
@@ -233,6 +214,22 @@ impl<S: Shape> Node<S> {
                     (None, None) => None,
                 }
             }
+        }
+    }
+
+    fn intersect_overlapping_bbox(
+        ray: &Ray,
+        first: &Self,
+        second: &Self,
+        second_t: f64,
+    ) -> Option<Hit> {
+        match first.intersect(ray) {
+            None => second.intersect(ray),
+            Some(hit) if second_t <= hit.t => match second.intersect(ray) {
+                Some(new_hit) if new_hit.t < hit.t => Some(new_hit),
+                _ => Some(hit),
+            },
+            Some(hit) => Some(hit),
         }
     }
 
