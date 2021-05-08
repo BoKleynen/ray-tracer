@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::{Hit, Shape, AABB};
+use crate::shape::{Bounded, Hit, Shape, AABB};
 use crate::{Point, Vector, K_EPSILON};
 
 /// A three-dimensional cuboid bounded by a corner and it's mirror with respect
@@ -12,6 +12,31 @@ pub struct Cuboid {
 impl Cuboid {
     pub fn new(corner: Point) -> Self {
         Self { corner }
+    }
+}
+
+impl Bounded for Cuboid {
+    fn bbox(&self) -> AABB {
+        let (min_x, max_x) = if self.corner.x > 0. {
+            (-self.corner.x, self.corner.x)
+        } else {
+            (self.corner.x, -self.corner.x)
+        };
+        let (min_y, max_y) = if self.corner.y > 0. {
+            (-self.corner.y, self.corner.y)
+        } else {
+            (self.corner.y, -self.corner.y)
+        };
+        let (min_z, max_z) = if self.corner.z > 0. {
+            (-self.corner.x, self.corner.z)
+        } else {
+            (self.corner.z, -self.corner.z)
+        };
+
+        AABB::new(
+            Point::new(min_x, min_y, min_z),
+            Point::new(max_x, max_y, max_z),
+        )
     }
 }
 
@@ -127,29 +152,6 @@ impl Shape for Cuboid {
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
-    }
-
-    fn bbox(&self) -> AABB {
-        let (min_x, max_x) = if self.corner.x > 0. {
-            (-self.corner.x, self.corner.x)
-        } else {
-            (self.corner.x, -self.corner.x)
-        };
-        let (min_y, max_y) = if self.corner.y > 0. {
-            (-self.corner.y, self.corner.y)
-        } else {
-            (self.corner.y, -self.corner.y)
-        };
-        let (min_z, max_z) = if self.corner.z > 0. {
-            (-self.corner.x, self.corner.z)
-        } else {
-            (self.corner.z, -self.corner.z)
-        };
-
-        AABB::new(
-            Point::new(min_x, min_y, min_z),
-            Point::new(max_x, max_y, max_z),
-        )
     }
 }
 

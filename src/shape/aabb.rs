@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::Shape;
+use crate::shape::{Bounded, Shape};
 use crate::{Point, K_EPSILON};
 
 #[derive(Copy, Clone)]
@@ -88,7 +88,7 @@ impl AABB {
         self.p0 + 0.5 * (self.p1 - self.p0)
     }
 
-    pub fn from_multiple<S: Shape>(shapes: &[S]) -> AABB {
+    pub fn from_multiple<S: Bounded>(shapes: &[S]) -> AABB {
         let min_x = shapes
             .iter()
             .map(|shape| shape.bbox().p0.x)

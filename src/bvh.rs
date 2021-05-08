@@ -3,7 +3,7 @@ use std::borrow::BorrowMut;
 
 use crate::bvh::NodeType::{Internal, Leaf};
 use crate::math::Ray;
-use crate::shape::{Hit, Shape, AABB};
+use crate::shape::{Bounded, Hit, Shape, AABB};
 use crate::Point;
 
 pub struct BVH<S> {
@@ -43,12 +43,6 @@ enum NodeType<S> {
 struct Node<S> {
     bbox: AABB,
     node_type: NodeType<S>,
-}
-
-struct Bar<'a, S: Shape> {
-    shape: &'a S,
-    bbox: AABB,
-    centroid: Point,
 }
 
 impl<S: Shape> Node<S> {

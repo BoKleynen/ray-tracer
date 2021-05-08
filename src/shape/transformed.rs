@@ -3,7 +3,7 @@ use itertools::Itertools;
 use crate::math::{Ray, Transformation};
 use crate::shape::compound::Compound;
 use crate::shape::obj::SmoothTriangle;
-use crate::shape::{Cuboid, Hit, Obj, Plane, Shape, Sphere, AABB};
+use crate::shape::{Bounded, Cuboid, Hit, Obj, Plane, Shape, Sphere, AABB};
 use crate::{Point, Vector};
 
 pub struct Transformed<S> {
@@ -100,6 +100,12 @@ impl Transformed<Sphere> {
     }
 }
 
+impl<S: Bounded> Bounded for Transformed<S> {
+    fn bbox(&self) -> AABB {
+        self.transform_bounding_box(self.shape.bbox())
+    }
+}
+
 impl<S: Shape> Shape for Transformed<S> {
     fn intersect(&self, ray: &Ray) -> Option<Hit> {
         let inv_ray = self.transformation.apply_inverse(ray);
@@ -113,10 +119,6 @@ impl<S: Shape> Shape for Transformed<S> {
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
         let inv_ray = self.transformation.apply_inverse(ray);
         self.shape.count_intersection_tests(&inv_ray)
-    }
-
-    fn bbox(&self) -> AABB {
-        self.transform_bounding_box(self.shape.bbox())
     }
 
     fn hit(&self, ray: &Ray) -> bool {

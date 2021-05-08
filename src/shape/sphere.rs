@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::{Hit, Shape, AABB};
+use crate::shape::{Bounded, Hit, Shape, AABB};
 use crate::{Point, K_EPSILON};
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
@@ -9,6 +9,12 @@ pub struct Sphere {}
 impl Sphere {
     pub fn new() -> Self {
         Sphere::default()
+    }
+}
+
+impl Bounded for Sphere {
+    fn bbox(&self) -> AABB {
+        AABB::new(Point::new(-1., -1., -1.), Point::new(1., 1., 1.))
     }
 }
 
@@ -56,10 +62,6 @@ impl Shape for Sphere {
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
-    }
-
-    fn bbox(&self) -> AABB {
-        AABB::new(Point::new(-1., -1., -1.), Point::new(1., 1., 1.))
     }
 }
 

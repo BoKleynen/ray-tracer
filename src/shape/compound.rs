@@ -1,7 +1,7 @@
 #[cfg(feature = "bvh")]
 use crate::bvh::BVH;
 use crate::math::Ray;
-use crate::shape::{Hit, Shape, AABB};
+use crate::shape::{Bounded, Hit, Shape, AABB};
 
 #[cfg(not(any(feature = "bvh")))]
 pub struct Compound<S> {
@@ -65,6 +65,12 @@ impl<S: Shape> Compound<S> {
     }
 }
 
+impl<S: Shape> Bounded for Compound<S> {
+    fn bbox(&self) -> AABB {
+        self.bvh.bbox()
+    }
+}
+
 #[cfg(feature = "bvh")]
 impl<S: Shape> Shape for Compound<S> {
     fn intersect(&self, ray: &Ray) -> Option<Hit> {
@@ -73,9 +79,5 @@ impl<S: Shape> Shape for Compound<S> {
 
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
         self.bvh.count_intersection_tests(ray)
-    }
-
-    fn bbox(&self) -> AABB {
-        self.bvh.bbox()
     }
 }

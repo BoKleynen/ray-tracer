@@ -2,7 +2,7 @@ use nalgebra::Unit;
 
 use crate::math::Ray;
 use crate::sampler::Sample;
-use crate::shape::{Hit, Shape, AABB};
+use crate::shape::{Bounded, Hit, Shape, AABB};
 use crate::{Point, Vector, K_EPSILON};
 
 #[derive(Clone)]
@@ -29,6 +29,15 @@ impl Rectangle {
 
     pub fn normal_at(&self, _p: &Point) -> Unit<Vector> {
         self.normal
+    }
+}
+
+impl Bounded for Rectangle {
+    fn bbox(&self) -> AABB {
+        let p0 = self.p;
+        let p1 = self.p + self.a + self.b;
+
+        AABB::new(p0, p1)
     }
 }
 
@@ -62,12 +71,5 @@ impl Shape for Rectangle {
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
-    }
-
-    fn bbox(&self) -> AABB {
-        let p0 = self.p;
-        let p1 = self.p + self.a + self.b;
-
-        AABB::new(p0, p1)
     }
 }

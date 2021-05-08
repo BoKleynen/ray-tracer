@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::{Hit, Shape, AABB};
+use crate::shape::{Bounded, Hit, Shape, AABB};
 use crate::{Point, Vector, K_EPSILON};
 
 pub struct Plane {
@@ -10,6 +10,15 @@ pub struct Plane {
 impl Plane {
     pub fn new(normal: Vector, point: Point) -> Self {
         Self { normal, point }
+    }
+}
+
+impl Bounded for Plane {
+    fn bbox(&self) -> AABB {
+        AABB::new(
+            Point::new(f64::MIN, f64::MIN, f64::MIN),
+            Point::new(f64::MAX, f64::MAX, f64::MAX),
+        )
     }
 }
 
@@ -31,12 +40,5 @@ impl Shape for Plane {
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
-    }
-
-    fn bbox(&self) -> AABB {
-        AABB::new(
-            Point::new(f64::MIN, f64::MIN, f64::MIN),
-            Point::new(f64::MAX, f64::MAX, f64::MAX),
-        )
     }
 }

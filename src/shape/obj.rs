@@ -7,7 +7,7 @@ use std::sync::Arc;
 use crate::math::Ray;
 use crate::shape::aabb::AABB;
 use crate::shape::compound::Compound;
-use crate::shape::{Hit, Shape};
+use crate::shape::{Bounded, Hit, Shape};
 use crate::{Point, Vector, K_EPSILON};
 
 #[derive(Default)]
@@ -19,6 +19,12 @@ pub struct Mesh {
 #[repr(transparent)]
 pub struct SmoothTriangle {
     inner: Triangle,
+}
+
+impl Bounded for SmoothTriangle {
+    fn bbox(&self) -> AABB {
+        self.inner.bounding_box()
+    }
 }
 
 impl Shape for SmoothTriangle {
@@ -41,15 +47,17 @@ impl Shape for SmoothTriangle {
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
     }
-
-    fn bbox(&self) -> AABB {
-        self.inner.bounding_box()
-    }
 }
 
 #[repr(transparent)]
 pub struct FlatTriangle {
     inner: Triangle,
+}
+
+impl Bounded for FlatTriangle {
+    fn bbox(&self) -> AABB {
+        self.inner.bounding_box()
+    }
 }
 
 impl Shape for FlatTriangle {
@@ -63,10 +71,6 @@ impl Shape for FlatTriangle {
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
-    }
-
-    fn bbox(&self) -> AABB {
-        self.inner.bounding_box()
     }
 }
 

@@ -76,12 +76,21 @@ impl GeometricObject {
     }
 }
 
-pub trait Shape: Sync + Send {
+pub trait Bounded {
+    fn bbox(&self) -> AABB;
+}
+
+impl<T: Bounded + ?Sized> Bounded for Box<T> {
+    #[inline]
+    fn bbox(&self) -> AABB {
+        (**self).bbox()
+    }
+}
+
+pub trait Shape: Bounded + Sync + Send {
     fn intersect(&self, ray: &Ray) -> Option<Hit>;
 
     fn count_intersection_tests(&self, ray: &Ray) -> usize;
-
-    fn bbox(&self) -> AABB;
 
     fn hit(&self, ray: &Ray) -> bool {
         self.intersect(ray).is_some()
@@ -97,11 +106,6 @@ impl<T: Shape + ?Sized> Shape for Box<T> {
     #[inline]
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
         (**self).count_intersection_tests(ray)
-    }
-
-    #[inline]
-    fn bbox(&self) -> AABB {
-        (**self).bbox()
     }
 
     #[inline]
