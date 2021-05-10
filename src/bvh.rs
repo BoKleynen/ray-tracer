@@ -1,10 +1,10 @@
-use crate::bvh::NodeKind::{Internal, Leaf};
 use crate::math::Ray;
-use crate::shape::{Aabb, Bounded, Hit, Shape};
+use crate::shape::{Aabb, Bounded, Hit, Shape, Intersect};
 use crate::Point;
 use std::mem::MaybeUninit;
 use std::pin::Pin;
 use std::ptr::{addr_of, addr_of_mut};
+use NodeKind::*;
 use SplittingHeuristic::*;
 
 pub enum SplittingHeuristic {
@@ -32,7 +32,7 @@ impl<S> Bounded for ShapeData<'_, S> {
     }
 }
 
-impl<'a, S: Shape> Bvh<'a, S> {
+impl<'a, S: Intersect> Bvh<'a, S> {
     pub fn new(shapes: Vec<S>, splitting_heuristic: SplittingHeuristic) -> Self {
         let mut uninit: MaybeUninit<Self> = MaybeUninit::uninit();
         let ptr = uninit.as_mut_ptr();
@@ -76,11 +76,11 @@ impl<'a, S: Shape> Bvh<'a, S> {
             addr_of_mut!((*ptr).root).write(root);
         }
 
-        // All the fields are initialized, so we call `assume_init` to get an initialized Foo.
+        // All the fields are initialized, so we call `assume_init` to get an initialized Bvh.
         unsafe { uninit.assume_init() }
     }
 
-    pub fn intersect(&self, ray: &Ray) -> Option<Hit> {
+    pub fn intersect(&self, ray: &Ray) -> Option<Hit<S::Intersection>> {
         self.root.intersect(ray)
     }
 
@@ -108,7 +108,7 @@ struct Node<'a, S> {
     node_type: NodeKind<'a, S>,
 }
 
-impl<'a, S: Shape> Node<'a, S> {
+impl<'a, S: Intersect> Node<'a, S> {
     fn space_area_heuristic(_shapes: Vec<ShapeData<'a, S>>, _axis: usize) -> Self {
         todo!()
     }
@@ -185,13 +185,13 @@ impl<'a, S: Shape> Node<'a, S> {
         }
     }
 
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+    fn intersect(&self, ray: &Ray) -> Option<Hit<S::Intersection>> {
         match &self.node_type {
-            NodeKind::Leaf { shapes } => shapes
+            Leaf { shapes } => shapes
                 .iter()
                 .filter_map(|shape| shape.intersect(&ray))
                 .min_by(|x, y| x.t.partial_cmp(&y.t).unwrap()),
-            NodeKind::Internal { left, right } => {
+            Internal { left, right } => {
                 match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
                     (Some(left_t), Some(right_t)) => {
                         if left_t < right_t {
@@ -213,7 +213,7 @@ impl<'a, S: Shape> Node<'a, S> {
         first: &Self,
         second: &Self,
         second_t: f64,
-    ) -> Option<Hit> {
+    ) -> Option<Hit<S::Intersection>> {
         match first.intersect(ray) {
             None => second.intersect(ray),
             Some(hit) if second_t <= hit.t => match second.intersect(ray) {
@@ -226,11 +226,11 @@ impl<'a, S: Shape> Node<'a, S> {
 
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
         match &self.node_type {
-            NodeKind::Leaf { shapes } => shapes
+            Leaf { shapes } => shapes
                 .iter()
                 .map(|shape| shape.count_intersection_tests(ray))
                 .sum(),
-            NodeKind::Internal { left, right } => {
+            Internal { left, right } => {
                 2 + match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
                     (Some(left_t), Some(right_t)) => {
                         if left_t < right_t {

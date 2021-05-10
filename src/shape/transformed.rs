@@ -3,7 +3,7 @@ use itertools::Itertools;
 use crate::math::{Ray, Transformation};
 use crate::shape::compound::Compound;
 use crate::shape::obj::SmoothTriangle;
-use crate::shape::{Aabb, Bounded, Cuboid, Hit, Obj, Plane, Shape, Sphere};
+use crate::shape::{Aabb, Bounded, Cuboid, Hit, Intersect, Obj, Plane, Shape, Sphere};
 use crate::{Point, Vector};
 
 pub struct Transformed<S> {
@@ -106,8 +106,10 @@ impl<S: Bounded> Bounded for Transformed<S> {
     }
 }
 
-impl<S: Shape> Shape for Transformed<S> {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl<S: Intersect> Intersect for Transformed<S> {
+    type Intersection = S::Intersection;
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
         let inv_ray = self.transformation.apply_inverse(ray);
         self.shape.intersect(&inv_ray).map(|hit| {
             let normal = self.inverse_transform_normal(&hit.normal);

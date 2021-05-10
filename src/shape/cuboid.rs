@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::{Aabb, Bounded, Hit, Shape};
+use crate::shape::{Aabb, Bounded, Hit, Intersect, Shape};
 use crate::{Point, Vector, K_EPSILON};
 
 /// A three-dimensional cuboid bounded by a corner and it's mirror with respect
@@ -40,8 +40,10 @@ impl Bounded for Cuboid {
     }
 }
 
-impl Shape for Cuboid {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl Intersect for Cuboid {
+    type Intersection = ();
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<()>> {
         let ox = ray.origin().x;
         let oy = ray.origin().y;
         let oz = ray.origin().z;
@@ -137,12 +139,14 @@ impl Shape for Cuboid {
                     t: t0,
                     normal: face_in.normal(),
                     local_hit_point: ray.origin() + t0 * ray.direction(),
+                    shape: (),
                 })
             } else {
                 Some(Hit {
                     t: t1,
                     normal: face_out.normal(),
                     local_hit_point: ray.origin() + t1 * ray.direction(),
+                    shape: (),
                 })
             }
         } else {
@@ -174,56 +178,5 @@ impl CuboidFace {
             CuboidFace::Top => Vector::new(0., 1., 0.),
             CuboidFace::Front => Vector::new(0., 0., 1.),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::Cuboid;
-    use crate::math::Ray;
-    use crate::shape::Shape;
-    use nalgebra::{Point, Vector};
-
-    #[test]
-    fn obj_hit() {
-        for ray in test_rays() {
-            for cuboid in test_cuboids() {
-                if cuboid.hit(&ray) {
-                    assert!(cuboid.bbox().intersect(&ray));
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn bounding_box_mis() {
-        for ray in test_rays() {
-            for cuboid in test_cuboids() {
-                if !cuboid.bbox().intersect(&ray) {
-                    assert!(!cuboid.hit(&ray));
-                }
-            }
-        }
-    }
-
-    fn test_cuboids() -> Vec<Cuboid> {
-        vec![
-            Cuboid::new(Point::new(1., 1., 1.)),
-            Cuboid::new(Point::new(-1., -1., -1.)),
-        ]
-    }
-
-    fn test_rays() -> Vec<Ray> {
-        vec![
-            Ray::new(Point::new(0., 0., 0.), Vector::new(1., 0., 0.)),
-            Ray::new(Point::new(0., 0., 0.), Vector::new(0., 1., 0.)),
-            Ray::new(Point::new(0., 0., 0.), Vector::new(0., 0., 1.)),
-            Ray::new(Point::new(0., 0., 0.), Vector::new(1., 1., 0.)),
-            Ray::new(Point::new(0., 0., 0.), Vector::new(1., 1., 0.)),
-            Ray::new(Point::new(0., 0., 0.), Vector::new(1., 0., 1.)),
-            Ray::new(Point::new(0., 0., 0.), Vector::new(1., 0., 1.)),
-            Ray::new(Point::new(0., 0., 0.), Vector::new(0., 1., 1.)),
-            Ray::new(Point::new(0., 0., 0.), Vector::new(0., 1., 1.)),
-        ]
     }
 }

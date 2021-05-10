@@ -11,6 +11,8 @@ pub use plane::Plane;
 pub use rectangle::Rectangle;
 pub use sphere::Sphere;
 pub use transformed::Transformed;
+use std::ops::Deref;
+use std::ptr::NonNull;
 
 mod aabb;
 mod compound;
@@ -21,9 +23,57 @@ mod rectangle;
 mod sphere;
 mod transformed;
 
+pub trait Bounded {
+    fn bbox(&self) -> Aabb;
+}
+
+pub trait Intersect: Bounded {
+    type Intersection;
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>>;
+
+    fn count_intersection_tests(&self, ray: &Ray) -> usize;
+
+    fn hit(&self, ray: &Ray) -> bool {
+        self.intersect(ray).is_some()
+    }
+}
+
+// marker trait
+pub trait Shape: Intersect<Intersection = ()> + Sync {}
+
+impl<S: Intersect<Intersection = ()> + Sync> Shape for S {}
+
 pub struct GeometricObject {
     shape: Box<dyn Shape>,
     material: Material,
+}
+
+impl Bounded for GeometricObject {
+    fn bbox(&self) -> Aabb {
+        self.shape.bbox()
+    }
+}
+
+impl<'a> Intersect for GeometricObject {
+    type Intersection = NonNull<Self>;
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
+        self.shape.intersect(ray).map(|hit| Hit {
+            t: hit.t,
+            normal: Default::default(),
+            local_hit_point: hit.local_hit_point,
+            shape: self.into(),
+        })
+    }
+
+    fn count_intersection_tests(&self, ray: &Ray) -> usize {
+        self.shape.count_intersection_tests(ray)
+    }
+
+    fn hit(&self, ray: &Ray) -> bool {
+        self.shape.hit(ray)
+    }
 }
 
 impl GeometricObject {
@@ -37,18 +87,6 @@ impl GeometricObject {
 
     pub fn material(&self) -> Material {
         self.material.clone()
-    }
-
-    pub fn intersect(&self, ray: &Ray) -> Option<Hit> {
-        self.shape.intersect(ray)
-    }
-
-    pub fn count_intersection_tests(&self, ray: &Ray) -> usize {
-        self.shape.count_intersection_tests(ray)
-    }
-
-    pub fn hit(&self, ray: &Ray) -> bool {
-        self.shape.hit(ray)
     }
 
     pub fn sphere(transformation: Transformation, material: Material) -> Self {
@@ -77,9 +115,6 @@ impl GeometricObject {
     }
 }
 
-pub trait Bounded {
-    fn bbox(&self) -> Aabb;
-}
 
 impl<T: Bounded + ?Sized> Bounded for Box<T> {
     #[inline]
@@ -88,39 +123,25 @@ impl<T: Bounded + ?Sized> Bounded for Box<T> {
     }
 }
 
-pub trait Shape: Bounded + Sync + Send {
-    fn intersect(&self, ray: &Ray) -> Option<Hit>;
+impl<S: Intersect + ?Sized> Intersect for Box<S> {
+    type Intersection = S::Intersection;
 
-    fn count_intersection_tests(&self, ray: &Ray) -> usize;
-
-    fn hit(&self, ray: &Ray) -> bool {
-        self.intersect(ray).is_some()
-    }
-}
-
-impl<T: Shape + ?Sized> Shape for Box<T> {
-    #[inline]
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
         (**self).intersect(ray)
     }
 
-    #[inline]
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
         (**self).count_intersection_tests(ray)
     }
 
-    #[inline]
     fn hit(&self, ray: &Ray) -> bool {
         (**self).hit(ray)
     }
 }
 
-pub trait SampleShape: Shape {
-    fn average<B, S: Sampler, F: Fn(Point) -> B>(&self) -> B;
-}
-
-pub struct Hit {
+pub struct Hit<S> {
     pub t: f64,
     pub normal: Vector,
     pub local_hit_point: Point,
+    pub shape: S,
 }

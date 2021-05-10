@@ -2,7 +2,7 @@
 use crate::bvh::Bvh;
 use crate::bvh::SplittingHeuristic::*;
 use crate::math::Ray;
-use crate::shape::{Aabb, Bounded, Hit, Shape};
+use crate::shape::{Aabb, Bounded, Hit, Intersect, Shape};
 
 #[cfg(not(any(feature = "bvh")))]
 pub struct Compound<S> {
@@ -57,9 +57,9 @@ pub struct Compound<S: 'static> {
 }
 
 #[cfg(feature = "bvh")]
-impl<S: Shape> Compound<S> {
+impl<S: Intersect> Compound<S> {
     pub fn new(shapes: Vec<S>) -> Self {
-        assert!(shapes.len() > 1);
+        assert!(shapes.len() > 0);
 
         Self {
             bvh: Bvh::new(shapes, ObjectMedianSplit),
@@ -67,15 +67,17 @@ impl<S: Shape> Compound<S> {
     }
 }
 
-impl<S: Shape> Bounded for Compound<S> {
+impl<S: Intersect> Bounded for Compound<S> {
     fn bbox(&self) -> Aabb {
         self.bvh.bbox()
     }
 }
 
 #[cfg(feature = "bvh")]
-impl<S: Shape> Shape for Compound<S> {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl<S: Intersect> Intersect for Compound<S> {
+    type Intersection = S::Intersection;
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
         self.bvh.intersect(ray)
     }
 

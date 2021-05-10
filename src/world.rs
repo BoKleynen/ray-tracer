@@ -2,11 +2,11 @@ use crate::film::Rgb;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
-use crate::shape::{GeometricObject, Hit};
+use crate::shape::{Compound, GeometricObject, Hit, Shape, Intersect};
 use crate::Vector;
 
 pub struct World {
-    shapes: Vec<GeometricObject>,
+    geometric_objects: Compound<GeometricObject>,
     ambient_light: AmbientLight,
     lights: Vec<Box<dyn Light>>,
     background_color: Rgb,
@@ -14,41 +14,39 @@ pub struct World {
 
 impl World {
     pub fn hit_objects(&self, ray: &Ray) -> Option<ShadeRec> {
-        let mut sr: Option<ShadeRec> = None;
-        let mut t_min = f64::INFINITY;
+        self.geometric_objects.intersect(&ray).map(|hit| {
+            let shape = unsafe { hit.shape.as_ref() };
 
-        self.shapes.iter().for_each(|shape| {
-            if let Some(hit) = shape.intersect(&ray) {
-                if hit.t < t_min {
-                    t_min = hit.t;
-
-                    sr = Some(ShadeRec {
-                        hit_point: ray.origin() + hit.t * ray.direction(),
-                        local_hit_point: hit.local_hit_point,
-                        normal: hit.normal,
-                        material: shape.material(),
-                        depth: 0,
-                        direction: Vector::default(),
-                        world: self,
-                    })
-                }
+            ShadeRec {
+                hit_point: ray.origin() + hit.t * ray.direction(),
+                local_hit_point: hit.local_hit_point,
+                normal: hit.normal,
+                material: shape.material(),
+                depth: 0,
+                direction: Vector::default(),
+                world: self,
             }
-        });
-
-        sr
+        })
     }
 
     pub fn hit_any_object_where<F>(&self, ray: &Ray, f: F) -> bool
     where
-        F: Fn(Hit) -> bool,
+        F: Fn(Hit<&GeometricObject>) -> bool,
     {
-        self.shapes
-            .iter()
-            .any(|shape| shape.intersect(ray).map_or(false, |hit| f(hit)))
+        self.geometric_objects.intersect(ray).map_or(false, |hit| {
+            let hit = Hit {
+                t: hit.t,
+                normal: hit.normal,
+                local_hit_point: hit.local_hit_point,
+                shape: unsafe { hit.shape.as_ref() }
+            };
+
+            f(hit)
+        })
     }
 
-    pub fn geometric_objects(&self) -> &[GeometricObject] {
-        self.shapes.as_slice()
+    pub fn geometric_objects(&self) -> &Compound<GeometricObject> {
+        &self.geometric_objects
     }
 
     pub fn lights(&self) -> &[Box<dyn Light>] {
@@ -65,7 +63,7 @@ impl World {
 }
 
 pub struct WorldBuilder {
-    shapes: Vec<GeometricObject>,
+    geometric_objects: Vec<GeometricObject>,
     lights: Vec<Box<dyn Light>>,
     ambient_light: Option<AmbientLight>,
     background_color: Option<Rgb>,
@@ -77,7 +75,7 @@ impl WorldBuilder {
     }
 
     pub fn geometric_object(mut self, geometric_object: GeometricObject) -> Self {
-        self.shapes.push(geometric_object);
+        self.geometric_objects.push(geometric_object);
         self
     }
 
@@ -92,8 +90,8 @@ impl WorldBuilder {
     }
 
     pub fn build(self) -> Option<World> {
-        let mut shapes = self.shapes;
-        shapes.extend(
+        let mut geometric_objects = self.geometric_objects;
+        geometric_objects.extend(
             self.lights
                 .iter()
                 .filter_map(|light| light.geometric_object()),
@@ -105,7 +103,7 @@ impl WorldBuilder {
         let background_color = self.background_color.unwrap_or_else(Rgb::black);
 
         let world = World {
-            shapes,
+            geometric_objects: Compound::new(geometric_objects),
             ambient_light,
             lights,
             background_color,
@@ -123,7 +121,7 @@ impl Default for WorldBuilder {
         let background_color = None;
 
         Self {
-            shapes,
+            geometric_objects: shapes,
             lights,
             ambient_light,
             background_color,

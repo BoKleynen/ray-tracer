@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::{Aabb, Bounded, Hit, Shape};
+use crate::shape::{Aabb, Bounded, Hit, Intersect, Shape};
 use crate::{Point, K_EPSILON};
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
@@ -18,8 +18,10 @@ impl Bounded for Sphere {
     }
 }
 
-impl Shape for Sphere {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl Intersect for Sphere {
+    type Intersection = ();
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<()>> {
         let origin = ray.origin();
         let direction = ray.direction();
 
@@ -43,6 +45,7 @@ impl Shape for Sphere {
                 t,
                 normal: local_hit_point.coords,
                 local_hit_point,
+                shape: (),
             });
         }
 
@@ -54,6 +57,7 @@ impl Shape for Sphere {
                 t,
                 normal: local_hit_point.coords,
                 local_hit_point,
+                shape: (),
             });
         }
 

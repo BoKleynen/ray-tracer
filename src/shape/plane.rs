@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::{Aabb, Bounded, Hit, Shape};
+use crate::shape::{Aabb, Bounded, Hit, Intersect, Shape};
 use crate::{Point, Vector, K_EPSILON};
 
 pub struct Plane {
@@ -22,8 +22,10 @@ impl Bounded for Plane {
     }
 }
 
-impl Shape for Plane {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl Intersect for Plane {
+    type Intersection = ();
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<()>> {
         let t =
             ((self.point - ray.origin()).dot(&self.normal)) / (ray.direction().dot(&self.normal));
 
@@ -32,6 +34,7 @@ impl Shape for Plane {
                 t,
                 normal: self.normal,
                 local_hit_point: ray.origin() + t * ray.direction(),
+                shape: (),
             });
         } else {
             None

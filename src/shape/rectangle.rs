@@ -2,7 +2,7 @@ use nalgebra::Unit;
 
 use crate::math::Ray;
 use crate::sampler::Sample;
-use crate::shape::{Aabb, Bounded, Hit, Shape};
+use crate::shape::{Aabb, Bounded, Hit, Intersect, Shape};
 use crate::{Point, Vector, K_EPSILON};
 
 #[derive(Clone)]
@@ -41,8 +41,10 @@ impl Bounded for Rectangle {
     }
 }
 
-impl Shape for Rectangle {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl Intersect for Rectangle {
+    type Intersection = ();
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<()>> {
         let t = (self.p - ray.origin()).dot(&self.normal) / ray.direction().dot(&self.normal);
 
         if t <= K_EPSILON {
@@ -66,6 +68,7 @@ impl Shape for Rectangle {
             t,
             normal: *self.normal,
             local_hit_point: q,
+            shape: (),
         })
     }
 

@@ -7,7 +7,7 @@ use std::sync::Arc;
 use crate::math::Ray;
 use crate::shape::aabb::Aabb;
 use crate::shape::compound::Compound;
-use crate::shape::{Bounded, Hit, Shape};
+use crate::shape::{Bounded, Hit, Intersect, Shape};
 use crate::{Point, Vector, K_EPSILON};
 
 #[derive(Default)]
@@ -27,8 +27,10 @@ impl Bounded for SmoothTriangle {
     }
 }
 
-impl Shape for SmoothTriangle {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl Intersect for SmoothTriangle {
+    type Intersection = ();
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<()>> {
         self.inner.intersect(ray).map(|hit| {
             let beta = hit.beta;
             let gamma = hit.gamma;
@@ -40,6 +42,7 @@ impl Shape for SmoothTriangle {
                 t: hit.t,
                 normal,
                 local_hit_point: hit.local_hit_point,
+                shape: (),
             }
         })
     }
@@ -60,12 +63,15 @@ impl Bounded for FlatTriangle {
     }
 }
 
-impl Shape for FlatTriangle {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl Intersect for FlatTriangle {
+    type Intersection = ();
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<()>> {
         self.inner.intersect(ray).map(|hit| Hit {
             t: hit.t,
             normal: *self.inner.normal,
             local_hit_point: hit.local_hit_point,
+            shape: (),
         })
     }
 
