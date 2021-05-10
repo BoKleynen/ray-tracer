@@ -1,9 +1,9 @@
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
-use crate::sampler::{Sample, Sampler};
+use crate::sampler::Sampler;
 use crate::{Point, Vector};
 
-pub use aabb::AABB;
+pub use aabb::Aabb;
 pub use compound::Compound;
 pub use cuboid::Cuboid;
 pub use obj::{FlatTriangle, Obj, SmoothTriangle};
@@ -78,12 +78,12 @@ impl GeometricObject {
 }
 
 pub trait Bounded {
-    fn bbox(&self) -> AABB;
+    fn bbox(&self) -> Aabb;
 }
 
 impl<T: Bounded + ?Sized> Bounded for Box<T> {
     #[inline]
-    fn bbox(&self) -> AABB {
+    fn bbox(&self) -> Aabb {
         (**self).bbox()
     }
 }

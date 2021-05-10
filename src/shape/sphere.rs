@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::{Bounded, Hit, Shape, AABB};
+use crate::shape::{Aabb, Bounded, Hit, Shape};
 use crate::{Point, K_EPSILON};
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
@@ -13,8 +13,8 @@ impl Sphere {
 }
 
 impl Bounded for Sphere {
-    fn bbox(&self) -> AABB {
-        AABB::new(Point::new(-1., -1., -1.), Point::new(1., 1., 1.))
+    fn bbox(&self) -> Aabb {
+        Aabb::new(Point::new(-1., -1., -1.), Point::new(1., 1., 1.))
     }
 }
 

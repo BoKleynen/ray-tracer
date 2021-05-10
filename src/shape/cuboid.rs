@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::{Bounded, Hit, Shape, AABB};
+use crate::shape::{Aabb, Bounded, Hit, Shape};
 use crate::{Point, Vector, K_EPSILON};
 
 /// A three-dimensional cuboid bounded by a corner and it's mirror with respect
@@ -16,7 +16,7 @@ impl Cuboid {
 }
 
 impl Bounded for Cuboid {
-    fn bbox(&self) -> AABB {
+    fn bbox(&self) -> Aabb {
         let (min_x, max_x) = if self.corner.x > 0. {
             (-self.corner.x, self.corner.x)
         } else {
@@ -33,7 +33,7 @@ impl Bounded for Cuboid {
             (self.corner.z, -self.corner.z)
         };
 
-        AABB::new(
+        Aabb::new(
             Point::new(min_x, min_y, min_z),
             Point::new(max_x, max_y, max_z),
         )

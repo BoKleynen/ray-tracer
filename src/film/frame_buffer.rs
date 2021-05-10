@@ -1,6 +1,6 @@
 use image::{ImageBuffer, RgbaImage};
 
-use super::{Pixel, RGB};
+use super::{Pixel, Rgb};
 
 pub struct FrameBuffer {
     buffer: Vec<Pixel>,
@@ -35,7 +35,7 @@ impl FrameBuffer {
 
         ImageBuffer::from_fn(self.x_res as u32, self.y_res as u32, |x, y| {
             let pixel = self.get_pixel(x as usize, y as usize);
-            RGB::to_rgb(
+            Rgb::to_rgb(
                 (pixel.spectrum().clamp(0., inv_sensitivity) * sensitivity).pow(inv_gamma) * 255.,
             )
         })

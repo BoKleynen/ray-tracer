@@ -3,7 +3,7 @@ use itertools::Itertools;
 use crate::math::{Ray, Transformation};
 use crate::shape::compound::Compound;
 use crate::shape::obj::SmoothTriangle;
-use crate::shape::{Bounded, Cuboid, Hit, Obj, Plane, Shape, Sphere, AABB};
+use crate::shape::{Aabb, Bounded, Cuboid, Hit, Obj, Plane, Shape, Sphere};
 use crate::{Point, Vector};
 
 pub struct Transformed<S> {
@@ -28,7 +28,7 @@ impl<S> Transformed<S> {
             .normalize()
     }
 
-    fn transform_bounding_box(&self, aabb: AABB) -> AABB {
+    fn transform_bounding_box(&self, aabb: Aabb) -> Aabb {
         let vertices = aabb
             .vertices()
             .iter()
@@ -65,7 +65,7 @@ impl<S> Transformed<S> {
             .max_by(|a, b| a.partial_cmp(b).unwrap())
             .unwrap();
 
-        AABB::new(
+        Aabb::new(
             Point::new(min_x, min_y, min_z),
             Point::new(max_x, max_y, max_z),
         )
@@ -101,7 +101,7 @@ impl Transformed<Sphere> {
 }
 
 impl<S: Bounded> Bounded for Transformed<S> {
-    fn bbox(&self) -> AABB {
+    fn bbox(&self) -> Aabb {
         self.transform_bounding_box(self.shape.bbox())
     }
 }

@@ -1,6 +1,6 @@
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::camera::{Camera, CameraBuilder};
-use cg_practicum::film::RGB;
+use cg_practicum::film::Rgb;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
@@ -30,13 +30,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let object = Obj::load("models/teapot.obj").unwrap();
 
     let material1 = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::new(1., 1., 0.)),
-        diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 1., 0.)),
+        ambient_brdf: Lambertian::new(0.15, Rgb::new(1., 1., 0.)),
+        diffuse_brdf: Lambertian::new(0.65, Rgb::new(1., 1., 0.)),
     };
 
     let material2 = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::new(1., 0., 1.)),
-        diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 0., 1.)),
+        ambient_brdf: Lambertian::new(0.15, Rgb::new(1., 0., 1.)),
+        diffuse_brdf: Lambertian::new(0.65, Rgb::new(1., 0., 1.)),
     };
 
     let light = PointLight::white(1., Point::new(100., 50., 150.));
@@ -54,7 +54,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         ))
         .light(Box::new(light))
         .light(Box::new(light2))
-        .background(RGB::new(0.1, 0.1, 0.1))
+        .background(Rgb::new(0.1, 0.1, 0.1))
         .build()
         .ok_or("invalid world configuration")?;
 

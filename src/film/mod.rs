@@ -1,6 +1,6 @@
 pub use frame_buffer::FrameBuffer;
 pub use pixel::Pixel;
-pub use rgb::RGB;
+pub use rgb::Rgb;
 
 mod frame_buffer;
 mod pixel;

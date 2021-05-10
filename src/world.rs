@@ -1,4 +1,4 @@
-use crate::film::RGB;
+use crate::film::Rgb;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
@@ -9,7 +9,7 @@ pub struct World {
     shapes: Vec<GeometricObject>,
     ambient_light: AmbientLight,
     lights: Vec<Box<dyn Light>>,
-    background_color: RGB,
+    background_color: Rgb,
 }
 
 impl World {
@@ -59,7 +59,7 @@ impl World {
         &self.ambient_light
     }
 
-    pub fn background_color(&self) -> RGB {
+    pub fn background_color(&self) -> Rgb {
         self.background_color
     }
 }
@@ -68,7 +68,7 @@ pub struct WorldBuilder {
     shapes: Vec<GeometricObject>,
     lights: Vec<Box<dyn Light>>,
     ambient_light: Option<AmbientLight>,
-    background_color: Option<RGB>,
+    background_color: Option<Rgb>,
 }
 
 impl WorldBuilder {
@@ -86,7 +86,7 @@ impl WorldBuilder {
         self
     }
 
-    pub fn background(mut self, color: RGB) -> Self {
+    pub fn background(mut self, color: Rgb) -> Self {
         self.background_color = Some(color);
         self
     }
@@ -102,12 +102,12 @@ impl WorldBuilder {
         let ambient_light = self
             .ambient_light
             .unwrap_or_else(|| AmbientLight::white(0.25));
-        let background_color = self.background_color.unwrap_or_else(RGB::black);
+        let background_color = self.background_color.unwrap_or_else(Rgb::black);
 
         let world = World {
             shapes,
-            lights,
             ambient_light,
+            lights,
             background_color,
         };
 

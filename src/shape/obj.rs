@@ -5,7 +5,7 @@ use std::mem;
 use std::sync::Arc;
 
 use crate::math::Ray;
-use crate::shape::aabb::AABB;
+use crate::shape::aabb::Aabb;
 use crate::shape::compound::Compound;
 use crate::shape::{Bounded, Hit, Shape};
 use crate::{Point, Vector, K_EPSILON};
@@ -22,7 +22,7 @@ pub struct SmoothTriangle {
 }
 
 impl Bounded for SmoothTriangle {
-    fn bbox(&self) -> AABB {
+    fn bbox(&self) -> Aabb {
         self.inner.bounding_box()
     }
 }
@@ -55,7 +55,7 @@ pub struct FlatTriangle {
 }
 
 impl Bounded for FlatTriangle {
-    fn bbox(&self) -> AABB {
+    fn bbox(&self) -> Aabb {
         self.inner.bounding_box()
     }
 }
@@ -83,7 +83,7 @@ struct Triangle {
 }
 
 impl Triangle {
-    fn bounding_box(&self) -> AABB {
+    fn bounding_box(&self) -> Aabb {
         let v0 = self.v0();
         let v1 = self.v1();
         let v2 = self.v2();
@@ -95,7 +95,7 @@ impl Triangle {
         let min_z = v0.z.min(v1.z).min(v2.z);
         let max_z = v0.z.max(v1.z).max(v2.z);
 
-        AABB::new(
+        Aabb::new(
             Point::new(min_x, min_y, min_z),
             Point::new(max_x, max_y, max_z),
         )

@@ -1,47 +1,47 @@
 use nalgebra::Unit;
 
-use crate::film::RGB;
+use crate::film::Rgb;
 use crate::material::{Emissive, Material};
 use crate::math::Ray;
 use crate::sampler::{Sampler, UniformSampler};
 use crate::shade_rec::ShadeRec;
-use crate::shape::{GeometricObject, Rectangle, Shape};
+use crate::shape::{GeometricObject, Rectangle};
 use crate::{Point, Vector, K_EPSILON};
 
 pub struct AmbientLight {
     ls: f64,
-    color: RGB,
+    color: Rgb,
 }
 
 impl AmbientLight {
-    pub fn new(ls: f64, color: RGB) -> Self {
+    pub fn new(ls: f64, color: Rgb) -> Self {
         Self { ls, color }
     }
 
     pub fn white(ls: f64) -> Self {
-        let color = RGB::white();
+        let color = Rgb::white();
         Self { ls, color }
     }
 
-    pub fn radiance(&self) -> RGB {
+    pub fn radiance(&self) -> Rgb {
         self.color * self.ls
     }
 }
 
 pub trait Light: Sync {
-    fn average(&self, f: &dyn Fn(LightSample) -> RGB) -> RGB;
-    fn radiance(&self, sr: &ShadeRec) -> RGB;
+    fn average(&self, f: &dyn Fn(LightSample) -> Rgb) -> Rgb;
+    fn radiance(&self, sr: &ShadeRec) -> Rgb;
     fn geometric_object(&self) -> Option<GeometricObject> {
         None
     }
 }
 
 impl<T: Light> Light for Box<T> {
-    fn average(&self, f: &dyn Fn(LightSample) -> RGB) -> RGB {
+    fn average(&self, f: &dyn Fn(LightSample) -> Rgb) -> Rgb {
         (**self).average(f)
     }
 
-    fn radiance(&self, sr: &ShadeRec) -> RGB {
+    fn radiance(&self, sr: &ShadeRec) -> Rgb {
         (**self).radiance(sr)
     }
 
@@ -79,19 +79,19 @@ pub struct PointLight {
 }
 
 impl PointLight {
-    pub fn new(ls: f64, color: RGB, location: Point) -> Self {
+    pub fn new(ls: f64, color: Rgb, location: Point) -> Self {
         let material = Emissive::new(ls, color);
 
-        Self { material, location }
+        Self { location, material }
     }
 
     pub fn white(ls: f64, location: Point) -> Self {
-        Self::new(ls, RGB::white(), location)
+        Self::new(ls, Rgb::white(), location)
     }
 }
 
 impl Light for PointLight {
-    fn average(&self, f: &dyn Fn(LightSample) -> RGB) -> RGB {
+    fn average(&self, f: &dyn Fn(LightSample) -> Rgb) -> Rgb {
         let light_sample = LightSample {
             light: self,
             location: self.location,
@@ -100,7 +100,7 @@ impl Light for PointLight {
         f(light_sample)
     }
 
-    fn radiance(&self, _sr: &ShadeRec) -> RGB {
+    fn radiance(&self, _sr: &ShadeRec) -> Rgb {
         self.material.ce * self.material.ls
     }
 }
@@ -127,10 +127,9 @@ impl AreaLight {
 }
 
 impl Light for AreaLight {
-    fn average(&self, f: &dyn Fn(LightSample) -> RGB) -> RGB {
+    fn average(&self, f: &dyn Fn(LightSample) -> Rgb) -> Rgb {
         self.sampler.average(|sample| {
             let location = self.shape.sample(&sample);
-            let normal = self.shape.normal_at(&location);
             let light_sample = LightSample {
                 light: self,
                 location,
@@ -140,14 +139,14 @@ impl Light for AreaLight {
         })
     }
 
-    fn radiance(&self, sr: &ShadeRec) -> RGB {
+    fn radiance(&self, _sr: &ShadeRec) -> Rgb {
         self.material.ce * self.material.ls
     }
 
     fn geometric_object(&self) -> Option<GeometricObject> {
         Some(GeometricObject::new(
             Box::new(self.shape.clone()),
-            Material::Emissive(self.material.clone()),
+            Material::Emissive(self.material),
         ))
     }
 }

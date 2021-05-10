@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::camera::CameraBuilder;
-use cg_practicum::film::RGB;
+use cg_practicum::film::Rgb;
 use cg_practicum::light::{AreaLight, PointLight};
 use cg_practicum::material::{Emissive, Material};
 use cg_practicum::math::Transformation;
@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let cubes = generate_cubes_3d(100);
 
     let world = WorldBuilder::default()
-        .background(RGB::black())
+        .background(Rgb::black())
         .geometric_object(cubes)
         .build()
         .ok_or("invalid world configuration")
@@ -67,21 +67,21 @@ fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
 
     let sampler = Unsampled::default();
-    // let tracer = DirectIllumination::default();
-    let tracer = FalseColorIntersectionTests::default();
+    let tracer = DirectIllumination::default();
+    // let tracer = FalseColorIntersectionTests::default();
 
     let res = tracer.render_scene(&world, camera, sampler);
 
     println!("render time: {:?}", start.elapsed());
-    println!("total intersection tests: {}", res.iter().sum::<usize>());
+    // println!("total intersection tests: {}", res.iter().sum::<usize>());
 
     Ok(())
 }
 
 fn generate_cubes_2d(n: usize) -> GeometricObject {
     let material1 = Material::Matte {
-        ambient_brdf: Lambertian::new(0.65, RGB::new(0., 0., 1.)),
-        diffuse_brdf: Lambertian::new(0.65, RGB::new(0., 0., 1.)),
+        ambient_brdf: Lambertian::new(0.65, Rgb::new(0., 0., 1.)),
+        diffuse_brdf: Lambertian::new(0.65, Rgb::new(0., 0., 1.)),
     };
     let cuboid = Cuboid::new(Point3::new(0.5, 0.5, 0.5));
     let m = n as f64;
@@ -104,8 +104,8 @@ fn generate_cubes_2d(n: usize) -> GeometricObject {
 
 fn generate_cubes_3d(n: usize) -> GeometricObject {
     let material1 = Material::Matte {
-        ambient_brdf: Lambertian::new(0.65, RGB::new(0., 0., 1.)),
-        diffuse_brdf: Lambertian::new(0.65, RGB::new(0., 0., 1.)),
+        ambient_brdf: Lambertian::new(0.65, Rgb::new(0., 0., 1.)),
+        diffuse_brdf: Lambertian::new(0.65, Rgb::new(0., 0., 1.)),
     };
     let cuboid = Cuboid::new(Point3::new(0.5, 0.5, 0.5));
     let m = n as f64;

@@ -1,13 +1,13 @@
-use crate::bvh::SplittingHeuristic::{SpaceMedianSplit, ObjectMedianSplit};
 #[cfg(feature = "bvh")]
-use crate::bvh::BVH;
+use crate::bvh::Bvh;
+use crate::bvh::SplittingHeuristic::*;
 use crate::math::Ray;
-use crate::shape::{Bounded, Hit, Shape, AABB};
+use crate::shape::{Aabb, Bounded, Hit, Shape};
 
 #[cfg(not(any(feature = "bvh")))]
 pub struct Compound<S> {
     shapes: Vec<S>,
-    bbox: AABB,
+    bbox: Aabb,
 }
 
 #[cfg(not(any(feature = "bvh")))]
@@ -15,7 +15,7 @@ impl<S: Shape> Compound<S> {
     pub fn new(shapes: Vec<S>) -> Self {
         assert!(shapes.len() > 1);
 
-        let bbox = AABB::from_multiple(shapes.as_slice());
+        let bbox = Aabb::from_multiple(shapes.as_slice());
 
         Self { shapes, bbox }
     }
@@ -46,14 +46,14 @@ impl<S: Shape> Shape for Compound<S> {
             .sum::<usize>()
     }
 
-    fn bbox(&self) -> AABB {
+    fn bbox(&self) -> Aabb {
         self.bbox
     }
 }
 
 #[cfg(feature = "bvh")]
 pub struct Compound<S: 'static> {
-    bvh: BVH<'static, S>,
+    bvh: Bvh<'static, S>,
 }
 
 #[cfg(feature = "bvh")]
@@ -61,13 +61,14 @@ impl<S: Shape> Compound<S> {
     pub fn new(shapes: Vec<S>) -> Self {
         assert!(shapes.len() > 1);
 
-        let bvh = BVH::new(shapes, SpaceMedianSplit);
-        Self { bvh }
+        Self {
+            bvh: Bvh::new(shapes, ObjectMedianSplit),
+        }
     }
 }
 
 impl<S: Shape> Bounded for Compound<S> {
-    fn bbox(&self) -> AABB {
+    fn bbox(&self) -> Aabb {
         self.bvh.bbox()
     }
 }

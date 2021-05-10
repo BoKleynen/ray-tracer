@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::camera::CameraBuilder;
-use cg_practicum::film::RGB;
+use cg_practicum::film::Rgb;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
@@ -37,29 +37,29 @@ fn main() -> Result<(), Box<dyn Error>> {
     let t5 = Transformation::scale(4., 4., 4.).then(&Transformation::translate(-4., 4., -12.));
 
     let material1 = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::new(1., 1., 1.)),
-        diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 1., 1.)),
+        ambient_brdf: Lambertian::new(0.15, Rgb::new(1., 1., 1.)),
+        diffuse_brdf: Lambertian::new(0.65, Rgb::new(1., 1., 1.)),
     };
     let material2 = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::new(0., 1., 0.)),
-        diffuse_brdf: Lambertian::new(0.65, RGB::new(0., 1., 0.)),
+        ambient_brdf: Lambertian::new(0.15, Rgb::new(0., 1., 0.)),
+        diffuse_brdf: Lambertian::new(0.65, Rgb::new(0., 1., 0.)),
     };
     let material3 = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::new(0., 0., 1.)),
-        diffuse_brdf: Lambertian::new(0.65, RGB::new(0., 0., 1.)),
+        ambient_brdf: Lambertian::new(0.15, Rgb::new(0., 0., 1.)),
+        diffuse_brdf: Lambertian::new(0.65, Rgb::new(0., 0., 1.)),
     };
     let material4 = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::new(0.5, 0.5, 0.)),
-        diffuse_brdf: Lambertian::new(0.65, RGB::new(0.5, 0.5, 0.)),
+        ambient_brdf: Lambertian::new(0.15, Rgb::new(0.5, 0.5, 0.)),
+        diffuse_brdf: Lambertian::new(0.65, Rgb::new(0.5, 0.5, 0.)),
     };
     let material5 = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::new(1., 0., 0.)),
-        diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 0., 0.)),
+        ambient_brdf: Lambertian::new(0.15, Rgb::new(1., 0., 0.)),
+        diffuse_brdf: Lambertian::new(0.65, Rgb::new(1., 0., 0.)),
     };
 
     let world = WorldBuilder::default()
         .light(Box::new(light1))
-        .background(RGB::black())
+        .background(Rgb::black())
         .geometric_object(GeometricObject::sphere(t1, material1))
         .geometric_object(GeometricObject::sphere(t2, material2))
         .geometric_object(GeometricObject::sphere(t3, material3))

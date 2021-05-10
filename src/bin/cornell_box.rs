@@ -1,6 +1,6 @@
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::camera::CameraBuilder;
-use cg_practicum::film::RGB;
+use cg_practicum::film::Rgb;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
@@ -27,20 +27,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     let light = PointLight::white(1., Point::new(0., 2., -1.));
 
     let white_material = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::new(238. / 255., 235. / 255., 227. / 255.)),
-        diffuse_brdf: Lambertian::new(0.5, RGB::new(1., 1., 1.)),
+        ambient_brdf: Lambertian::new(0.15, Rgb::new(238. / 255., 235. / 255., 227. / 255.)),
+        diffuse_brdf: Lambertian::new(0.5, Rgb::new(1., 1., 1.)),
     };
     let red_material = Material::Matte {
-        ambient_brdf: Lambertian::new(0.05, RGB::new(1., 0., 0.)),
-        diffuse_brdf: Lambertian::new(0.3, RGB::new(1., 0., 0.)),
+        ambient_brdf: Lambertian::new(0.05, Rgb::new(1., 0., 0.)),
+        diffuse_brdf: Lambertian::new(0.3, Rgb::new(1., 0., 0.)),
     };
     let green_material = Material::Matte {
-        ambient_brdf: Lambertian::new(0.05, RGB::new(0., 1., 0.)),
-        diffuse_brdf: Lambertian::new(0.3, RGB::new(0., 1., 0.)),
+        ambient_brdf: Lambertian::new(0.05, Rgb::new(0., 1., 0.)),
+        diffuse_brdf: Lambertian::new(0.3, Rgb::new(0., 1., 0.)),
     };
     let blue_material = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::new(0., 0., 1.)),
-        diffuse_brdf: Lambertian::new(0.45, RGB::new(0., 0., 1.)),
+        ambient_brdf: Lambertian::new(0.15, Rgb::new(0., 0., 1.)),
+        diffuse_brdf: Lambertian::new(0.45, Rgb::new(0., 0., 1.)),
     };
 
     let back_plane = GeometricObject::plane(
@@ -81,7 +81,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let cuboid = GeometricObject::cuboid(Point::new(1.25, 3.5, 1.25), t3, white_material.clone());
 
     let world = WorldBuilder::default()
-        .background(RGB::black())
+        .background(Rgb::black())
         .light(Box::new(light))
         .geometric_object(back_plane)
         .geometric_object(top_plane)

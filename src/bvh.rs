@@ -1,43 +1,38 @@
-use rand::prelude::*;
-use std::borrow::BorrowMut;
-
 use crate::bvh::NodeKind::{Internal, Leaf};
 use crate::math::Ray;
-use crate::shape::{Bounded, Hit, Shape, AABB};
+use crate::shape::{Aabb, Bounded, Hit, Shape};
 use crate::Point;
 use std::mem::MaybeUninit;
 use std::pin::Pin;
-use std::ptr::NonNull;
-use SplittingHeuristic::*;
-
 use std::ptr::{addr_of, addr_of_mut};
+use SplittingHeuristic::*;
 
 pub enum SplittingHeuristic {
     SpaceMedianSplit,
     ObjectMedianSplit,
-    SAH,
+    Sah,
 }
 
-pub struct BVH<'a, S: 'a> {
+pub struct Bvh<'a, S: 'a> {
     shapes: Pin<Box<[S]>>,
     root: Node<'a, S>,
 }
 
 #[derive(Copy, Clone)]
 struct ShapeData<'a, S> {
-    bbox: AABB,
+    bbox: Aabb,
     centroid: Point,
     shape: &'a S,
 }
 
 impl<S> Bounded for ShapeData<'_, S> {
     #[inline]
-    fn bbox(&self) -> AABB {
+    fn bbox(&self) -> Aabb {
         self.bbox
     }
 }
 
-impl<'a, S: Shape> BVH<'a, S> {
+impl<'a, S: Shape> Bvh<'a, S> {
     pub fn new(shapes: Vec<S>, splitting_heuristic: SplittingHeuristic) -> Self {
         let mut uninit: MaybeUninit<Self> = MaybeUninit::uninit();
         let ptr = uninit.as_mut_ptr();
@@ -52,6 +47,7 @@ impl<'a, S: Shape> BVH<'a, S> {
 
         let root = {
             // safety: get a reference to the previously initialized array of shapes
+            #[allow(clippy::deref_addrof)]
             let shapes_ref = unsafe { &*addr_of!((*ptr).shapes) };
 
             let shape_data = shapes_ref
@@ -71,7 +67,7 @@ impl<'a, S: Shape> BVH<'a, S> {
             match splitting_heuristic {
                 SpaceMedianSplit => Node::space_median_split(shape_data, 0),
                 ObjectMedianSplit => Node::object_median_split(shape_data, 0),
-                SAH => Node::space_area_heuristic(shape_data, 0),
+                Sah => Node::space_area_heuristic(shape_data, 0),
             }
         };
 
@@ -88,7 +84,7 @@ impl<'a, S: Shape> BVH<'a, S> {
         self.root.intersect(ray)
     }
 
-    pub fn bbox(&self) -> AABB {
+    pub fn bbox(&self) -> Aabb {
         self.root.bbox
     }
 
@@ -108,19 +104,19 @@ enum NodeKind<'a, S> {
 }
 
 struct Node<'a, S> {
-    bbox: AABB,
+    bbox: Aabb,
     node_type: NodeKind<'a, S>,
 }
 
 impl<'a, S: Shape> Node<'a, S> {
-    fn space_area_heuristic(shapes: Vec<ShapeData<'a, S>>, axis: usize) -> Self {
+    fn space_area_heuristic(_shapes: Vec<ShapeData<'a, S>>, _axis: usize) -> Self {
         todo!()
     }
 
     fn space_median_split(shapes: Vec<ShapeData<'a, S>>, axis: usize) -> Self {
         debug_assert!(axis < 3);
 
-        let bbox = AABB::from_multiple(&shapes);
+        let bbox = Aabb::from_multiple(&shapes);
 
         if shapes.len() <= 2 {
             let shapes = shapes.iter().map(|s| s.shape).collect();
@@ -164,7 +160,7 @@ impl<'a, S: Shape> Node<'a, S> {
     fn object_median_split_rec(shapes: &mut [ShapeData<'a, S>], axis: usize) -> Self {
         debug_assert!(axis < 3);
 
-        let bbox = AABB::from_multiple(&shapes);
+        let bbox = Aabb::from_multiple(&shapes);
 
         if shapes.len() <= 2 {
             let shapes = shapes.iter().map(|s| s.shape).collect();

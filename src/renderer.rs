@@ -1,9 +1,8 @@
 use rayon::prelude::*;
-use std::io::Write;
 
-use crate::brdf::BRDF;
+use crate::brdf::Brdf;
 use crate::camera::Camera;
-use crate::film::{FrameBuffer, RGB};
+use crate::film::{FrameBuffer, Rgb};
 use crate::material::Material;
 use crate::math::Ray;
 use crate::sampler::Sampler;
@@ -57,7 +56,7 @@ impl Renderer for DirectIllumination {
 }
 
 impl DirectIllumination {
-    fn shade(material: &Material, sr: &ShadeRec, ray: &Ray) -> RGB {
+    fn shade(material: &Material, sr: &ShadeRec, ray: &Ray) -> Rgb {
         match material {
             Material::Matte {
                 ambient_brdf,
@@ -66,7 +65,7 @@ impl DirectIllumination {
                 let wo = -ray.direction();
                 let ambient_radiance =
                     ambient_brdf.rho(sr, &wo) * sr.world.ambient_light().radiance();
-                let direct_diffuse_radiance: RGB = sr
+                let direct_diffuse_radiance: Rgb = sr
                     .world
                     .lights()
                     .iter()
@@ -80,7 +79,7 @@ impl DirectIllumination {
                                     * sample.light().radiance(sr)
                                     * n_dot_wi
                             } else {
-                                RGB::black()
+                                Rgb::black()
                             }
                         })
                     })
@@ -118,7 +117,7 @@ impl Renderer for FalseColorNormals {
                         match world.hit_objects(&ray) {
                             None => world.background_color(),
                             Some(sr) => {
-                                RGB::new(sr.normal.x.abs(), sr.normal.y.abs(), sr.normal.z.abs())
+                                Rgb::new(sr.normal.x.abs(), sr.normal.y.abs(), sr.normal.z.abs())
                             }
                         }
                     });

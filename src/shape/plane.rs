@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::{Bounded, Hit, Shape, AABB};
+use crate::shape::{Aabb, Bounded, Hit, Shape};
 use crate::{Point, Vector, K_EPSILON};
 
 pub struct Plane {
@@ -14,8 +14,8 @@ impl Plane {
 }
 
 impl Bounded for Plane {
-    fn bbox(&self) -> AABB {
-        AABB::new(
+    fn bbox(&self) -> Aabb {
+        Aabb::new(
             Point::new(f64::MIN, f64::MIN, f64::MIN),
             Point::new(f64::MAX, f64::MAX, f64::MAX),
         )

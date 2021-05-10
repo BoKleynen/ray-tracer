@@ -2,7 +2,7 @@ use nalgebra::Unit;
 
 use crate::math::Ray;
 use crate::sampler::Sample;
-use crate::shape::{Bounded, Hit, Shape, AABB};
+use crate::shape::{Aabb, Bounded, Hit, Shape};
 use crate::{Point, Vector, K_EPSILON};
 
 #[derive(Clone)]
@@ -33,11 +33,11 @@ impl Rectangle {
 }
 
 impl Bounded for Rectangle {
-    fn bbox(&self) -> AABB {
+    fn bbox(&self) -> Aabb {
         let p0 = self.p;
         let p1 = self.p + self.a + self.b;
 
-        AABB::new(p0, p1)
+        Aabb::new(p0, p1)
     }
 }
 

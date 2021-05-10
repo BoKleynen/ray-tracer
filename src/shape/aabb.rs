@@ -1,14 +1,14 @@
 use crate::math::Ray;
-use crate::shape::{Bounded, Shape};
+use crate::shape::Bounded;
 use crate::{Point, K_EPSILON};
 
 #[derive(Copy, Clone)]
-pub struct AABB {
+pub struct Aabb {
     pub(crate) p0: Point,
     pub(crate) p1: Point,
 }
 
-impl AABB {
+impl Aabb {
     pub fn new(p0: Point, p1: Point) -> Self {
         assert!(p0.x < p1.x);
         assert!(p0.y < p1.y);
@@ -88,7 +88,7 @@ impl AABB {
         self.p0 + 0.5 * (self.p1 - self.p0)
     }
 
-    pub fn from_multiple<S: Bounded>(shapes: &[S]) -> AABB {
+    pub fn from_multiple<S: Bounded>(shapes: &[S]) -> Aabb {
         let min_x = shapes
             .iter()
             .map(|shape| shape.bbox().p0.x)
@@ -120,7 +120,7 @@ impl AABB {
             .max_by(|a, b| a.partial_cmp(b).unwrap())
             .unwrap();
 
-        AABB::new(
+        Aabb::new(
             Point::new(min_x, min_y, min_z),
             Point::new(max_x, max_y, max_z),
         )

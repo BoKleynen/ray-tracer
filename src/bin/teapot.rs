@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::camera::CameraBuilder;
-use cg_practicum::film::RGB;
+use cg_practicum::film::Rgb;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
@@ -31,15 +31,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     let t = Transformation::scale(5., 5., 5.).then(&Transformation::translate(0., -2., -10.));
 
     let material = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::new(1., 1., 1.)),
-        diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 1., 1.)),
+        ambient_brdf: Lambertian::new(0.15, Rgb::new(1., 1., 1.)),
+        diffuse_brdf: Lambertian::new(0.65, Rgb::new(1., 1., 1.)),
     };
 
     let object = Obj::load("models/teapot.obj").unwrap();
 
     let world = WorldBuilder::default()
         .light(Box::new(light1))
-        .background(RGB::black())
+        .background(Rgb::black())
         .geometric_object(GeometricObject::triangle_mesh(object, t, material))
         .build()
         .ok_or("invalid world configuration")?;
