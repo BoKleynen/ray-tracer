@@ -10,7 +10,7 @@ use SplittingHeuristic::*;
 pub enum SplittingHeuristic {
     SpaceMedianSplit,
     ObjectMedianSplit,
-    Sah,
+    SurfaceAreaHeuristic,
 }
 
 pub struct Bvh<'a, S: 'a> {
@@ -67,7 +67,7 @@ impl<'a, S: Intersect> Bvh<'a, S> {
             match splitting_heuristic {
                 SpaceMedianSplit => Node::space_median_split(shape_data, 0),
                 ObjectMedianSplit => Node::object_median_split(shape_data, 0),
-                Sah => Node::space_area_heuristic(shape_data, 0),
+                SurfaceAreaHeuristic => Node::space_area_heuristic(shape_data, 0),
             }
         };
 
@@ -158,8 +158,6 @@ impl<'a, S: Intersect> Node<'a, S> {
     }
 
     fn object_median_split_rec(shapes: &mut [ShapeData<'a, S>], axis: usize) -> Self {
-        debug_assert!(axis < 3);
-
         let bbox = Aabb::from_multiple(&shapes);
 
         if shapes.len() <= 2 {
