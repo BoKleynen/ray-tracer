@@ -2,7 +2,7 @@ use nalgebra::Unit;
 
 use crate::math::Ray;
 use crate::sampler::Sample;
-use crate::shape::{Aabb, Bounded, Hit, Intersect, Shape};
+use crate::shape::{Aabb, Bounded, Hit, Intersect};
 use crate::{Point, Vector, K_EPSILON};
 
 #[derive(Clone)]

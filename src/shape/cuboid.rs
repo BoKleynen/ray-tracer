@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::{Aabb, Bounded, Hit, Intersect, Shape};
+use crate::shape::{Aabb, Bounded, Hit, Intersect};
 use crate::{Point, Vector, K_EPSILON};
 
 /// A three-dimensional cuboid bounded by a corner and it's mirror with respect

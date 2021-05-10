@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::{Aabb, Bounded, Hit, Intersect, Shape};
+use crate::shape::{Aabb, Bounded, Hit, Intersect};
 use crate::{Point, K_EPSILON};
 
 /// Represents a three-dimensional unit sphere, centered at the origin,

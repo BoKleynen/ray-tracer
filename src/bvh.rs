@@ -1,5 +1,5 @@
 use crate::math::Ray;
-use crate::shape::{Aabb, Bounded, Hit, Shape, Intersect};
+use crate::shape::{Aabb, Bounded, Hit, Intersect};
 use crate::Point;
 use std::mem::MaybeUninit;
 use std::pin::Pin;

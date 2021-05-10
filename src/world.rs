@@ -2,7 +2,7 @@ use crate::film::Rgb;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
-use crate::shape::{Compound, GeometricObject, Hit, Shape, Intersect};
+use crate::shape::{Compound, GeometricObject, Hit, Intersect};
 use crate::Vector;
 
 pub struct World {
@@ -38,7 +38,7 @@ impl World {
                 t: hit.t,
                 normal: hit.normal,
                 local_hit_point: hit.local_hit_point,
-                shape: unsafe { hit.shape.as_ref() }
+                shape: unsafe { hit.shape.as_ref() },
             };
 
             f(hit)
@@ -76,6 +76,11 @@ impl WorldBuilder {
 
     pub fn geometric_object(mut self, geometric_object: GeometricObject) -> Self {
         self.geometric_objects.push(geometric_object);
+        self
+    }
+
+    pub fn geometric_objects(mut self, mut geometric_objects: Vec<GeometricObject>) -> Self {
+        self.geometric_objects.append(&mut geometric_objects);
         self
     }
 

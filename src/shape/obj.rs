@@ -7,7 +7,7 @@ use std::sync::Arc;
 use crate::math::Ray;
 use crate::shape::aabb::Aabb;
 use crate::shape::compound::Compound;
-use crate::shape::{Bounded, Hit, Intersect, Shape};
+use crate::shape::{Bounded, Hit, Intersect};
 use crate::{Point, Vector, K_EPSILON};
 
 #[derive(Default)]

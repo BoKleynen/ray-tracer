@@ -1,7 +1,7 @@
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
-use crate::sampler::Sampler;
 use crate::{Point, Vector};
+use std::ptr::NonNull;
 
 pub use aabb::Aabb;
 pub use compound::Compound;
@@ -11,8 +11,6 @@ pub use plane::Plane;
 pub use rectangle::Rectangle;
 pub use sphere::Sphere;
 pub use transformed::Transformed;
-use std::ops::Deref;
-use std::ptr::NonNull;
 
 mod aabb;
 mod compound;
@@ -114,7 +112,6 @@ impl GeometricObject {
         Self::new(shape, material)
     }
 }
-
 
 impl<T: Bounded + ?Sized> Bounded for Box<T> {
     #[inline]

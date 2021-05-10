@@ -57,7 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let world = WorldBuilder::default()
         .background(Rgb::black())
-        .geometric_object(cubes)
+        .geometric_objects(cubes)
         .build()
         .ok_or("invalid world configuration")
         .unwrap();
@@ -78,7 +78,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn generate_cubes_2d(n: usize) -> GeometricObject {
+fn generate_cubes_2d(n: usize) -> Vec<GeometricObject> {
     let material1 = Material::Matte {
         ambient_brdf: Lambertian::new(0.65, Rgb::new(0., 0., 1.)),
         diffuse_brdf: Lambertian::new(0.65, Rgb::new(0., 0., 1.)),
@@ -87,22 +87,23 @@ fn generate_cubes_2d(n: usize) -> GeometricObject {
     let m = n as f64;
     let inv_m = 1. / m;
 
-    let cuboids = (0..n)
-        .cartesian_product((0..n))
+    (0..n)
+        .cartesian_product(0..n)
         .map(|(p, q)| {
             let x = (-0.5 + inv_m / 2.) + p as f64 * inv_m;
             let y = (-0.5 + inv_m / 2.) + q as f64 * inv_m;
             let z = 0.;
             let transformation =
                 Transformation::scale(inv_m, inv_m, 1.).then(&Transformation::translate(x, y, z));
-            Transformed::new(cuboid.clone(), transformation)
+            GeometricObject::new(
+                Box::new(Transformed::new(cuboid.clone(), transformation)),
+                material1.clone(),
+            )
         })
-        .collect_vec();
-
-    GeometricObject::new(Box::new(Compound::new(cuboids)), material1)
+        .collect_vec()
 }
 
-fn generate_cubes_3d(n: usize) -> GeometricObject {
+fn generate_cubes_3d(n: usize) -> Vec<GeometricObject> {
     let material1 = Material::Matte {
         ambient_brdf: Lambertian::new(0.65, Rgb::new(0., 0., 1.)),
         diffuse_brdf: Lambertian::new(0.65, Rgb::new(0., 0., 1.)),
@@ -111,18 +112,20 @@ fn generate_cubes_3d(n: usize) -> GeometricObject {
     let m = n as f64;
     let inv_m = 1. / m;
 
-    let cuboids = (0..n)
-        .cartesian_product((0..n))
-        .cartesian_product((0..n))
+    (0..n)
+        .cartesian_product(0..n)
+        .cartesian_product(0..n)
         .map(|((p, q), r)| {
             let x = (-0.5 + inv_m / 2.) + p as f64 * inv_m;
             let y = (-0.5 + inv_m / 2.) + q as f64 * inv_m;
             let z = (-0.5 + inv_m / 2.) + r as f64 * inv_m;
             let transformation = Transformation::scale(inv_m, inv_m, inv_m)
                 .then(&Transformation::translate(x, y, z));
-            Transformed::new(cuboid.clone(), transformation)
-        })
-        .collect_vec();
 
-    GeometricObject::new(Box::new(Compound::new(cuboids)), material1)
+            GeometricObject::new(
+                Box::new(Transformed::new(cuboid.clone(), transformation)),
+                material1.clone(),
+            )
+        })
+        .collect_vec()
 }

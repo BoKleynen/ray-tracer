@@ -2,7 +2,7 @@
 use crate::bvh::Bvh;
 use crate::bvh::SplittingHeuristic::*;
 use crate::math::Ray;
-use crate::shape::{Aabb, Bounded, Hit, Intersect, Shape};
+use crate::shape::{Aabb, Bounded, Hit, Intersect};
 
 #[cfg(not(any(feature = "bvh")))]
 pub struct Compound<S> {
