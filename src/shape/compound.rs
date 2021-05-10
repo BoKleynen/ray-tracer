@@ -59,7 +59,7 @@ pub struct Compound<S: 'static> {
 #[cfg(feature = "bvh")]
 impl<S: Intersect> Compound<S> {
     pub fn new(shapes: Vec<S>) -> Self {
-        assert!(shapes.len() > 0);
+        assert!(!shapes.is_empty());
 
         Self {
             bvh: Bvh::new(shapes, ObjectMedianSplit),
