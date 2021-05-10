@@ -4,7 +4,7 @@ use crate::{Point, Vector, K_EPSILON};
 
 /// A three-dimensional cuboid bounded by a corner and it's mirror with respect
 /// to the origin.
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Cuboid {
     corner: Point,
 }

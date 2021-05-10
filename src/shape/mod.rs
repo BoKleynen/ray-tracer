@@ -1,15 +1,16 @@
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
 use crate::sampler::{Sample, Sampler};
-use crate::shape::transformed::Transformed;
-
 use crate::{Point, Vector};
+
 pub use aabb::AABB;
+pub use compound::Compound;
 pub use cuboid::Cuboid;
 pub use obj::{FlatTriangle, Obj, SmoothTriangle};
 pub use plane::Plane;
 pub use rectangle::Rectangle;
 pub use sphere::Sphere;
+pub use transformed::Transformed;
 
 mod aabb;
 mod compound;

@@ -1,3 +1,4 @@
+use crate::bvh::SplittingHeuristic::SpaceMedianSplit;
 #[cfg(feature = "bvh")]
 use crate::bvh::BVH;
 use crate::math::Ray;
@@ -51,8 +52,8 @@ impl<S: Shape> Shape for Compound<S> {
 }
 
 #[cfg(feature = "bvh")]
-pub struct Compound<S> {
-    bvh: BVH<S>,
+pub struct Compound<S: 'static> {
+    bvh: BVH<'static, S>,
 }
 
 #[cfg(feature = "bvh")]
@@ -60,7 +61,7 @@ impl<S: Shape> Compound<S> {
     pub fn new(shapes: Vec<S>) -> Self {
         assert!(shapes.len() > 1);
 
-        let bvh = BVH::new(shapes);
+        let bvh = BVH::new(shapes, SpaceMedianSplit);
         Self { bvh }
     }
 }

@@ -1,151 +1,148 @@
 use rand::prelude::*;
 use std::borrow::BorrowMut;
 
-use crate::bvh::NodeType::{Internal, Leaf};
+use crate::bvh::NodeKind::{Internal, Leaf};
 use crate::math::Ray;
 use crate::shape::{Bounded, Hit, Shape, AABB};
 use crate::Point;
+use std::mem::MaybeUninit;
+use std::pin::Pin;
+use std::ptr::NonNull;
+use SplittingHeuristic::*;
 
-#[macro_use]
-mod space_median_split;
+use std::ptr::{addr_of, addr_of_mut};
 
-pub struct BVH<S> {
-    node: Node<S>,
+pub enum SplittingHeuristic {
+    SpaceMedianSplit,
 }
 
-impl<S: Shape> BVH<S> {
-    pub fn new(shapes: Vec<S>) -> Self {
-        Self {
-            node: Node::new(shapes),
+pub struct BVH<'a, S: 'a> {
+    shapes: Pin<Box<[S]>>,
+    root: Node<'a, S>,
+}
+
+#[derive(Copy, Clone)]
+struct ShapeData<'a, S> {
+    bbox: AABB,
+    centroid: Point,
+    shape: &'a S,
+}
+
+impl<S> Bounded for ShapeData<'_, S> {
+    #[inline]
+    fn bbox(&self) -> AABB {
+        self.bbox
+    }
+}
+
+impl<'a, S: Shape> BVH<'a, S> {
+    pub fn new(shapes: Vec<S>, splitting_heuristic: SplittingHeuristic) -> Self {
+        let mut uninit: MaybeUninit<Self> = MaybeUninit::uninit();
+        let ptr = uninit.as_mut_ptr();
+
+        // safety: shapes will be read only from here on an therefore wont move.
+        let shapes = unsafe { Pin::new_unchecked(shapes.into_boxed_slice()) };
+
+        // Initializing the `shapes` field
+        unsafe {
+            addr_of_mut!((*ptr).shapes).write(shapes);
         }
+
+        let root = {
+            // safety: get a reference to the previously initialized array of shapes
+            let shapes_ref = unsafe { &*addr_of!((*ptr).shapes) };
+
+            let shape_data = shapes_ref
+                .iter()
+                .map(|shape| {
+                    let bbox = shape.bbox();
+                    let centroid = bbox.centroid();
+
+                    ShapeData {
+                        bbox,
+                        centroid,
+                        shape,
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            match splitting_heuristic {
+                SpaceMedianSplit => Node::space_median_split(shape_data, 0),
+            }
+        };
+
+        // Initializing the `root` field
+        unsafe {
+            addr_of_mut!((*ptr).root).write(root);
+        }
+
+        // All the fields are initialized, so we call `assume_init` to get an initialized Foo.
+        unsafe { uninit.assume_init() }
     }
 
     pub fn intersect(&self, ray: &Ray) -> Option<Hit> {
-        self.node.intersect(ray)
+        self.root.intersect(ray)
     }
 
     pub fn bbox(&self) -> AABB {
-        self.node.bbox
+        self.root.bbox
     }
 
     pub fn count_intersection_tests(&self, ray: &Ray) -> usize {
-        self.node.count_intersection_tests(ray)
+        self.root.count_intersection_tests(ray)
     }
 }
 
-enum NodeType<S> {
+enum NodeKind<'a, S> {
     Leaf {
-        shapes: Vec<S>,
+        shapes: Vec<&'a S>,
     },
     Internal {
-        left: Box<Node<S>>,
-        right: Box<Node<S>>,
+        left: Box<Node<'a, S>>,
+        right: Box<Node<'a, S>>,
     },
 }
 
-struct Node<S> {
+struct Node<'a, S> {
     bbox: AABB,
-    node_type: NodeType<S>,
+    node_type: NodeKind<'a, S>,
 }
 
-impl<S: Shape> Node<S> {
-    fn new(shapes: Vec<S>) -> Self {
-        Self::new_x(shapes)
-    }
+impl<'a, S: Shape> Node<'a, S> {
+    fn space_median_split(shapes: Vec<ShapeData<'a, S>>, axis: usize) -> Self {
+        debug_assert!(axis < 3);
 
-    fn new_x(shapes: Vec<S>) -> Node<S> {
         let bbox = AABB::from_multiple(&shapes);
 
         if shapes.len() <= 2 {
+            let shapes = shapes.iter().map(|s| s.shape).collect();
             Self {
                 bbox,
                 node_type: Leaf { shapes },
             }
         } else {
-            let (left, right) = Self::split_x(shapes);
+            let (left, right) = Self::split_space(shapes, axis);
 
             if left.is_empty() {
+                let shapes = right.iter().map(|s| s.shape).collect();
                 Self {
                     bbox,
-                    node_type: Leaf { shapes: right },
+                    node_type: Leaf { shapes },
                 }
             } else if right.is_empty() {
+                let shapes = left.iter().map(|s| s.shape).collect();
                 Self {
                     bbox,
-                    node_type: Leaf { shapes: left },
+                    node_type: Leaf { shapes },
                 }
             } else {
+                let next_axis = (axis + 1) % 3;
+
                 Self {
                     bbox,
                     node_type: Internal {
-                        left: Box::new(Self::new_y(left)),
-                        right: Box::new(Self::new_y(right)),
-                    },
-                }
-            }
-        }
-    }
-
-    fn new_y(shapes: Vec<S>) -> Node<S> {
-        let bbox = AABB::from_multiple(&shapes);
-
-        if shapes.len() <= 2 {
-            Self {
-                bbox,
-                node_type: Leaf { shapes },
-            }
-        } else {
-            let (left, right) = Self::split_y(shapes);
-
-            if left.is_empty() {
-                Self {
-                    bbox,
-                    node_type: Leaf { shapes: right },
-                }
-            } else if right.is_empty() {
-                Self {
-                    bbox,
-                    node_type: Leaf { shapes: left },
-                }
-            } else {
-                Self {
-                    bbox,
-                    node_type: Internal {
-                        left: Box::new(Self::new_z(left)),
-                        right: Box::new(Self::new_z(right)),
-                    },
-                }
-            }
-        }
-    }
-
-    fn new_z(shapes: Vec<S>) -> Node<S> {
-        let bbox = AABB::from_multiple(&shapes);
-
-        if shapes.len() <= 2 {
-            Self {
-                bbox,
-                node_type: Leaf { shapes },
-            }
-        } else {
-            let (left, right) = Self::split_z(shapes);
-
-            if left.is_empty() {
-                Self {
-                    bbox,
-                    node_type: Leaf { shapes: right },
-                }
-            } else if right.is_empty() {
-                Self {
-                    bbox,
-                    node_type: Leaf { shapes: left },
-                }
-            } else {
-                Self {
-                    bbox,
-                    node_type: Internal {
-                        left: Box::new(Self::new_x(left)),
-                        right: Box::new(Self::new_x(right)),
+                        left: Box::new(Self::space_median_split(left, next_axis)),
+                        right: Box::new(Self::space_median_split(right, next_axis)),
                     },
                 }
             }
@@ -154,11 +151,11 @@ impl<S: Shape> Node<S> {
 
     fn intersect(&self, ray: &Ray) -> Option<Hit> {
         match &self.node_type {
-            NodeType::Leaf { shapes } => shapes
+            NodeKind::Leaf { shapes } => shapes
                 .iter()
                 .filter_map(|shape| shape.intersect(&ray))
                 .min_by(|x, y| x.t.partial_cmp(&y.t).unwrap()),
-            NodeType::Internal { left, right } => {
+            NodeKind::Internal { left, right } => {
                 match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
                     (Some(left_t), Some(right_t)) => {
                         if left_t < right_t {
@@ -193,11 +190,11 @@ impl<S: Shape> Node<S> {
 
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
         match &self.node_type {
-            NodeType::Leaf { shapes } => shapes
+            NodeKind::Leaf { shapes } => shapes
                 .iter()
                 .map(|shape| shape.count_intersection_tests(ray))
                 .sum(),
-            NodeType::Internal { left, right } => {
+            NodeKind::Internal { left, right } => {
                 2 + match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
                     (Some(left_t), Some(right_t)) => {
                         if left_t < right_t {
@@ -222,7 +219,17 @@ impl<S: Shape> Node<S> {
         }
     }
 
-    space_median_split_impl!(split_x, x);
-    space_median_split_impl!(split_y, y);
-    space_median_split_impl!(split_z, z);
+    fn split_space(
+        shapes: Vec<ShapeData<'a, S>>,
+        axis: usize,
+    ) -> (Vec<ShapeData<'a, S>>, Vec<ShapeData<'a, S>>) {
+        let split = shapes
+            .iter()
+            .map(|sample| sample.bbox().centroid()[axis])
+            .sum::<f64>()
+            / shapes.len() as f64;
+        shapes
+            .into_iter()
+            .partition(|shape| shape.bbox().centroid()[axis] < split)
+    }
 }
