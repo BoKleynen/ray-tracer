@@ -14,6 +14,7 @@ use std::ptr::{addr_of, addr_of_mut};
 
 pub enum SplittingHeuristic {
     SpaceMedianSplit,
+    ObjectMedianSplit,
 }
 
 pub struct BVH<'a, S: 'a> {
@@ -68,6 +69,7 @@ impl<'a, S: Shape> BVH<'a, S> {
 
             match splitting_heuristic {
                 SpaceMedianSplit => Node::space_median_split(shape_data, 0),
+                ObjectMedianSplit => Node::object_median_split(shape_data, 0),
             }
         };
 
@@ -149,6 +151,52 @@ impl<'a, S: Shape> Node<'a, S> {
         }
     }
 
+    fn object_median_split(mut shapes: Vec<ShapeData<'a, S>>, axis: usize) -> Self {
+        Self::object_median_split_rec(&mut shapes, axis)
+    }
+
+    fn object_median_split_rec(shapes: &mut [ShapeData<'a, S>], axis: usize) -> Self {
+        debug_assert!(axis < 3);
+
+        let bbox = AABB::from_multiple(&shapes);
+
+        if shapes.len() <= 2 {
+            let shapes = shapes.iter().map(|s| s.shape).collect();
+            Self {
+                bbox,
+                node_type: Leaf { shapes },
+            }
+        } else {
+            shapes
+                .sort_unstable_by(|a, b| a.centroid[axis].partial_cmp(&b.centroid[axis]).unwrap());
+
+            let (left, right) = shapes.split_at_mut(shapes.len() / 2);
+            if left.is_empty() {
+                let shapes = right.iter().map(|s| s.shape).collect();
+                Self {
+                    bbox,
+                    node_type: Leaf { shapes },
+                }
+            } else if right.is_empty() {
+                let shapes = left.iter().map(|s| s.shape).collect();
+                Self {
+                    bbox,
+                    node_type: Leaf { shapes },
+                }
+            } else {
+                let next_axis = (axis + 1) % 3;
+
+                Self {
+                    bbox,
+                    node_type: Internal {
+                        left: Box::new(Self::object_median_split_rec(left, next_axis)),
+                        right: Box::new(Self::object_median_split_rec(right, next_axis)),
+                    },
+                }
+            }
+        }
+    }
+
     fn intersect(&self, ray: &Ray) -> Option<Hit> {
         match &self.node_type {
             NodeKind::Leaf { shapes } => shapes
@@ -200,15 +248,15 @@ impl<'a, S: Shape> Node<'a, S> {
                         if left_t < right_t {
                             left.count_intersection_tests(ray)
                                 + match left.intersect(ray) {
-                                Some(hit) if hit.t < right_t => 0,
-                                _ => right.count_intersection_tests(ray),
-                            }
+                                    Some(hit) if hit.t < right_t => 0,
+                                    _ => right.count_intersection_tests(ray),
+                                }
                         } else {
                             right.count_intersection_tests(ray)
                                 + match right.intersect(ray) {
-                                Some(hit) if hit.t >= left_t => 0,
-                                _ => left.count_intersection_tests(ray),
-                            }
+                                    Some(hit) if hit.t >= left_t => 0,
+                                    _ => left.count_intersection_tests(ray),
+                                }
                         }
                     }
                     (Some(_), None) => left.count_intersection_tests(ray),
