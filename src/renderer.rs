@@ -149,7 +149,7 @@ impl Default for FalseColorIntersectionTests {
 }
 
 impl Renderer for FalseColorIntersectionTests {
-    type Output = std::io::Result<()>;
+    type Output = Vec<usize>;
 
     // I don't think using sample points makes a lot of sense for this
     fn render_scene<C, S>(&self, world: &World, camera: C, _sampler: S) -> Self::Output
@@ -175,13 +175,6 @@ impl Renderer for FalseColorIntersectionTests {
                 })
             });
 
-        let normalized_intersection_counts = intersection_counts
-            .iter()
-            .map(|count| count.to_string())
-            .collect::<Vec<String>>();
-
-        std::fs::File::create(&self.path)
-            .unwrap()
-            .write_all(normalized_intersection_counts.join(",").as_bytes())
+        intersection_counts
     }
 }

@@ -1,4 +1,4 @@
-use crate::bvh::SplittingHeuristic::SpaceMedianSplit;
+use crate::bvh::SplittingHeuristic::{SpaceMedianSplit, ObjectMedianSplit};
 #[cfg(feature = "bvh")]
 use crate::bvh::BVH;
 use crate::math::Ray;

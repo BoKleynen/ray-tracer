@@ -67,11 +67,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
 
     let sampler = Unsampled::default();
-    let tracer = DirectIllumination::default();
+    // let tracer = DirectIllumination::default();
+    let tracer = FalseColorIntersectionTests::default();
 
-    tracer.render_scene(&world, camera, sampler);
+    let res = tracer.render_scene(&world, camera, sampler);
 
     println!("render time: {:?}", start.elapsed());
+    println!("total intersection tests: {}", res.iter().sum::<usize>());
 
     Ok(())
 }
