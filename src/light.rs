@@ -53,7 +53,6 @@ impl<T: Light> Light for Box<T> {
 pub struct LightSample<'a> {
     light: &'a dyn Light,
     location: Point,
-    normal: Unit<Vector>,
 }
 
 impl<'a> LightSample<'a> {
@@ -93,7 +92,12 @@ impl PointLight {
 
 impl Light for PointLight {
     fn average(&self, f: &dyn Fn(LightSample) -> RGB) -> RGB {
-        unimplemented!()
+        let light_sample = LightSample {
+            light: self,
+            location: self.location,
+        };
+
+        f(light_sample)
     }
 
     fn radiance(&self, _sr: &ShadeRec) -> RGB {
@@ -130,7 +134,6 @@ impl Light for AreaLight {
             let light_sample = LightSample {
                 light: self,
                 location,
-                normal,
             };
 
             f(light_sample) / self.area
