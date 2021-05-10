@@ -6,6 +6,9 @@ use crate::math::Ray;
 use crate::shape::{Bounded, Hit, Shape, AABB};
 use crate::Point;
 
+#[macro_use]
+mod space_median_split;
+
 pub struct BVH<S> {
     node: Node<S>,
 }
@@ -149,45 +152,6 @@ impl<S: Shape> Node<S> {
         }
     }
 
-    fn split_x(shapes: Vec<S>) -> (Vec<S>, Vec<S>) {
-        let nb_samples = 20.min(shapes.len() - 1);
-        let split = shapes
-            .iter()
-            // .choose_multiple(thread_rng().borrow_mut(), nb_samples)
-            .map(|sample| sample.bbox().centroid().x)
-            .sum::<f64>()
-            / shapes.len() as f64;
-        shapes
-            .into_iter()
-            .partition(|shape| shape.bbox().centroid().x < split)
-    }
-
-    fn split_y(shapes: Vec<S>) -> (Vec<S>, Vec<S>) {
-        let nb_samples = 20.min(shapes.len() - 1);
-        let split = shapes
-            .iter()
-            // .choose_multiple(thread_rng().borrow_mut(), nb_samples)
-            .map(|sample| sample.bbox().centroid().y)
-            .sum::<f64>()
-            / shapes.len() as f64;
-        shapes
-            .into_iter()
-            .partition(|shape| shape.bbox().centroid().y < split)
-    }
-
-    fn split_z(shapes: Vec<S>) -> (Vec<S>, Vec<S>) {
-        let nb_samples = 20.min(shapes.len() - 1);
-        let split = shapes
-            .iter()
-            // .choose_multiple(thread_rng().borrow_mut(), nb_samples)
-            .map(|sample| sample.bbox().centroid().z)
-            .sum::<f64>()
-            / shapes.len() as f64;
-        shapes
-            .into_iter()
-            .partition(|shape| shape.bbox().centroid().z < split)
-    }
-
     fn intersect(&self, ray: &Ray) -> Option<Hit> {
         match &self.node_type {
             NodeType::Leaf { shapes } => shapes
@@ -239,15 +203,15 @@ impl<S: Shape> Node<S> {
                         if left_t < right_t {
                             left.count_intersection_tests(ray)
                                 + match left.intersect(ray) {
-                                    Some(hit) if hit.t < right_t => 0,
-                                    _ => right.count_intersection_tests(ray),
-                                }
+                                Some(hit) if hit.t < right_t => 0,
+                                _ => right.count_intersection_tests(ray),
+                            }
                         } else {
                             right.count_intersection_tests(ray)
                                 + match right.intersect(ray) {
-                                    Some(hit) if hit.t >= left_t => 0,
-                                    _ => left.count_intersection_tests(ray),
-                                }
+                                Some(hit) if hit.t >= left_t => 0,
+                                _ => left.count_intersection_tests(ray),
+                            }
                         }
                     }
                     (Some(_), None) => left.count_intersection_tests(ray),
@@ -257,4 +221,8 @@ impl<S: Shape> Node<S> {
             }
         }
     }
+
+    space_median_split_impl!(split_x, x);
+    space_median_split_impl!(split_y, y);
+    space_median_split_impl!(split_z, z);
 }
