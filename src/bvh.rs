@@ -225,11 +225,11 @@ impl<'a, S: Shape> Node<'a, S> {
     ) -> (Vec<ShapeData<'a, S>>, Vec<ShapeData<'a, S>>) {
         let split = shapes
             .iter()
-            .map(|sample| sample.bbox().centroid()[axis])
+            .map(|sample| sample.centroid[axis])
             .sum::<f64>()
             / shapes.len() as f64;
         shapes
             .into_iter()
-            .partition(|shape| shape.bbox().centroid()[axis] < split)
+            .partition(|shape| shape.centroid[axis] < split)
     }
 }
