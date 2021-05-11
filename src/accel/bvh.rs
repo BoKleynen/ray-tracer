@@ -27,20 +27,6 @@ pub struct Bvh<'a, S: 'a> {
     root: Node<'a, S>,
 }
 
-#[derive(Debug, Copy, Clone)]
-struct ShapeData<'a, S> {
-    bbox: Aabb,
-    centroid: Point,
-    shape: &'a S,
-}
-
-impl<S> Bounded for ShapeData<'_, S> {
-    #[inline]
-    fn bbox(&self) -> Aabb {
-        self.bbox
-    }
-}
-
 impl<'a, S: Intersect> Bvh<'a, S> {
     pub fn new(shapes: Vec<S>, splitting_heuristic: SplittingHeuristic) -> Self {
         let mut uninit: MaybeUninit<Self> = MaybeUninit::uninit();
@@ -94,12 +80,33 @@ impl<'a, S: Intersect> Bvh<'a, S> {
         self.root.intersect(ray)
     }
 
+    pub fn intersect_any_where<F>(&self, ray: &Ray, f: F) -> bool
+    where
+        F: Fn(Hit<S::Intersection>) -> bool,
+    {
+        self.root.intersect_any_where(ray, &f)
+    }
+
     pub fn bbox(&self) -> Aabb {
         self.root.bbox
     }
 
     pub fn count_intersection_tests(&self, ray: &Ray) -> usize {
         self.root.count_intersection_tests(ray)
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+struct ShapeData<'a, S> {
+    bbox: Aabb,
+    centroid: Point,
+    shape: &'a S,
+}
+
+impl<S> Bounded for ShapeData<'_, S> {
+    #[inline]
+    fn bbox(&self) -> Aabb {
+        self.bbox
     }
 }
 
@@ -117,7 +124,7 @@ enum NodeKind<'a, S> {
 #[derive(Debug)]
 struct Node<'a, S> {
     bbox: Aabb,
-    node_type: NodeKind<'a, S>,
+    node_kind: NodeKind<'a, S>,
 }
 
 impl<'a, S: Intersect> Node<'a, S> {
@@ -130,7 +137,7 @@ impl<'a, S: Intersect> Node<'a, S> {
             let shapes = shapes.iter().map(|s| s.shape).collect();
             Self {
                 bbox,
-                node_type: Leaf { shapes },
+                node_kind: Leaf { shapes },
             }
         } else {
             let split_axis_size = bbox.p1[axis] - bbox.p0[axis];
@@ -144,10 +151,8 @@ impl<'a, S: Intersect> Node<'a, S> {
                 buckets[b].bbox = buckets[b].bbox.union(shape.bbox);
             });
 
-            let (min_bucket, min_cost) = buckets
-                .iter()
-                .enumerate()
-                .map(|(i, bucket)| {
+            let (min_bucket, min_cost) = (0..NB_BUCKETS)
+                .map(|i| {
                     let left_count = buckets[..i]
                         .iter()
                         .map(|bucket| bucket.count)
@@ -188,20 +193,20 @@ impl<'a, S: Intersect> Node<'a, S> {
                     let shapes = right.iter().map(|s| s.shape).collect();
                     Self {
                         bbox,
-                        node_type: Leaf { shapes },
+                        node_kind: Leaf { shapes },
                     }
                 } else if right.is_empty() {
                     let shapes = left.iter().map(|s| s.shape).collect();
                     Self {
                         bbox,
-                        node_type: Leaf { shapes },
+                        node_kind: Leaf { shapes },
                     }
                 } else {
                     let next_axis = (axis + 1) % 3;
 
                     Self {
                         bbox,
-                        node_type: Internal {
+                        node_kind: Internal {
                             left: Box::new(Self::surface_area_heuristic(left, next_axis)),
                             right: Box::new(Self::surface_area_heuristic(right, next_axis)),
                         },
@@ -211,7 +216,7 @@ impl<'a, S: Intersect> Node<'a, S> {
                 let shapes = shapes.iter().map(|s| s.shape).collect();
                 Self {
                     bbox,
-                    node_type: Leaf { shapes },
+                    node_kind: Leaf { shapes },
                 }
             }
         }
@@ -224,7 +229,7 @@ impl<'a, S: Intersect> Node<'a, S> {
             let shapes = shapes.iter().map(|s| s.shape).collect();
             Self {
                 bbox,
-                node_type: Leaf { shapes },
+                node_kind: Leaf { shapes },
             }
         } else {
             let median = bbox.p0[axis] + (bbox.p1[axis] - bbox.p0[axis]) / 2.;
@@ -234,20 +239,20 @@ impl<'a, S: Intersect> Node<'a, S> {
                 let shapes = right.iter().map(|s| s.shape).collect();
                 Self {
                     bbox,
-                    node_type: Leaf { shapes },
+                    node_kind: Leaf { shapes },
                 }
             } else if right.is_empty() {
                 let shapes = left.iter().map(|s| s.shape).collect();
                 Self {
                     bbox,
-                    node_type: Leaf { shapes },
+                    node_kind: Leaf { shapes },
                 }
             } else {
                 let next_axis = (axis + 1) % 3;
 
                 Self {
                     bbox,
-                    node_type: Internal {
+                    node_kind: Internal {
                         left: Box::new(Self::space_median_split(left, next_axis)),
                         right: Box::new(Self::space_median_split(right, next_axis)),
                     },
@@ -263,7 +268,7 @@ impl<'a, S: Intersect> Node<'a, S> {
             let shapes = shapes.iter().map(|s| s.shape).collect();
             Self {
                 bbox,
-                node_type: Leaf { shapes },
+                node_kind: Leaf { shapes },
             }
         } else {
             let (left, right) = Self::split_space_average(shapes, axis);
@@ -272,20 +277,20 @@ impl<'a, S: Intersect> Node<'a, S> {
                 let shapes = right.iter().map(|s| s.shape).collect();
                 Self {
                     bbox,
-                    node_type: Leaf { shapes },
+                    node_kind: Leaf { shapes },
                 }
             } else if right.is_empty() {
                 let shapes = left.iter().map(|s| s.shape).collect();
                 Self {
                     bbox,
-                    node_type: Leaf { shapes },
+                    node_kind: Leaf { shapes },
                 }
             } else {
                 let next_axis = (axis + 1) % 3;
 
                 Self {
                     bbox,
-                    node_type: Internal {
+                    node_kind: Internal {
                         left: Box::new(Self::space_average_split(left, next_axis)),
                         right: Box::new(Self::space_average_split(right, next_axis)),
                     },
@@ -305,7 +310,7 @@ impl<'a, S: Intersect> Node<'a, S> {
             let shapes = shapes.iter().map(|s| s.shape).collect();
             Self {
                 bbox,
-                node_type: Leaf { shapes },
+                node_kind: Leaf { shapes },
             }
         } else {
             shapes
@@ -316,7 +321,7 @@ impl<'a, S: Intersect> Node<'a, S> {
 
             Self {
                 bbox,
-                node_type: Internal {
+                node_kind: Internal {
                     left: Box::new(Self::object_median_split_rec(left, next_axis)),
                     right: Box::new(Self::object_median_split_rec(right, next_axis)),
                 },
@@ -325,7 +330,7 @@ impl<'a, S: Intersect> Node<'a, S> {
     }
 
     fn intersect(&self, ray: &Ray) -> Option<Hit<S::Intersection>> {
-        match &self.node_type {
+        match &self.node_kind {
             Leaf { shapes } => shapes
                 .iter()
                 .filter_map(|shape| shape.intersect(&ray))
@@ -364,7 +369,7 @@ impl<'a, S: Intersect> Node<'a, S> {
     }
 
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
-        match &self.node_type {
+        match &self.node_kind {
             Leaf { shapes } => shapes
                 .iter()
                 .map(|shape| shape.count_intersection_tests(ray))
@@ -389,6 +394,32 @@ impl<'a, S: Intersect> Node<'a, S> {
                     (Some(_), None) => left.count_intersection_tests(ray),
                     (None, Some(_)) => right.count_intersection_tests(ray),
                     (None, None) => 0,
+                }
+            }
+        }
+    }
+
+    fn intersect_any_where<F>(&self, ray: &Ray, f: &F) -> bool
+    where
+        F: Fn(Hit<S::Intersection>) -> bool,
+    {
+        match &self.node_kind {
+            Leaf { shapes } => shapes
+                .iter()
+                .any(|shape| shape.intersect(ray).map_or(false, |hit| f(hit))),
+            Internal { left, right } => {
+                match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
+                    (Some(left_t), Some(right_t)) => {
+                        // TODO: Optimize this if needed
+                        if left_t < right_t {
+                            left.intersect_any_where(ray, f) || right.intersect_any_where(ray, f)
+                        } else {
+                            right.intersect_any_where(ray, f) || left.intersect_any_where(ray, f)
+                        }
+                    }
+                    (Some(_), None) => left.intersect_any_where(ray, f),
+                    (None, Some(_)) => right.intersect_any_where(ray, f),
+                    (None, None) => false,
                 }
             }
         }

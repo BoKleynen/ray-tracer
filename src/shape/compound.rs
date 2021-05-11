@@ -86,3 +86,12 @@ impl<S: Intersect> Intersect for Compound<S> {
         self.bvh.count_intersection_tests(ray)
     }
 }
+
+impl<S: Intersect> Compound<S> {
+    pub fn intersect_any_where<F>(&self, ray: &Ray, f: F) -> bool
+    where
+        F: Fn(Hit<S::Intersection>) -> bool,
+    {
+        self.bvh.intersect_any_where(ray, f)
+    }
+}

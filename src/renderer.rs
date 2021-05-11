@@ -7,7 +7,6 @@ use crate::material::Material;
 use crate::math::Ray;
 use crate::sampler::Sampler;
 use crate::shade_rec::ShadeRec;
-use crate::shape::Intersect;
 use crate::world::World;
 
 pub trait Renderer {
@@ -167,7 +166,7 @@ impl Renderer for FalseColorIntersectionTests {
                 row.iter_mut().enumerate().for_each(|(c, nb_intersects)| {
                     let ray = camera.generate_ray(c, r, (0.5, 0.5));
 
-                    *nb_intersects = world.geometric_objects().count_intersection_tests(&ray)
+                    *nb_intersects = world.count_intersection_tests(&ray)
                 })
             });
 

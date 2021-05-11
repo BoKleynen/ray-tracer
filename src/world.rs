@@ -31,11 +31,11 @@ impl World {
         })
     }
 
-    pub fn hit_any_object_where<F>(&self, ray: &Ray, f: F) -> bool
+    pub fn hit_any_object_where<P>(&self, ray: &Ray, p: P) -> bool
     where
-        F: Fn(Hit<&GeometricObject>) -> bool,
+        P: Fn(Hit<&GeometricObject>) -> bool,
     {
-        self.geometric_objects.intersect(ray).map_or(false, |hit| {
+        self.geometric_objects.intersect_any_where(ray, |hit| {
             let hit = Hit {
                 t: hit.t,
                 normal: hit.normal,
@@ -45,12 +45,12 @@ impl World {
                 shape: unsafe { hit.shape.as_ref() },
             };
 
-            f(hit)
+            p(hit)
         })
     }
 
-    pub fn geometric_objects(&self) -> &Compound<GeometricObject> {
-        &self.geometric_objects
+    pub fn count_intersection_tests(&self, ray: &Ray) -> usize {
+        self.geometric_objects.count_intersection_tests(ray)
     }
 
     pub fn lights(&self) -> &[Box<dyn Light>] {
