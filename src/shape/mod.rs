@@ -10,6 +10,7 @@ pub use obj::{FlatTriangle, Obj, SmoothTriangle};
 pub use plane::Plane;
 pub use rectangle::Rectangle;
 pub use sphere::Sphere;
+use std::ops::Deref;
 pub use transformed::Transformed;
 
 mod aabb;
@@ -25,6 +26,17 @@ pub trait Bounded {
     fn bbox(&self) -> Aabb;
 }
 
+impl<T, S> Bounded for T
+where
+    S: Bounded + ?Sized,
+    T: Deref<Target = S>,
+{
+    #[inline]
+    fn bbox(&self) -> Aabb {
+        (**self).bbox()
+    }
+}
+
 pub trait Intersect: Bounded {
     type Intersection;
 
@@ -34,6 +46,29 @@ pub trait Intersect: Bounded {
 
     fn hit(&self, ray: &Ray) -> bool {
         self.intersect(ray).is_some()
+    }
+}
+
+impl<T, S> Intersect for T
+where
+    S: Intersect + ?Sized,
+    T: Deref<Target = S>,
+{
+    type Intersection = S::Intersection;
+
+    #[inline]
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
+        (**self).intersect(ray)
+    }
+
+    #[inline]
+    fn count_intersection_tests(&self, ray: &Ray) -> usize {
+        (**self).count_intersection_tests(ray)
+    }
+
+    #[inline]
+    fn hit(&self, ray: &Ray) -> bool {
+        (**self).hit(ray)
     }
 }
 
@@ -111,29 +146,6 @@ impl GeometricObject {
     pub fn triangle_mesh(obj: Obj, transformation: Transformation, material: Material) -> Self {
         let shape = Box::new(Transformed::smooth_mesh(obj, transformation));
         Self::new(shape, material)
-    }
-}
-
-impl<T: Bounded + ?Sized> Bounded for Box<T> {
-    #[inline]
-    fn bbox(&self) -> Aabb {
-        (**self).bbox()
-    }
-}
-
-impl<S: Intersect + ?Sized> Intersect for Box<S> {
-    type Intersection = S::Intersection;
-
-    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
-        (**self).intersect(ray)
-    }
-
-    fn count_intersection_tests(&self, ray: &Ray) -> usize {
-        (**self).count_intersection_tests(ray)
-    }
-
-    fn hit(&self, ray: &Ray) -> bool {
-        (**self).hit(ray)
     }
 }
 
