@@ -60,7 +60,7 @@ impl Intersect for GeometricObject {
     fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
         self.shape.intersect(ray).map(|hit| Hit {
             t: hit.t,
-            normal: Default::default(),
+            normal: hit.normal,
             local_hit_point: hit.local_hit_point,
             shape: self.into(),
         })
