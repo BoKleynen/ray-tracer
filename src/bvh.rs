@@ -10,6 +10,7 @@ use SplittingHeuristic::*;
 pub enum SplittingHeuristic {
     SpaceMedianSplit,
     ObjectMedianSplit,
+    SpaceAverageSplit,
     SurfaceAreaHeuristic,
 }
 
@@ -67,6 +68,7 @@ impl<'a, S: Intersect> Bvh<'a, S> {
             match splitting_heuristic {
                 SpaceMedianSplit => Node::space_median_split(shape_data, 0),
                 ObjectMedianSplit => Node::object_median_split(shape_data, 0),
+                SpaceAverageSplit => Node::space_average_split(shape_data, 0),
                 SurfaceAreaHeuristic => Node::surface_area_heuristic(shape_data, 0),
             }
         };
@@ -114,8 +116,6 @@ impl<'a, S: Intersect> Node<'a, S> {
     }
 
     fn space_median_split(shapes: Vec<ShapeData<'a, S>>, axis: usize) -> Self {
-        debug_assert!(axis < 3);
-
         let bbox = Aabb::from_multiple(&shapes);
 
         if shapes.len() <= 2 {
@@ -125,7 +125,8 @@ impl<'a, S: Intersect> Node<'a, S> {
                 node_type: Leaf { shapes },
             }
         } else {
-            let (left, right) = Self::split_space(shapes, axis);
+            let median = bbox.p0[axis] + (bbox.p1[axis] - bbox.p0[axis]) / 2.;
+            let (left, right) = Self::split_space(shapes, axis, median);
 
             if left.is_empty() {
                 let shapes = right.iter().map(|s| s.shape).collect();
@@ -147,6 +148,44 @@ impl<'a, S: Intersect> Node<'a, S> {
                     node_type: Internal {
                         left: Box::new(Self::space_median_split(left, next_axis)),
                         right: Box::new(Self::space_median_split(right, next_axis)),
+                    },
+                }
+            }
+        }
+    }
+
+    fn space_average_split(shapes: Vec<ShapeData<'a, S>>, axis: usize) -> Self {
+        let bbox = Aabb::from_multiple(&shapes);
+
+        if shapes.len() <= 2 {
+            let shapes = shapes.iter().map(|s| s.shape).collect();
+            Self {
+                bbox,
+                node_type: Leaf { shapes },
+            }
+        } else {
+            let (left, right) = Self::split_space_average(shapes, axis);
+
+            if left.is_empty() {
+                let shapes = right.iter().map(|s| s.shape).collect();
+                Self {
+                    bbox,
+                    node_type: Leaf { shapes },
+                }
+            } else if right.is_empty() {
+                let shapes = left.iter().map(|s| s.shape).collect();
+                Self {
+                    bbox,
+                    node_type: Leaf { shapes },
+                }
+            } else {
+                let next_axis = (axis + 1) % 3;
+
+                Self {
+                    bbox,
+                    node_type: Internal {
+                        left: Box::new(Self::space_average_split(left, next_axis)),
+                        right: Box::new(Self::space_average_split(right, next_axis)),
                     },
                 }
             }
@@ -253,7 +292,7 @@ impl<'a, S: Intersect> Node<'a, S> {
         }
     }
 
-    fn split_space(
+    fn split_space_average(
         shapes: Vec<ShapeData<'a, S>>,
         axis: usize,
     ) -> (Vec<ShapeData<'a, S>>, Vec<ShapeData<'a, S>>) {
@@ -262,6 +301,11 @@ impl<'a, S: Intersect> Node<'a, S> {
             .map(|sample| sample.centroid[axis])
             .sum::<f64>()
             / shapes.len() as f64;
+
+        Self::split_space(shapes, axis, split)
+    }
+
+    fn split_space(shapes: Vec<ShapeData<'a, S>>, axis: usize, split: f64) -> (Vec<ShapeData<'a, S>>, Vec<ShapeData<'a, S>>) {
         shapes
             .into_iter()
             .partition(|shape| shape.centroid[axis] < split)

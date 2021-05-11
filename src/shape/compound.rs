@@ -62,11 +62,12 @@ impl<S: Intersect> Compound<S> {
         assert!(!shapes.is_empty());
 
         Self {
-            bvh: Bvh::new(shapes, ObjectMedianSplit),
+            bvh: Bvh::new(shapes, SpaceAverageSplit),
         }
     }
 }
 
+#[cfg(feature = "bvh")]
 impl<S: Intersect> Bounded for Compound<S> {
     fn bbox(&self) -> Aabb {
         self.bvh.bbox()
