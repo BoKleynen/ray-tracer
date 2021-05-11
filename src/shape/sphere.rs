@@ -1,8 +1,6 @@
-use nalgebra::Point3;
-
 use crate::math::Ray;
-use crate::shape::{Hit, Shape, AABB};
-use crate::K_EPSILON;
+use crate::shape::{Aabb, Bounded, Hit, Intersect};
+use crate::{Point, K_EPSILON};
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
 /// which is transformed by a transformation.
@@ -14,8 +12,16 @@ impl Sphere {
     }
 }
 
-impl Shape for Sphere {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl Bounded for Sphere {
+    fn bbox(&self) -> Aabb {
+        Aabb::new(Point::new(-1., -1., -1.), Point::new(1., 1., 1.))
+    }
+}
+
+impl Intersect for Sphere {
+    type Intersection = ();
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<()>> {
         let origin = ray.origin();
         let direction = ray.direction();
 
@@ -39,6 +45,7 @@ impl Shape for Sphere {
                 t,
                 normal: local_hit_point.coords,
                 local_hit_point,
+                shape: (),
             });
         }
 
@@ -50,6 +57,7 @@ impl Shape for Sphere {
                 t,
                 normal: local_hit_point.coords,
                 local_hit_point,
+                shape: (),
             });
         }
 
@@ -58,10 +66,6 @@ impl Shape for Sphere {
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
-    }
-
-    fn bbox(&self) -> AABB {
-        AABB::new(Point3::new(-1., -1., -1.), Point3::new(1., 1., 1.))
     }
 }
 

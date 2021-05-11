@@ -1,9 +1,9 @@
-use nalgebra::{Point3, Vector3};
 use std::f64;
 use std::ops::Neg;
 
 use crate::math::{OrthonormalBasis, Ray};
 use crate::sampler::Sample;
+use crate::{Point, Vector};
 
 pub trait Camera {
     fn generate_ray(&self, column: usize, row: usize, sample: Sample) -> Ray;
@@ -15,7 +15,7 @@ pub trait Camera {
 pub struct PerspectiveCamera {
     x_res: usize,
     y_res: usize,
-    origin: Point3<f64>,
+    origin: Point,
     basis: OrthonormalBasis,
     width: f64,
     height: f64,
@@ -43,14 +43,14 @@ impl Camera for PerspectiveCamera {
 pub struct CameraBuilder {
     x_res: Option<usize>,
     y_res: Option<usize>,
-    origin: Point3<f64>,
-    look_at: Option<Vector3<f64>>,
-    up: Option<Vector3<f64>>,
+    origin: Point,
+    look_at: Option<Vector>,
+    up: Option<Vector>,
     fov: Option<f64>,
 }
 
 impl CameraBuilder {
-    pub fn new(origin: Point3<f64>) -> Self {
+    pub fn new(origin: Point) -> Self {
         Self {
             x_res: None,
             y_res: None,
@@ -71,12 +71,12 @@ impl CameraBuilder {
         self
     }
 
-    pub fn destination(mut self, destination: Point3<f64>) -> Self {
+    pub fn destination(mut self, destination: Point) -> Self {
         self.look_at = Some(destination - self.origin);
         self
     }
 
-    pub fn look_at(mut self, look_at: Vector3<f64>) -> Self {
+    pub fn look_at(mut self, look_at: Vector) -> Self {
         self.look_at = Some(look_at);
         self
     }
@@ -88,7 +88,7 @@ impl CameraBuilder {
         self
     }
 
-    pub fn up(mut self, up: Vector3<f64>) -> Self {
+    pub fn up(mut self, up: Vector) -> Self {
         self.up = Some(up);
         self
     }

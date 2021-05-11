@@ -1,21 +1,21 @@
-use super::RGB;
+use super::Rgb;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Pixel {
-    color: RGB,
+    color: Rgb,
     weight_sum: f64,
 }
 
 impl Pixel {
-    pub fn spectrum(self) -> RGB {
+    pub fn spectrum(self) -> Rgb {
         self.color
     }
 
-    pub fn add(&mut self, spectrum: RGB, weight: f64) {
+    pub fn add(&mut self, spectrum: Rgb, weight: f64) {
         self.color += spectrum * weight
     }
 
-    pub fn set(&mut self, spectrum: RGB) {
+    pub fn set(&mut self, spectrum: Rgb) {
         self.color = spectrum
     }
 }
@@ -23,7 +23,7 @@ impl Pixel {
 impl Default for Pixel {
     fn default() -> Self {
         Pixel {
-            color: RGB::black(),
+            color: Rgb::black(),
             weight_sum: 0.,
         }
     }

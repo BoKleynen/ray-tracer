@@ -1,12 +1,12 @@
 use itertools::Itertools;
 use rand::prelude::*;
 
-use crate::film::RGB;
+use crate::film::Rgb;
 
 pub type Sample = (f64, f64);
 
 pub trait Sampler {
-    fn average<F: Fn(Sample) -> RGB>(&self, f: F) -> RGB;
+    fn average<F: Fn(Sample) -> Rgb>(&self, f: F) -> Rgb;
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -19,7 +19,7 @@ impl Default for Unsampled {
 }
 
 impl Sampler for Unsampled {
-    fn average<F: Fn(Sample) -> RGB>(&self, f: F) -> RGB {
+    fn average<F: Fn(Sample) -> Rgb>(&self, f: F) -> Rgb {
         f((0.5, 0.5))
     }
 }
@@ -49,8 +49,8 @@ impl RegularSampler {
 }
 
 impl Sampler for RegularSampler {
-    fn average<F: Fn(Sample) -> RGB>(&self, f: F) -> RGB {
-        self.samples.iter().map(|&sample| f(sample)).sum::<RGB>() / self.samples.len() as f64
+    fn average<F: Fn(Sample) -> Rgb>(&self, f: F) -> Rgb {
+        self.samples.iter().map(|&sample| f(sample)).sum::<Rgb>() / self.samples.len() as f64
     }
 }
 
@@ -65,7 +65,7 @@ impl JitteredSampler {
 }
 
 impl Sampler for JitteredSampler {
-    fn average<F: Fn(Sample) -> RGB>(&self, f: F) -> RGB {
+    fn average<F: Fn(Sample) -> Rgb>(&self, f: F) -> Rgb {
         let n = (self.nb_samples as f64).sqrt();
         let inv_n = 1. / n;
         let n = n as usize;
@@ -78,7 +78,7 @@ impl Sampler for JitteredSampler {
 
                 f((x, y))
             })
-            .sum::<RGB>()
+            .sum::<Rgb>()
             / self.nb_samples as f64
     }
 }
@@ -94,11 +94,11 @@ impl UniformSampler {
 }
 
 impl Sampler for UniformSampler {
-    fn average<F: Fn(Sample) -> RGB>(&self, f: F) -> RGB {
+    fn average<F: Fn(Sample) -> Rgb>(&self, f: F) -> Rgb {
         std::iter::repeat_with(|| thread_rng().gen::<(f64, f64)>())
             .take(self.nb_samples)
             .map(f)
-            .sum::<RGB>()
+            .sum::<Rgb>()
             / self.nb_samples as f64
     }
 }

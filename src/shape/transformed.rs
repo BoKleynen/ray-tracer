@@ -1,10 +1,10 @@
 use itertools::Itertools;
-use nalgebra::{Point3, Vector3};
 
 use crate::math::{Ray, Transformation};
 use crate::shape::compound::Compound;
 use crate::shape::obj::SmoothTriangle;
-use crate::shape::{Cuboid, Hit, Obj, Plane, Shape, Sphere, AABB};
+use crate::shape::{Aabb, Bounded, Cuboid, Hit, Intersect, Obj, Plane, Sphere};
+use crate::{Point, Vector};
 
 pub struct Transformed<S> {
     shape: S,
@@ -19,7 +19,7 @@ impl<S> Transformed<S> {
         }
     }
 
-    fn inverse_transform_normal(&self, normal: &Vector3<f64>) -> Vector3<f64> {
+    fn inverse_transform_normal(&self, normal: &Vector) -> Vector {
         self.transformation
             .inverse()
             .matrix()
@@ -28,7 +28,7 @@ impl<S> Transformed<S> {
             .normalize()
     }
 
-    fn transform_bounding_box(&self, aabb: AABB) -> AABB {
+    fn transform_bounding_box(&self, aabb: Aabb) -> Aabb {
         let vertices = aabb
             .vertices()
             .iter()
@@ -65,15 +65,15 @@ impl<S> Transformed<S> {
             .max_by(|a, b| a.partial_cmp(b).unwrap())
             .unwrap();
 
-        AABB::new(
-            Point3::new(min_x, min_y, min_z),
-            Point3::new(max_x, max_y, max_z),
+        Aabb::new(
+            Point::new(min_x, min_y, min_z),
+            Point::new(max_x, max_y, max_z),
         )
     }
 }
 
 impl Transformed<Cuboid> {
-    pub fn cuboid(corner: Point3<f64>, transformation: Transformation) -> Self {
+    pub fn cuboid(corner: Point, transformation: Transformation) -> Self {
         let shape = Cuboid::new(corner);
         Self::new(shape, transformation)
     }
@@ -87,7 +87,7 @@ impl Transformed<Compound<SmoothTriangle>> {
 }
 
 impl Transformed<Plane> {
-    pub fn plane(normal: Vector3<f64>, point: Point3<f64>, transformation: Transformation) -> Self {
+    pub fn plane(normal: Vector, point: Point, transformation: Transformation) -> Self {
         let shape = Plane::new(normal, point);
         Self::new(shape, transformation)
     }
@@ -100,8 +100,16 @@ impl Transformed<Sphere> {
     }
 }
 
-impl<S: Shape> Shape for Transformed<S> {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl<S: Bounded> Bounded for Transformed<S> {
+    fn bbox(&self) -> Aabb {
+        self.transform_bounding_box(self.shape.bbox())
+    }
+}
+
+impl<S: Intersect> Intersect for Transformed<S> {
+    type Intersection = S::Intersection;
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
         let inv_ray = self.transformation.apply_inverse(ray);
         self.shape.intersect(&inv_ray).map(|hit| {
             let normal = self.inverse_transform_normal(&hit.normal);
@@ -113,10 +121,6 @@ impl<S: Shape> Shape for Transformed<S> {
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
         let inv_ray = self.transformation.apply_inverse(ray);
         self.shape.count_intersection_tests(&inv_ray)
-    }
-
-    fn bbox(&self) -> AABB {
-        self.transform_bounding_box(self.shape.bbox())
     }
 
     fn hit(&self, ray: &Ray) -> bool {

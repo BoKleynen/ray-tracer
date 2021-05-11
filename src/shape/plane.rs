@@ -1,22 +1,31 @@
-use nalgebra::{Point3, Vector3};
-
 use crate::math::Ray;
-use crate::shape::{Hit, Shape, AABB};
-use crate::K_EPSILON;
+use crate::shape::{Aabb, Bounded, Hit, Intersect};
+use crate::{Point, Vector, K_EPSILON};
 
 pub struct Plane {
-    normal: Vector3<f64>,
-    point: Point3<f64>,
+    normal: Vector,
+    point: Point,
 }
 
 impl Plane {
-    pub fn new(normal: Vector3<f64>, point: Point3<f64>) -> Self {
+    pub fn new(normal: Vector, point: Point) -> Self {
         Self { normal, point }
     }
 }
 
-impl Shape for Plane {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl Bounded for Plane {
+    fn bbox(&self) -> Aabb {
+        Aabb::new(
+            Point::new(f64::MIN, f64::MIN, f64::MIN),
+            Point::new(f64::MAX, f64::MAX, f64::MAX),
+        )
+    }
+}
+
+impl Intersect for Plane {
+    type Intersection = ();
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<()>> {
         let t =
             ((self.point - ray.origin()).dot(&self.normal)) / (ray.direction().dot(&self.normal));
 
@@ -25,6 +34,7 @@ impl Shape for Plane {
                 t,
                 normal: self.normal,
                 local_hit_point: ray.origin() + t * ray.direction(),
+                shape: (),
             });
         } else {
             None
@@ -33,12 +43,5 @@ impl Shape for Plane {
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
-    }
-
-    fn bbox(&self) -> AABB {
-        AABB::new(
-            Point3::new(f64::MIN, f64::MIN, f64::MIN),
-            Point3::new(f64::MAX, f64::MAX, f64::MAX),
-        )
     }
 }

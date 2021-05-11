@@ -1,20 +1,20 @@
-use nalgebra::{Point3, Unit, Vector3};
+use nalgebra::Unit;
 
 use crate::math::Ray;
 use crate::sampler::Sample;
-use crate::shape::{Hit, Shape, AABB};
-use crate::K_EPSILON;
+use crate::shape::{Aabb, Bounded, Hit, Intersect};
+use crate::{Point, Vector, K_EPSILON};
 
 #[derive(Clone)]
 pub struct Rectangle {
-    p: Point3<f64>,
-    a: Vector3<f64>,
-    b: Vector3<f64>,
-    normal: Unit<Vector3<f64>>,
+    p: Point,
+    a: Vector,
+    b: Vector,
+    normal: Unit<Vector>,
 }
 
 impl Rectangle {
-    pub fn new(p: Point3<f64>, a: Vector3<f64>, b: Vector3<f64>) -> Self {
+    pub fn new(p: Point, a: Vector, b: Vector) -> Self {
         let normal = Unit::new_normalize(a.cross(&b));
         Self { p, a, b, normal }
     }
@@ -23,17 +23,28 @@ impl Rectangle {
         self.a.cross(&self.b).norm()
     }
 
-    pub fn sample(&self, sample: &Sample) -> Point3<f64> {
+    pub fn sample(&self, sample: &Sample) -> Point {
         self.p + sample.0 * self.a + sample.1 * self.b
     }
 
-    pub fn normal_at(&self, _p: &Point3<f64>) -> Unit<Vector3<f64>> {
+    pub fn normal_at(&self, _p: &Point) -> Unit<Vector> {
         self.normal
     }
 }
 
-impl Shape for Rectangle {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl Bounded for Rectangle {
+    fn bbox(&self) -> Aabb {
+        let p0 = self.p;
+        let p1 = self.p + self.a + self.b;
+
+        Aabb::new(p0, p1)
+    }
+}
+
+impl Intersect for Rectangle {
+    type Intersection = ();
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<()>> {
         let t = (self.p - ray.origin()).dot(&self.normal) / ray.direction().dot(&self.normal);
 
         if t <= K_EPSILON {
@@ -57,17 +68,11 @@ impl Shape for Rectangle {
             t,
             normal: *self.normal,
             local_hit_point: q,
+            shape: (),
         })
     }
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
-    }
-
-    fn bbox(&self) -> AABB {
-        let p0 = self.p;
-        let p1 = self.p + self.a + self.b;
-
-        AABB::new(p0, p1)
     }
 }

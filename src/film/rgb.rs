@@ -3,13 +3,13 @@ use std::iter::Sum;
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct RGB {
+pub struct Rgb {
     red: f64,
     green: f64,
     blue: f64,
 }
 
-impl RGB {
+impl Rgb {
     pub fn new(red: f64, green: f64, blue: f64) -> Self {
         assert!(Self::is_valid_color_component(red));
         assert!(Self::is_valid_color_component(green));
@@ -19,7 +19,7 @@ impl RGB {
     }
 
     pub const fn black() -> Self {
-        RGB {
+        Rgb {
             red: 0.,
             green: 0.,
             blue: 0.,
@@ -27,7 +27,7 @@ impl RGB {
     }
 
     pub const fn white() -> Self {
-        RGB {
+        Rgb {
             red: 1.,
             green: 1.,
             blue: 1.,
@@ -63,8 +63,8 @@ impl RGB {
     }
 }
 
-impl Add for RGB {
-    type Output = RGB;
+impl Add for Rgb {
+    type Output = Rgb;
 
     fn add(self, rhs: Self) -> Self::Output {
         let red = self.red + rhs.red;
@@ -75,8 +75,8 @@ impl Add for RGB {
     }
 }
 
-impl Sub for RGB {
-    type Output = RGB;
+impl Sub for Rgb {
+    type Output = Rgb;
 
     fn sub(self, rhs: Self) -> Self::Output {
         let red = self.red - rhs.red;
@@ -87,8 +87,8 @@ impl Sub for RGB {
     }
 }
 
-impl Mul<f64> for RGB {
-    type Output = RGB;
+impl Mul<f64> for Rgb {
+    type Output = Rgb;
 
     fn mul(self, rhs: f64) -> Self::Output {
         let red = self.red * rhs;
@@ -99,16 +99,16 @@ impl Mul<f64> for RGB {
     }
 }
 
-impl Div<f64> for RGB {
-    type Output = RGB;
+impl Div<f64> for Rgb {
+    type Output = Rgb;
 
     fn div(self, rhs: f64) -> Self::Output {
         self * (1. / rhs)
     }
 }
 
-impl Mul for RGB {
-    type Output = RGB;
+impl Mul for Rgb {
+    type Output = Rgb;
 
     fn mul(self, rhs: Self) -> Self::Output {
         let red = self.red * rhs.red;
@@ -119,7 +119,7 @@ impl Mul for RGB {
     }
 }
 
-impl AddAssign for RGB {
+impl AddAssign for Rgb {
     fn add_assign(&mut self, rhs: Self) {
         self.red += rhs.red;
         self.green += rhs.green;
@@ -127,8 +127,8 @@ impl AddAssign for RGB {
     }
 }
 
-impl Sum for RGB {
+impl Sum for Rgb {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.fold(RGB::black(), RGB::add)
+        iter.fold(Rgb::black(), Rgb::add)
     }
 }

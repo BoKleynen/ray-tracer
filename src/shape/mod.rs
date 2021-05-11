@@ -1,16 +1,16 @@
-use nalgebra::{Point3, Vector3};
-
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
-use crate::sampler::{Sample, Sampler};
-use crate::shape::transformed::Transformed;
+use crate::{Point, Vector};
+use std::ptr::NonNull;
 
-pub use aabb::AABB;
+pub use aabb::{Aabb, Union};
+pub use compound::Compound;
 pub use cuboid::Cuboid;
 pub use obj::{FlatTriangle, Obj, SmoothTriangle};
 pub use plane::Plane;
 pub use rectangle::Rectangle;
 pub use sphere::Sphere;
+pub use transformed::Transformed;
 
 mod aabb;
 mod compound;
@@ -21,9 +21,58 @@ mod rectangle;
 mod sphere;
 mod transformed;
 
+pub trait Bounded {
+    fn bbox(&self) -> Aabb;
+}
+
+pub trait Intersect: Bounded {
+    type Intersection;
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>>;
+
+    fn count_intersection_tests(&self, ray: &Ray) -> usize;
+
+    fn hit(&self, ray: &Ray) -> bool {
+        self.intersect(ray).is_some()
+    }
+}
+
+// marker trait
+pub trait Shape: Intersect<Intersection = ()> + Sync {}
+
+impl<S: Intersect<Intersection = ()> + Sync> Shape for S {}
+
 pub struct GeometricObject {
     shape: Box<dyn Shape>,
     material: Material,
+}
+
+impl Bounded for GeometricObject {
+    fn bbox(&self) -> Aabb {
+        self.shape.bbox()
+    }
+}
+
+impl Intersect for GeometricObject {
+    // We can't use `&'a Self`, because GAT aren't implemented yet.
+    type Intersection = NonNull<Self>;
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
+        self.shape.intersect(ray).map(|hit| Hit {
+            t: hit.t,
+            normal: hit.normal,
+            local_hit_point: hit.local_hit_point,
+            shape: self.into(),
+        })
+    }
+
+    fn count_intersection_tests(&self, ray: &Ray) -> usize {
+        self.shape.count_intersection_tests(ray)
+    }
+
+    fn hit(&self, ray: &Ray) -> bool {
+        self.shape.hit(ray)
+    }
 }
 
 impl GeometricObject {
@@ -39,31 +88,19 @@ impl GeometricObject {
         self.material.clone()
     }
 
-    pub fn intersect(&self, ray: &Ray) -> Option<Hit> {
-        self.shape.intersect(ray)
-    }
-
-    pub fn count_intersection_tests(&self, ray: &Ray) -> usize {
-        self.shape.count_intersection_tests(ray)
-    }
-
-    pub fn hit(&self, ray: &Ray) -> bool {
-        self.shape.hit(ray)
-    }
-
     pub fn sphere(transformation: Transformation, material: Material) -> Self {
         let shape = Box::new(Transformed::sphere(transformation));
         Self::new(shape, material)
     }
 
-    pub fn cuboid(corner: Point3<f64>, transformation: Transformation, material: Material) -> Self {
+    pub fn cuboid(corner: Point, transformation: Transformation, material: Material) -> Self {
         let shape = Box::new(Transformed::cuboid(corner, transformation));
         Self::new(shape, material)
     }
 
     pub fn plane(
-        normal: Vector3<f64>,
-        point: Point3<f64>,
+        normal: Vector,
+        point: Point,
         transformation: Transformation,
         material: Material,
     ) -> Self {
@@ -77,46 +114,32 @@ impl GeometricObject {
     }
 }
 
-pub trait Shape: Sync + Send {
-    fn intersect(&self, ray: &Ray) -> Option<Hit>;
-
-    fn count_intersection_tests(&self, ray: &Ray) -> usize;
-
-    fn bbox(&self) -> AABB;
-
-    fn hit(&self, ray: &Ray) -> bool {
-        self.intersect(ray).is_some()
+impl<T: Bounded + ?Sized> Bounded for Box<T> {
+    #[inline]
+    fn bbox(&self) -> Aabb {
+        (**self).bbox()
     }
 }
 
-impl<T: Shape + ?Sized> Shape for Box<T> {
-    #[inline]
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl<S: Intersect + ?Sized> Intersect for Box<S> {
+    type Intersection = S::Intersection;
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
         (**self).intersect(ray)
     }
 
-    #[inline]
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
         (**self).count_intersection_tests(ray)
     }
 
-    #[inline]
-    fn bbox(&self) -> AABB {
-        (**self).bbox()
-    }
-
-    #[inline]
     fn hit(&self, ray: &Ray) -> bool {
         (**self).hit(ray)
     }
 }
 
-pub trait SampleShape: Shape {
-    fn average<B, S: Sampler, F: Fn(Point3<f64>) -> B>(&self) -> B;
-}
-
-pub struct Hit {
+pub struct Hit<S> {
     pub t: f64,
-    pub normal: Vector3<f64>,
-    pub local_hit_point: Point3<f64>,
+    pub normal: Vector,
+    pub local_hit_point: Point,
+    pub shape: S,
 }

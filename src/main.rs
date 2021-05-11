@@ -1,6 +1,6 @@
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::camera::{Camera, CameraBuilder};
-use cg_practicum::film::RGB;
+use cg_practicum::film::Rgb;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
@@ -8,15 +8,15 @@ use cg_practicum::renderer::{DirectIllumination, Renderer};
 use cg_practicum::sampler::Unsampled;
 use cg_practicum::shape::{GeometricObject, Obj};
 use cg_practicum::world::WorldBuilder;
+use cg_practicum::{Point, Vector};
 use clap::Clap;
-use nalgebra::{Point3, Vector3};
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cfg = Config::parse();
-    let eye = Point3::new(-3., 2., 5.);
-    let destination = Point3::new(5., 0., -1.);
-    let up = Vector3::new(0., 1., 0.);
+    let eye = Point::new(-3., 2., 5.);
+    let destination = Point::new(5., 0., -1.);
+    let up = Vector::new(0., 1., 0.);
 
     let camera = CameraBuilder::new(eye)
         .x_res(cfg.width)
@@ -30,17 +30,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let object = Obj::load("models/teapot.obj").unwrap();
 
     let material1 = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::new(1., 1., 0.)),
-        diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 1., 0.)),
+        ambient_brdf: Lambertian::new(0.15, Rgb::new(1., 1., 0.)),
+        diffuse_brdf: Lambertian::new(0.65, Rgb::new(1., 1., 0.)),
     };
 
     let material2 = Material::Matte {
-        ambient_brdf: Lambertian::new(0.15, RGB::new(1., 0., 1.)),
-        diffuse_brdf: Lambertian::new(0.65, RGB::new(1., 0., 1.)),
+        ambient_brdf: Lambertian::new(0.15, Rgb::new(1., 0., 1.)),
+        diffuse_brdf: Lambertian::new(0.65, Rgb::new(1., 0., 1.)),
     };
 
-    let light = PointLight::white(1., Point3::new(100., 50., 150.));
-    let light2 = PointLight::white(1., Point3::new(50., 100., 50.));
+    let light = PointLight::white(1., Point::new(100., 50., 150.));
+    let light2 = PointLight::white(1., Point::new(50., 100., 50.));
 
     let world = WorldBuilder::default()
         .geometric_object(GeometricObject::sphere(
@@ -48,13 +48,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             material1,
         ))
         .geometric_object(GeometricObject::cuboid(
-            Point3::new(1., 1., 1.),
+            Point::new(1., 1., 1.),
             Transformation::translate(0., 0., -1.),
             material2.clone(),
         ))
         .light(Box::new(light))
         .light(Box::new(light2))
-        .background(RGB::new(0.1, 0.1, 0.1))
+        .background(Rgb::new(0.1, 0.1, 0.1))
         .build()
         .ok_or("invalid world configuration")?;
 

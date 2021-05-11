@@ -1,12 +1,13 @@
 #[cfg(feature = "bvh")]
-use crate::bvh::BVH;
+use crate::accel::bvh::Bvh;
+use crate::accel::bvh::SplittingHeuristic;
 use crate::math::Ray;
-use crate::shape::{Hit, Shape, AABB};
+use crate::shape::{Aabb, Bounded, Hit, Intersect};
 
 #[cfg(not(any(feature = "bvh")))]
 pub struct Compound<S> {
     shapes: Vec<S>,
-    bbox: AABB,
+    bbox: Aabb,
 }
 
 #[cfg(not(any(feature = "bvh")))]
@@ -14,7 +15,7 @@ impl<S: Shape> Compound<S> {
     pub fn new(shapes: Vec<S>) -> Self {
         assert!(shapes.len() > 1);
 
-        let bbox = AABB::from_multiple(shapes.as_slice());
+        let bbox = Aabb::from_multiple(shapes.as_slice());
 
         Self { shapes, bbox }
     }
@@ -45,37 +46,52 @@ impl<S: Shape> Shape for Compound<S> {
             .sum::<usize>()
     }
 
-    fn bbox(&self) -> AABB {
+    fn bbox(&self) -> Aabb {
         self.bbox
     }
 }
 
 #[cfg(feature = "bvh")]
-pub struct Compound<S> {
-    bvh: BVH<S>,
+pub struct Compound<S: 'static> {
+    bvh: Bvh<'static, S>,
 }
 
 #[cfg(feature = "bvh")]
-impl<S: Shape> Compound<S> {
+impl<S: Intersect> Compound<S> {
     pub fn new(shapes: Vec<S>) -> Self {
-        assert!(shapes.len() > 1);
+        assert!(!shapes.is_empty());
 
-        let bvh = BVH::new(shapes);
-        Self { bvh }
+        Self {
+            bvh: Bvh::new(shapes, SplittingHeuristic::default()),
+        }
     }
 }
 
 #[cfg(feature = "bvh")]
-impl<S: Shape> Shape for Compound<S> {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
+impl<S: Intersect> Bounded for Compound<S> {
+    fn bbox(&self) -> Aabb {
+        self.bvh.bbox()
+    }
+}
+
+#[cfg(feature = "bvh")]
+impl<S: Intersect> Intersect for Compound<S> {
+    type Intersection = S::Intersection;
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
         self.bvh.intersect(ray)
     }
 
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
         self.bvh.count_intersection_tests(ray)
     }
+}
 
-    fn bbox(&self) -> AABB {
-        self.bvh.bbox()
+impl<S: Intersect> Compound<S> {
+    pub fn intersect_any_where<F>(&self, ray: &Ray, f: F) -> bool
+    where
+        F: Fn(Hit<S::Intersection>) -> bool,
+    {
+        self.bvh.intersect_any_where(ray, f)
     }
 }

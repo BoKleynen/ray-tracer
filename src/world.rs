@@ -1,55 +1,56 @@
-use nalgebra::Vector3;
-
-use crate::film::RGB;
+use crate::film::Rgb;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
-use crate::shape::{GeometricObject, Hit};
+use crate::shape::{Compound, GeometricObject, Hit, Intersect};
+use crate::Vector;
 
 pub struct World {
-    shapes: Vec<GeometricObject>,
+    geometric_objects: Compound<GeometricObject>,
     ambient_light: AmbientLight,
     lights: Vec<Box<dyn Light>>,
-    background_color: RGB,
+    background_color: Rgb,
 }
 
 impl World {
     pub fn hit_objects(&self, ray: &Ray) -> Option<ShadeRec> {
-        let mut sr: Option<ShadeRec> = None;
-        let mut t_min = f64::INFINITY;
+        self.geometric_objects.intersect(&ray).map(|hit| {
+            // safety: since shape is in the world, this reference will at least be valid within
+            // this function.
+            let shape = unsafe { hit.shape.as_ref() };
 
-        self.shapes.iter().for_each(|shape| {
-            if let Some(hit) = shape.intersect(&ray) {
-                if hit.t < t_min {
-                    t_min = hit.t;
-
-                    sr = Some(ShadeRec {
-                        hit_point: ray.origin() + hit.t * ray.direction(),
-                        local_hit_point: hit.local_hit_point,
-                        normal: hit.normal,
-                        material: shape.material(),
-                        depth: 0,
-                        direction: Vector3::default(),
-                        world: self,
-                    })
-                }
+            ShadeRec {
+                hit_point: ray.origin() + hit.t * ray.direction(),
+                local_hit_point: hit.local_hit_point,
+                normal: hit.normal,
+                material: shape.material(),
+                depth: 0,
+                direction: Vector::default(),
+                world: self,
             }
-        });
-
-        sr
+        })
     }
 
-    pub fn hit_any_object_where<F>(&self, ray: &Ray, f: F) -> bool
+    pub fn hit_any_object_where<P>(&self, ray: &Ray, p: P) -> bool
     where
-        F: Fn(Hit) -> bool,
+        P: Fn(Hit<&GeometricObject>) -> bool,
     {
-        self.shapes
-            .iter()
-            .any(|shape| shape.intersect(ray).map_or(false, |hit| f(hit)))
+        self.geometric_objects.intersect_any_where(ray, |hit| {
+            let hit = Hit {
+                t: hit.t,
+                normal: hit.normal,
+                local_hit_point: hit.local_hit_point,
+                // safety: since shape is in the world, this reference will at least be valid within
+                // this function.
+                shape: unsafe { hit.shape.as_ref() },
+            };
+
+            p(hit)
+        })
     }
 
-    pub fn geometric_objects(&self) -> &[GeometricObject] {
-        self.shapes.as_slice()
+    pub fn count_intersection_tests(&self, ray: &Ray) -> usize {
+        self.geometric_objects.count_intersection_tests(ray)
     }
 
     pub fn lights(&self) -> &[Box<dyn Light>] {
@@ -60,16 +61,16 @@ impl World {
         &self.ambient_light
     }
 
-    pub fn background_color(&self) -> RGB {
+    pub fn background_color(&self) -> Rgb {
         self.background_color
     }
 }
 
 pub struct WorldBuilder {
-    shapes: Vec<GeometricObject>,
+    geometric_objects: Vec<GeometricObject>,
     lights: Vec<Box<dyn Light>>,
     ambient_light: Option<AmbientLight>,
-    background_color: Option<RGB>,
+    background_color: Option<Rgb>,
 }
 
 impl WorldBuilder {
@@ -78,7 +79,12 @@ impl WorldBuilder {
     }
 
     pub fn geometric_object(mut self, geometric_object: GeometricObject) -> Self {
-        self.shapes.push(geometric_object);
+        self.geometric_objects.push(geometric_object);
+        self
+    }
+
+    pub fn geometric_objects(mut self, mut geometric_objects: Vec<GeometricObject>) -> Self {
+        self.geometric_objects.append(&mut geometric_objects);
         self
     }
 
@@ -87,14 +93,14 @@ impl WorldBuilder {
         self
     }
 
-    pub fn background(mut self, color: RGB) -> Self {
+    pub fn background(mut self, color: Rgb) -> Self {
         self.background_color = Some(color);
         self
     }
 
     pub fn build(self) -> Option<World> {
-        let mut shapes = self.shapes;
-        shapes.extend(
+        let mut geometric_objects = self.geometric_objects;
+        geometric_objects.extend(
             self.lights
                 .iter()
                 .filter_map(|light| light.geometric_object()),
@@ -103,12 +109,12 @@ impl WorldBuilder {
         let ambient_light = self
             .ambient_light
             .unwrap_or_else(|| AmbientLight::white(0.25));
-        let background_color = self.background_color.unwrap_or_else(RGB::black);
+        let background_color = self.background_color.unwrap_or_else(Rgb::black);
 
         let world = World {
-            shapes,
-            lights,
+            geometric_objects: Compound::new(geometric_objects),
             ambient_light,
+            lights,
             background_color,
         };
 
@@ -124,7 +130,7 @@ impl Default for WorldBuilder {
         let background_color = None;
 
         Self {
-            shapes,
+            geometric_objects: shapes,
             lights,
             ambient_light,
             background_color,
