@@ -1,11 +1,20 @@
 use crate::math::Ray;
 use crate::shape::Bounded;
-use crate::{Point, K_EPSILON};
+use crate::{Point, Vector, K_EPSILON};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Aabb {
     pub(crate) p0: Point,
     pub(crate) p1: Point,
+}
+
+impl Default for Aabb {
+    fn default() -> Self {
+        let p0 = Point::new(f64::MAX, f64::MAX, f64::MAX);
+        let p1 = Point::new(f64::MIN, f64::MIN, f64::MIN);
+
+        Self { p0, p1 }
+    }
 }
 
 impl Aabb {
@@ -15,6 +24,44 @@ impl Aabb {
         assert!(p0.z < p1.z);
 
         Self { p0, p1 }
+    }
+
+    pub fn from_multiple<S: Bounded>(shapes: &[S]) -> Aabb {
+        let min_x = shapes
+            .iter()
+            .map(|shape| shape.bbox().p0.x)
+            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let max_x = shapes
+            .iter()
+            .map(|shape| shape.bbox().p1.x)
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let min_y = shapes
+            .iter()
+            .map(|shape| shape.bbox().p0.y)
+            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let max_y = shapes
+            .iter()
+            .map(|shape| shape.bbox().p1.y)
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let min_z = shapes
+            .iter()
+            .map(|shape| shape.bbox().p0.z)
+            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+        let max_z = shapes
+            .iter()
+            .map(|shape| shape.bbox().p1.z)
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap();
+
+        Aabb::new(
+            Point::new(min_x, min_y, min_z),
+            Point::new(max_x, max_y, max_z),
+        )
     }
 
     pub fn intersect(&self, ray: &Ray) -> Option<f64> {
@@ -88,41 +135,46 @@ impl Aabb {
         self.p0 + 0.5 * (self.p1 - self.p0)
     }
 
-    pub fn from_multiple<S: Bounded>(shapes: &[S]) -> Aabb {
-        let min_x = shapes
-            .iter()
-            .map(|shape| shape.bbox().p0.x)
-            .min_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap();
-        let max_x = shapes
-            .iter()
-            .map(|shape| shape.bbox().p1.x)
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap();
-        let min_y = shapes
-            .iter()
-            .map(|shape| shape.bbox().p0.y)
-            .min_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap();
-        let max_y = shapes
-            .iter()
-            .map(|shape| shape.bbox().p1.y)
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap();
-        let min_z = shapes
-            .iter()
-            .map(|shape| shape.bbox().p0.z)
-            .min_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap();
-        let max_z = shapes
-            .iter()
-            .map(|shape| shape.bbox().p1.z)
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap();
+    pub fn surface(&self) -> f64 {
+        let diag = self.p1 - self.p0;
+        2. * (diag.x * diag.y + diag.x * diag.z + diag.y * diag.z)
+    }
 
-        Aabb::new(
-            Point::new(min_x, min_y, min_z),
-            Point::new(max_x, max_y, max_z),
-        )
+    pub fn offset(&self, p: Point) -> Vector {
+        let mut res = p - self.p0;
+        res.x /= self.p1.x - self.p0.x;
+        res.y /= self.p1.y - self.p0.y;
+        res.z /= self.p1.z - self.p0.z;
+        res
+    }
+}
+
+pub trait Union<T> {
+    fn union(&self, other: T) -> Self;
+}
+
+impl Union<Point> for Aabb {
+    fn union(&self, p: Point) -> Self {
+        let p0 = Point::new(self.p0.x.min(p.x), self.p0.y.min(p.y), self.p0.z.min(p.z));
+        let p1 = Point::new(self.p1.x.max(p.x), self.p1.y.max(p.y), self.p1.z.max(p.z));
+
+        Self { p0, p1 }
+    }
+}
+
+impl Union<Aabb> for Aabb {
+    fn union(&self, bbox: Aabb) -> Self {
+        let p0 = Point::new(
+            self.p0.x.min(bbox.p0.x),
+            self.p0.y.min(bbox.p0.y),
+            self.p0.z.min(bbox.p0.z),
+        );
+        let p1 = Point::new(
+            self.p1.x.max(bbox.p1.x),
+            self.p1.y.max(bbox.p1.y),
+            self.p1.z.max(bbox.p1.z),
+        );
+
+        Self { p0, p1 }
     }
 }

@@ -1,6 +1,6 @@
 #[cfg(feature = "bvh")]
-use crate::bvh::Bvh;
-use crate::bvh::SplittingHeuristic::*;
+use crate::accel::bvh::Bvh;
+use crate::accel::bvh::SplittingHeuristic;
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect};
 
@@ -62,7 +62,7 @@ impl<S: Intersect> Compound<S> {
         assert!(!shapes.is_empty());
 
         Self {
-            bvh: Bvh::new(shapes, SpaceAverageSplit),
+            bvh: Bvh::new(shapes, SplittingHeuristic::default()),
         }
     }
 }

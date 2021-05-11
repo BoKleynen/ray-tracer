@@ -3,7 +3,7 @@ use crate::math::{Ray, Transformation};
 use crate::{Point, Vector};
 use std::ptr::NonNull;
 
-pub use aabb::Aabb;
+pub use aabb::{Aabb, Union};
 pub use compound::Compound;
 pub use cuboid::Cuboid;
 pub use obj::{FlatTriangle, Obj, SmoothTriangle};

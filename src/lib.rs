@@ -2,9 +2,8 @@
 
 use nalgebra::{Point3, Vector3};
 
+mod accel;
 pub mod brdf;
-#[cfg(feature = "bvh")]
-pub mod bvh;
 pub mod camera;
 pub mod film;
 pub mod light;
@@ -15,6 +14,8 @@ pub mod sampler;
 pub mod shade_rec;
 pub mod shape;
 pub mod world;
+
+pub use accel::bvh;
 
 const K_EPSILON: f64 = 1e-8;
 

@@ -1,9 +1,10 @@
-use crate::math::Ray;
-use crate::shape::{Aabb, Bounded, Hit, Intersect};
-use crate::Point;
 use std::mem::MaybeUninit;
 use std::pin::Pin;
 use std::ptr::{addr_of, addr_of_mut};
+
+use crate::math::Ray;
+use crate::shape::{Aabb, Bounded, Hit, Intersect, Union};
+use crate::Point;
 use NodeKind::*;
 use SplittingHeuristic::*;
 
@@ -14,12 +15,19 @@ pub enum SplittingHeuristic {
     SurfaceAreaHeuristic,
 }
 
+impl Default for SplittingHeuristic {
+    fn default() -> Self {
+        SpaceAverageSplit
+    }
+}
+
+#[derive(Debug)]
 pub struct Bvh<'a, S: 'a> {
     shapes: Pin<Box<[S]>>,
     root: Node<'a, S>,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct ShapeData<'a, S> {
     bbox: Aabb,
     centroid: Point,
@@ -95,6 +103,7 @@ impl<'a, S: Intersect> Bvh<'a, S> {
     }
 }
 
+#[derive(Debug)]
 enum NodeKind<'a, S> {
     Leaf {
         shapes: Vec<&'a S>,
@@ -105,14 +114,107 @@ enum NodeKind<'a, S> {
     },
 }
 
+#[derive(Debug)]
 struct Node<'a, S> {
     bbox: Aabb,
     node_type: NodeKind<'a, S>,
 }
 
 impl<'a, S: Intersect> Node<'a, S> {
-    fn surface_area_heuristic(_shapes: Vec<ShapeData<'a, S>>, _axis: usize) -> Self {
-        todo!()
+    fn surface_area_heuristic(shapes: Vec<ShapeData<'a, S>>, axis: usize) -> Self {
+        const NB_BUCKETS: usize = 12;
+
+        let bbox = Aabb::from_multiple(&shapes);
+
+        if shapes.len() <= 2 {
+            let shapes = shapes.iter().map(|s| s.shape).collect();
+            Self {
+                bbox,
+                node_type: Leaf { shapes },
+            }
+        } else {
+            let split_axis_size = bbox.p1[axis] - bbox.p0[axis];
+            let mut buckets: [BucketInfo; NB_BUCKETS] = Default::default();
+            shapes.iter().for_each(|shape| {
+                let b =
+                    NB_BUCKETS as f64 * (shape.centroid[axis] - bbox.p0[axis]) / split_axis_size;
+                let b = b.floor() as usize;
+
+                buckets[b].count += 1;
+                buckets[b].bbox = buckets[b].bbox.union(shape.bbox);
+            });
+
+            let (min_bucket, min_cost) = buckets
+                .iter()
+                .enumerate()
+                .map(|(i, bucket)| {
+                    let left_count = buckets[..i]
+                        .iter()
+                        .map(|bucket| bucket.count)
+                        .sum::<usize>();
+                    let left_bbox = buckets[..i]
+                        .iter()
+                        .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
+
+                    let right_count = buckets[i..]
+                        .iter()
+                        .map(|bucket| bucket.count)
+                        .sum::<usize>();
+                    let right_bbox = buckets[i..]
+                        .iter()
+                        .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
+
+                    let cost = 1.
+                        + (left_count as f64 * left_bbox.surface()
+                            + right_count as f64 * right_bbox.surface())
+                            / bbox.surface();
+
+                    (i, cost)
+                })
+                .min_by(|(_, c1), (_, c2)| c1.partial_cmp(&c2).unwrap())
+                .unwrap();
+
+            let leaf_cost = shapes.len() as f64;
+            if min_cost < leaf_cost {
+                let (left, right): (Vec<_>, Vec<_>) = shapes.into_iter().partition(|shape| {
+                    let b = NB_BUCKETS as f64 * (shape.centroid[axis] - bbox.p0[axis])
+                        / split_axis_size;
+                    let b = b.floor() as usize;
+
+                    b <= min_bucket
+                });
+
+                if left.is_empty() {
+                    let shapes = right.iter().map(|s| s.shape).collect();
+                    Self {
+                        bbox,
+                        node_type: Leaf { shapes },
+                    }
+                } else if right.is_empty() {
+                    let shapes = left.iter().map(|s| s.shape).collect();
+                    Self {
+                        bbox,
+                        node_type: Leaf { shapes },
+                    }
+                } else {
+                    let next_axis = (axis + 1) % 3;
+
+                    Self {
+                        bbox,
+                        node_type: Internal {
+                            left: Box::new(Self::surface_area_heuristic(left, next_axis)),
+                            right: Box::new(Self::surface_area_heuristic(right, next_axis)),
+                        },
+                    }
+                }
+            } else {
+                let shapes = shapes.iter().map(|s| s.shape).collect();
+                Self {
+                    bbox,
+                    node_type: Leaf { shapes },
+                }
+            }
+        }
     }
 
     fn space_median_split(shapes: Vec<ShapeData<'a, S>>, axis: usize) -> Self {
@@ -305,9 +407,19 @@ impl<'a, S: Intersect> Node<'a, S> {
         Self::split_space(shapes, axis, split)
     }
 
-    fn split_space(shapes: Vec<ShapeData<'a, S>>, axis: usize, split: f64) -> (Vec<ShapeData<'a, S>>, Vec<ShapeData<'a, S>>) {
+    fn split_space(
+        shapes: Vec<ShapeData<'a, S>>,
+        axis: usize,
+        split: f64,
+    ) -> (Vec<ShapeData<'a, S>>, Vec<ShapeData<'a, S>>) {
         shapes
             .into_iter()
             .partition(|shape| shape.centroid[axis] < split)
     }
+}
+
+#[derive(Debug, Default, Copy, Clone)]
+struct BucketInfo {
+    count: usize,
+    bbox: Aabb,
 }
