@@ -53,7 +53,8 @@ impl Bounded for GeometricObject {
     }
 }
 
-impl<'a> Intersect for GeometricObject {
+impl Intersect for GeometricObject {
+    // We can't use `&'a Self`, because GAT aren't implemented yet.
     type Intersection = NonNull<Self>;
 
     fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {

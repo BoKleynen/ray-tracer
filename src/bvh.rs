@@ -46,7 +46,7 @@ impl<'a, S: Intersect> Bvh<'a, S> {
         }
 
         let root = {
-            // safety: get a reference to the previously initialized array of shapes
+            // safety: get a reference to the previously initialized array of shapes.
             #[allow(clippy::deref_addrof)]
             let shapes_ref = unsafe { &*addr_of!((*ptr).shapes) };
 
@@ -67,11 +67,11 @@ impl<'a, S: Intersect> Bvh<'a, S> {
             match splitting_heuristic {
                 SpaceMedianSplit => Node::space_median_split(shape_data, 0),
                 ObjectMedianSplit => Node::object_median_split(shape_data, 0),
-                SurfaceAreaHeuristic => Node::space_area_heuristic(shape_data, 0),
+                SurfaceAreaHeuristic => Node::surface_area_heuristic(shape_data, 0),
             }
         };
 
-        // Initializing the `root` field
+        // Initializing the `root` field.
         unsafe {
             addr_of_mut!((*ptr).root).write(root);
         }
@@ -109,7 +109,7 @@ struct Node<'a, S> {
 }
 
 impl<'a, S: Intersect> Node<'a, S> {
-    fn space_area_heuristic(_shapes: Vec<ShapeData<'a, S>>, _axis: usize) -> Self {
+    fn surface_area_heuristic(_shapes: Vec<ShapeData<'a, S>>, _axis: usize) -> Self {
         todo!()
     }
 

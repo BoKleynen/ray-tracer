@@ -15,6 +15,8 @@ pub struct World {
 impl World {
     pub fn hit_objects(&self, ray: &Ray) -> Option<ShadeRec> {
         self.geometric_objects.intersect(&ray).map(|hit| {
+            // safety: since shape is in the world, this reference will at least be valid within
+            // this function.
             let shape = unsafe { hit.shape.as_ref() };
 
             ShadeRec {
@@ -38,6 +40,8 @@ impl World {
                 t: hit.t,
                 normal: hit.normal,
                 local_hit_point: hit.local_hit_point,
+                // safety: since shape is in the world, this reference will at least be valid within
+                // this function.
                 shape: unsafe { hit.shape.as_ref() },
             };
 

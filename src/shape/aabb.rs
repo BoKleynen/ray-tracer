@@ -2,7 +2,7 @@ use crate::math::Ray;
 use crate::shape::Bounded;
 use crate::{Point, K_EPSILON};
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Aabb {
     pub(crate) p0: Point,
     pub(crate) p1: Point,
