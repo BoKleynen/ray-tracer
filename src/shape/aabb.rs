@@ -19,9 +19,9 @@ impl Default for Aabb {
 
 impl Aabb {
     pub fn new(p0: Point3, p1: Point3) -> Self {
-        assert!(p0.x < p1.x);
-        assert!(p0.y < p1.y);
-        assert!(p0.z < p1.z);
+        assert!(p0.x <= p1.x);
+        assert!(p0.y <= p1.y);
+        assert!(p0.z <= p1.z);
 
         Self { p0, p1 }
     }
@@ -100,7 +100,7 @@ impl Aabb {
         // find smallest exiting t value
         let t1 = tx_max.min(ty_max).min(tz_max);
 
-        if t0 < t1 && t1 > K_EPSILON {
+        if t0 <= t1 && t1 > K_EPSILON {
             if t0 > K_EPSILON {
                 Some(t0)
             } else {

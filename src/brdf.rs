@@ -46,6 +46,14 @@ pub struct SvLambertian {
     texture: Box<dyn Texture + Sync + Send>,
 }
 
+impl SvLambertian {
+    pub fn new(kd: f64, texture: Box<dyn Texture + Sync + Send>) -> Self {
+        assert!((0. ..=1.).contains(&kd));
+
+        SvLambertian { kd, texture }
+    }
+}
+
 impl Brdf for SvLambertian {
     fn f(&self, sr: &ShadeRec, _wi: &Vector, _wo: &Vector) -> Rgb {
         self.texture.get_color(sr) * self.kd * FRAC_1_PI

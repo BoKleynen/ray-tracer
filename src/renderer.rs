@@ -43,7 +43,7 @@ impl Renderer for DirectIllumination {
 
                         match world.hit_objects(&ray) {
                             None => world.background_color(),
-                            Some(sr) => Self::shade(&sr.material, &sr, &ray),
+                            Some(sr) => Self::shade(sr.shape().material(), &sr, &ray),
                         }
                     });
 
@@ -88,6 +88,32 @@ impl DirectIllumination {
                 ambient_radiance + direct_diffuse_radiance
             }
             Material::Emissive(emissive) => emissive.ce * emissive.ls,
+            Material::SvMatte { ambient_brdf, diffuse_brdf } => {
+                let wo = -ray.direction();
+                let ambient_radiance =
+                    ambient_brdf.rho(sr, &wo) * sr.world.ambient_light().radiance();
+                let direct_diffuse_radiance: Rgb = sr
+                    .world
+                    .lights()
+                    .iter()
+                    .map(|light| {
+                        light.average(&|sample| {
+                            let wi = sample.direction(sr);
+                            let n_dot_wi = sr.normal.dot(&wi);
+
+                            if n_dot_wi > 0. && sample.visible(&Ray::new(sr.hit_point, *wi), sr) {
+                                diffuse_brdf.f(sr, &wo, &wi)
+                                    * sample.light().radiance(sr)
+                                    * n_dot_wi
+                            } else {
+                                Rgb::black()
+                            }
+                        })
+                    })
+                    .sum();
+
+                ambient_radiance + direct_diffuse_radiance
+            }
         }
     }
 }

@@ -116,8 +116,8 @@ impl GeometricObject {
         self.shape.as_ref()
     }
 
-    pub fn material(&self) -> Material {
-        self.material.clone()
+    pub fn material(&self) -> &Material {
+        &self.material
     }
 
     pub fn sphere(transformation: Transformation, material: Material) -> Self {

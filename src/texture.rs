@@ -1,16 +1,16 @@
 use image::io::Reader as ImageReader;
 use image::{ImageError, Pixel};
+use image::GenericImageView;
 
 use crate::film::Rgb;
 use crate::shade_rec::ShadeRec;
 use crate::Point3;
-use image::GenericImageView;
 
 pub trait Texture {
     fn get_color(&self, sr: &ShadeRec) -> Rgb;
 }
 
-struct ConstantColor(Rgb);
+pub struct ConstantColor(Rgb);
 
 impl Texture for ConstantColor {
     fn get_color(&self, _sr: &ShadeRec) -> Rgb {
@@ -18,7 +18,8 @@ impl Texture for ConstantColor {
     }
 }
 
-struct ImageTexture {
+#[derive(Clone)]
+pub struct ImageTexture {
     hres: u32,
     vres: u32,
     image: Vec<Rgb>,
@@ -27,11 +28,12 @@ struct ImageTexture {
 
 impl Texture for ImageTexture {
     fn get_color(&self, sr: &ShadeRec) -> Rgb {
+
         let (u, v) = match &self.mapping {
             Some(mapping) => {
                 mapping.get_texel_coordinates(sr.local_hit_point, self.hres, self.vres)
             }
-            None => (sr.uv.x.round() as u32, sr.uv.y.round() as u32),
+            None => ((self.hres as f64 * sr.uv.x).round() as u32, (self.vres as f64 * sr.uv.y).round() as u32),
         };
 
         let index = v + self.hres * (self.vres - u - 1);
@@ -67,6 +69,7 @@ impl ImageTexture {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
 pub enum Mapping {
     Spherical,
 }
