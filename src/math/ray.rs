@@ -1,20 +1,20 @@
 use nalgebra::Affine3;
 
 use super::Transformable;
-use crate::{Point, Vector};
+use crate::{Point3, Vector};
 
 #[derive(Debug, Clone)]
 pub struct Ray {
-    origin: Point,
+    origin: Point3,
     direction: Vector,
 }
 
 impl Ray {
-    pub fn new(origin: Point, direction: Vector) -> Self {
+    pub fn new(origin: Point3, direction: Vector) -> Self {
         Self { origin, direction }
     }
 
-    pub fn origin(&self) -> &Point {
+    pub fn origin(&self) -> &Point3 {
         &self.origin
     }
 

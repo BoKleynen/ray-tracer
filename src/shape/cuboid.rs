@@ -1,16 +1,16 @@
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect};
-use crate::{Point, Vector, K_EPSILON};
+use crate::{Point3, Vector, K_EPSILON};
 
 /// A three-dimensional cuboid bounded by a corner and it's mirror with respect
 /// to the origin.
 #[derive(Debug, Copy, Clone)]
 pub struct Cuboid {
-    corner: Point,
+    corner: Point3,
 }
 
 impl Cuboid {
-    pub fn new(corner: Point) -> Self {
+    pub fn new(corner: Point3) -> Self {
         Self { corner }
     }
 }
@@ -34,8 +34,8 @@ impl Bounded for Cuboid {
         };
 
         Aabb::new(
-            Point::new(min_x, min_y, min_z),
-            Point::new(max_x, max_y, max_z),
+            Point3::new(min_x, min_y, min_z),
+            Point3::new(max_x, max_y, max_z),
         )
     }
 }

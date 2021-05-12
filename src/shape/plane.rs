@@ -1,14 +1,14 @@
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect};
-use crate::{Point, Vector, K_EPSILON};
+use crate::{Point3, Vector, K_EPSILON};
 
 pub struct Plane {
     normal: Vector,
-    point: Point,
+    point: Point3,
 }
 
 impl Plane {
-    pub fn new(normal: Vector, point: Point) -> Self {
+    pub fn new(normal: Vector, point: Point3) -> Self {
         Self { normal, point }
     }
 }
@@ -16,8 +16,8 @@ impl Plane {
 impl Bounded for Plane {
     fn bbox(&self) -> Aabb {
         Aabb::new(
-            Point::new(f64::MIN, f64::MIN, f64::MIN),
-            Point::new(f64::MAX, f64::MAX, f64::MAX),
+            Point3::new(f64::MIN, f64::MIN, f64::MIN),
+            Point3::new(f64::MAX, f64::MAX, f64::MAX),
         )
     }
 }

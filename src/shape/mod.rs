@@ -1,6 +1,6 @@
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
-use crate::{Point, Vector};
+use crate::{Point3, Vector};
 use std::ptr::NonNull;
 
 pub use aabb::{Aabb, Union};
@@ -128,14 +128,14 @@ impl GeometricObject {
         Self::new(shape, material)
     }
 
-    pub fn cuboid(corner: Point, transformation: Transformation, material: Material) -> Self {
+    pub fn cuboid(corner: Point3, transformation: Transformation, material: Material) -> Self {
         let shape = Box::new(Transformed::cuboid(corner, transformation));
         Self::new(shape, material)
     }
 
     pub fn plane(
         normal: Vector,
-        point: Point,
+        point: Point3,
         transformation: Transformation,
         material: Material,
     ) -> Self {
@@ -152,6 +152,6 @@ impl GeometricObject {
 pub struct Hit<S> {
     pub t: f64,
     pub normal: Vector,
-    pub local_hit_point: Point,
+    pub local_hit_point: Point3,
     pub shape: S,
 }

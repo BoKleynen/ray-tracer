@@ -4,7 +4,7 @@ use std::ptr::{addr_of, addr_of_mut};
 
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect, Union};
-use crate::Point;
+use crate::Point3;
 use NodeKind::*;
 use SplittingHeuristic::*;
 
@@ -99,7 +99,7 @@ impl<'a, S: Intersect> Bvh<'a, S> {
 #[derive(Debug, Copy, Clone)]
 struct ShapeData<'a, S> {
     bbox: Aabb,
-    centroid: Point,
+    centroid: Point3,
     shape: &'a S,
 }
 

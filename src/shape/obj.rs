@@ -8,11 +8,11 @@ use crate::math::Ray;
 use crate::shape::aabb::Aabb;
 use crate::shape::compound::Compound;
 use crate::shape::{Bounded, Hit, Intersect};
-use crate::{Point, Vector, K_EPSILON};
+use crate::{Point3, Vector, K_EPSILON};
 
 #[derive(Default)]
 pub struct Mesh {
-    vertexes: Vec<Point>,
+    vertexes: Vec<Point3>,
     normals: Vec<Unit<Vector>>,
 }
 
@@ -102,8 +102,8 @@ impl Triangle {
         let max_z = v0.z.max(v1.z).max(v2.z);
 
         Aabb::new(
-            Point::new(min_x, min_y, min_z),
-            Point::new(max_x, max_y, max_z),
+            Point3::new(min_x, min_y, min_z),
+            Point3::new(max_x, max_y, max_z),
         )
     }
 
@@ -178,28 +178,28 @@ impl Triangle {
         self.mesh.normals[self.idx2]
     }
 
-    fn v0(&self) -> Point {
+    fn v0(&self) -> Point3 {
         self.mesh.vertexes[self.idx0]
     }
 
-    fn v1(&self) -> Point {
+    fn v1(&self) -> Point3 {
         self.mesh.vertexes[self.idx1]
     }
 
-    fn v2(&self) -> Point {
+    fn v2(&self) -> Point3 {
         self.mesh.vertexes[self.idx2]
     }
 }
 
 struct TriangleHit {
     t: f64,
-    local_hit_point: Point,
+    local_hit_point: Point3,
     beta: f64,
     gamma: f64,
 }
 
 pub struct Obj {
-    vertexes: Vec<Point>,
+    vertexes: Vec<Point3>,
     texture_coordinates: Vec<(f64, f64)>,
     vertex_normals: Vec<Vector>,
     triangles: Vec<ObjTriangle>,
@@ -224,7 +224,7 @@ impl Obj {
                     let y = parts.next()?.parse().ok()?;
                     let z = parts.next()?.parse().ok()?;
 
-                    obj.vertexes.push(Point::new(x, y, z));
+                    obj.vertexes.push(Point3::new(x, y, z));
                 }
                 "vt" => {
                     let u = parts.next()?.parse().ok()?;

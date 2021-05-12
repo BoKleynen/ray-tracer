@@ -4,7 +4,7 @@ use crate::math::{Ray, Transformation};
 use crate::shape::compound::Compound;
 use crate::shape::obj::SmoothTriangle;
 use crate::shape::{Aabb, Bounded, Cuboid, Hit, Intersect, Obj, Plane, Sphere};
-use crate::{Point, Vector};
+use crate::{Point3, Vector};
 
 pub struct Transformed<S> {
     shape: S,
@@ -66,14 +66,14 @@ impl<S> Transformed<S> {
             .unwrap();
 
         Aabb::new(
-            Point::new(min_x, min_y, min_z),
-            Point::new(max_x, max_y, max_z),
+            Point3::new(min_x, min_y, min_z),
+            Point3::new(max_x, max_y, max_z),
         )
     }
 }
 
 impl Transformed<Cuboid> {
-    pub fn cuboid(corner: Point, transformation: Transformation) -> Self {
+    pub fn cuboid(corner: Point3, transformation: Transformation) -> Self {
         let shape = Cuboid::new(corner);
         Self::new(shape, transformation)
     }
@@ -87,7 +87,7 @@ impl Transformed<Compound<SmoothTriangle>> {
 }
 
 impl Transformed<Plane> {
-    pub fn plane(normal: Vector, point: Point, transformation: Transformation) -> Self {
+    pub fn plane(normal: Vector, point: Point3, transformation: Transformation) -> Self {
         let shape = Plane::new(normal, point);
         Self::new(shape, transformation)
     }

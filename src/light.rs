@@ -6,7 +6,7 @@ use crate::math::Ray;
 use crate::sampler::{Sampler, UniformSampler};
 use crate::shade_rec::ShadeRec;
 use crate::shape::{GeometricObject, Rectangle};
-use crate::{Point, Vector, K_EPSILON};
+use crate::{Point3, Vector, K_EPSILON};
 
 pub struct AmbientLight {
     ls: f64,
@@ -52,7 +52,7 @@ impl<T: Light> Light for Box<T> {
 
 pub struct LightSample<'a> {
     light: &'a dyn Light,
-    location: Point,
+    location: Point3,
 }
 
 impl<'a> LightSample<'a> {
@@ -74,18 +74,18 @@ impl<'a> LightSample<'a> {
 }
 
 pub struct PointLight {
-    location: Point,
+    location: Point3,
     material: Emissive,
 }
 
 impl PointLight {
-    pub fn new(ls: f64, color: Rgb, location: Point) -> Self {
+    pub fn new(ls: f64, color: Rgb, location: Point3) -> Self {
         let material = Emissive::new(ls, color);
 
         Self { location, material }
     }
 
-    pub fn white(ls: f64, location: Point) -> Self {
+    pub fn white(ls: f64, location: Point3) -> Self {
         Self::new(ls, Rgb::white(), location)
     }
 }

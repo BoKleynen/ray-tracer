@@ -3,7 +3,7 @@ use std::ops::Neg;
 
 use crate::math::{OrthonormalBasis, Ray};
 use crate::sampler::Sample;
-use crate::{Point, Vector};
+use crate::{Point3, Vector};
 
 pub trait Camera {
     fn generate_ray(&self, column: usize, row: usize, sample: Sample) -> Ray;
@@ -15,7 +15,7 @@ pub trait Camera {
 pub struct PerspectiveCamera {
     x_res: usize,
     y_res: usize,
-    origin: Point,
+    origin: Point3,
     basis: OrthonormalBasis,
     width: f64,
     height: f64,
@@ -43,14 +43,14 @@ impl Camera for PerspectiveCamera {
 pub struct CameraBuilder {
     x_res: Option<usize>,
     y_res: Option<usize>,
-    origin: Point,
+    origin: Point3,
     look_at: Option<Vector>,
     up: Option<Vector>,
     fov: Option<f64>,
 }
 
 impl CameraBuilder {
-    pub fn new(origin: Point) -> Self {
+    pub fn new(origin: Point3) -> Self {
         Self {
             x_res: None,
             y_res: None,
@@ -71,7 +71,7 @@ impl CameraBuilder {
         self
     }
 
-    pub fn destination(mut self, destination: Point) -> Self {
+    pub fn destination(mut self, destination: Point3) -> Self {
         self.look_at = Some(destination - self.origin);
         self
     }
