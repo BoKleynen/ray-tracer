@@ -104,7 +104,6 @@ struct ShapeData<'a, S> {
 }
 
 impl<S> Bounded for ShapeData<'_, S> {
-    #[inline]
     fn bbox(&self) -> Aabb {
         self.bbox
     }

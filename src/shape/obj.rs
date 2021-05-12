@@ -23,7 +23,6 @@ pub struct SmoothTriangle {
 }
 
 impl Bounded for SmoothTriangle {
-    #[inline]
     fn bbox(&self) -> Aabb {
         self.inner.bbox()
     }
@@ -61,7 +60,6 @@ pub struct FlatTriangle {
 }
 
 impl Bounded for FlatTriangle {
-    #[inline]
     fn bbox(&self) -> Aabb {
         self.inner.bbox()
     }
