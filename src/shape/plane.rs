@@ -1,6 +1,6 @@
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect};
-use crate::{Point3, Vector, K_EPSILON};
+use crate::{Point3, Vector, K_EPSILON, Point2};
 
 pub struct Plane {
     normal: Vector,
@@ -35,6 +35,7 @@ impl Intersect for Plane {
                 normal: self.normal,
                 local_hit_point: ray.origin() + t * ray.direction(),
                 shape: (),
+                uv: Point2::origin()
             });
         } else {
             None

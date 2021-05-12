@@ -1,6 +1,6 @@
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
-use crate::{Point3, Vector};
+use crate::{Point3, Vector, Point2};
 use std::ptr::NonNull;
 
 pub use aabb::{Aabb, Union};
@@ -31,7 +31,6 @@ where
     S: Bounded + ?Sized,
     T: Deref<Target = S>,
 {
-    #[inline]
     fn bbox(&self) -> Aabb {
         (**self).bbox()
     }
@@ -56,17 +55,14 @@ where
 {
     type Intersection = S::Intersection;
 
-    #[inline]
     fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
         (**self).intersect(ray)
     }
 
-    #[inline]
     fn count_intersection_tests(&self, ray: &Ray) -> usize {
         (**self).count_intersection_tests(ray)
     }
 
-    #[inline]
     fn hit(&self, ray: &Ray) -> bool {
         (**self).hit(ray)
     }
@@ -98,6 +94,7 @@ impl Intersect for GeometricObject {
             normal: hit.normal,
             local_hit_point: hit.local_hit_point,
             shape: self.into(),
+            uv: hit.uv,
         })
     }
 
@@ -154,4 +151,5 @@ pub struct Hit<S> {
     pub normal: Vector,
     pub local_hit_point: Point3,
     pub shape: S,
+    pub uv: Point2,
 }

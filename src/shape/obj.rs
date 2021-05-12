@@ -8,12 +8,13 @@ use crate::math::Ray;
 use crate::shape::aabb::Aabb;
 use crate::shape::compound::Compound;
 use crate::shape::{Bounded, Hit, Intersect};
-use crate::{Point3, Vector, K_EPSILON};
+use crate::{Point2, Point3, Vector, K_EPSILON};
 
 #[derive(Default)]
 pub struct Mesh {
     vertexes: Vec<Point3>,
     normals: Vec<Unit<Vector>>,
+    texture_coordinates: Vec<Point2>,
 }
 
 #[repr(transparent)]
@@ -22,8 +23,9 @@ pub struct SmoothTriangle {
 }
 
 impl Bounded for SmoothTriangle {
+    #[inline]
     fn bbox(&self) -> Aabb {
-        self.inner.bounding_box()
+        self.inner.bbox()
     }
 }
 
@@ -43,6 +45,7 @@ impl Intersect for SmoothTriangle {
                 normal,
                 local_hit_point: hit.local_hit_point,
                 shape: (),
+                uv: hit.uv
             }
         })
     }
@@ -58,8 +61,9 @@ pub struct FlatTriangle {
 }
 
 impl Bounded for FlatTriangle {
+    #[inline]
     fn bbox(&self) -> Aabb {
-        self.inner.bounding_box()
+        self.inner.bbox()
     }
 }
 
@@ -72,6 +76,7 @@ impl Intersect for FlatTriangle {
             normal: *self.inner.normal,
             local_hit_point: hit.local_hit_point,
             shape: (),
+            uv: hit.uv,
         })
     }
 
@@ -88,8 +93,8 @@ struct Triangle {
     normal: Unit<Vector>,
 }
 
-impl Triangle {
-    fn bounding_box(&self) -> Aabb {
+impl Bounded for Triangle {
+    fn bbox(&self) -> Aabb {
         let v0 = self.v0();
         let v1 = self.v1();
         let v2 = self.v2();
@@ -106,7 +111,9 @@ impl Triangle {
             Point3::new(max_x, max_y, max_z),
         )
     }
+}
 
+impl Triangle {
     fn intersect(&self, ray: &Ray) -> Option<TriangleHit> {
         let v0 = self.mesh.vertexes[self.idx0];
         let v1 = self.mesh.vertexes[self.idx1];
@@ -158,11 +165,23 @@ impl Triangle {
         }
 
         let local_hit_point = ray.origin() + t * ray.direction();
+        let vt0 = self.mesh.texture_coordinates[self.idx0];
+        let vt1 = self.mesh.texture_coordinates[self.idx1];
+        let vt2 = self.mesh.texture_coordinates[self.idx2];
+
+        let u = beta * vt0.x
+            + gamma * vt1.x
+            + (1. - beta - gamma) * vt2.x;
+        let v = beta * vt0.y
+            + gamma * vt1.y
+            + (1. - beta - gamma) * vt2.y;
+
         Some(TriangleHit {
             t,
             local_hit_point,
             beta,
             gamma,
+            uv: Point2::new(u,v)
         })
     }
 
@@ -196,11 +215,12 @@ struct TriangleHit {
     local_hit_point: Point3,
     beta: f64,
     gamma: f64,
+    uv: Point2,
 }
 
 pub struct Obj {
     vertexes: Vec<Point3>,
-    texture_coordinates: Vec<(f64, f64)>,
+    texture_coordinates: Vec<Point2>,
     vertex_normals: Vec<Vector>,
     triangles: Vec<ObjTriangle>,
 }
@@ -230,7 +250,7 @@ impl Obj {
                     let u = parts.next()?.parse().ok()?;
                     let v = parts.next()?.parse().ok()?;
 
-                    obj.texture_coordinates.push((u, v));
+                    obj.texture_coordinates.push(Point2::new(u, v));
                 }
                 "vn" => {
                     let x = parts.next()?.parse().ok()?;
@@ -262,6 +282,7 @@ impl Obj {
     }
 
     fn smooth_triangles(self) -> Vec<SmoothTriangle> {
+        // safety: SmoothTriangle is a different transparent representation of Triangle
         unsafe {
             let mut triangles = mem::ManuallyDrop::new(self.triangles());
             Vec::from_raw_parts(
@@ -273,6 +294,7 @@ impl Obj {
     }
 
     fn flat_triangles(self) -> Vec<FlatTriangle> {
+        // safety: FlatTriangle is a different transparent representation of Triangle
         unsafe {
             let mut triangles = mem::ManuallyDrop::new(self.triangles());
             Vec::from_raw_parts(
@@ -285,6 +307,7 @@ impl Obj {
 
     fn triangles(self) -> Vec<Triangle> {
         let mut normals = vec![Vec::new(); self.vertexes.len()];
+        let mut texture_coordinates = vec![Vec::new(); self.vertexes.len()];
         self.triangles.iter().for_each(|ObjTriangle(a, b, c)| {
             if let Some(ns) = normals.get_mut(a.vertex_idx) {
                 ns.push(self.vertex_normals[a.normal_idx])
@@ -295,15 +318,35 @@ impl Obj {
             if let Some(ns) = normals.get_mut(c.vertex_idx) {
                 ns.push(self.vertex_normals[c.normal_idx])
             }
+
+            if let Some(vts) = texture_coordinates.get_mut(a.vertex_idx) {
+                vts.push(self.texture_coordinates[a.texture_idx])
+            }
+            if let Some(vts) = texture_coordinates.get_mut(b.vertex_idx) {
+                vts.push(self.texture_coordinates[b.texture_idx])
+            }
+            if let Some(vts) = texture_coordinates.get_mut(c.vertex_idx) {
+                vts.push(self.texture_coordinates[c.texture_idx])
+            }
         });
         let normals = normals
             .iter()
             .map(|ns| Unit::new_normalize(ns.iter().sum::<Vector>() / ns.len() as f64))
             .collect();
+        let texture_coordinates = texture_coordinates
+            .iter()
+            .map(|vts| {
+                Point2::new(
+                    vts.iter().map(|vt| vt.x).sum(),
+                    vts.iter().map(|vt| vt.y).sum(),
+                ) / vts.len() as f64
+            })
+            .collect();
 
         let mesh = Arc::new(Mesh {
             vertexes: self.vertexes,
             normals,
+            texture_coordinates,
         });
 
         self.triangles

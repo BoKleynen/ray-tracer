@@ -3,7 +3,7 @@ use nalgebra::Unit;
 use crate::math::Ray;
 use crate::sampler::Sample;
 use crate::shape::{Aabb, Bounded, Hit, Intersect};
-use crate::{Point3, Vector, K_EPSILON};
+use crate::{Point3, Vector, K_EPSILON, Point2};
 
 #[derive(Clone)]
 pub struct Rectangle {
@@ -69,6 +69,7 @@ impl Intersect for Rectangle {
             normal: *self.normal,
             local_hit_point: q,
             shape: (),
+            uv: Point2::origin()
         })
     }
 

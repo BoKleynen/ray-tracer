@@ -3,7 +3,7 @@ use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
 use crate::shape::{Compound, GeometricObject, Hit, Intersect};
-use crate::Vector;
+use crate::{Point2, Vector};
 
 pub struct World {
     geometric_objects: Compound<GeometricObject>,
@@ -22,6 +22,7 @@ impl World {
             ShadeRec {
                 hit_point: ray.origin() + hit.t * ray.direction(),
                 local_hit_point: hit.local_hit_point,
+                uv: Point2::origin(),
                 normal: hit.normal,
                 material: shape.material(),
                 depth: 0,
@@ -43,6 +44,7 @@ impl World {
                 // safety: since shape is in the world, this reference will at least be valid within
                 // this function.
                 shape: unsafe { hit.shape.as_ref() },
+                uv: hit.uv
             };
 
             p(hit)

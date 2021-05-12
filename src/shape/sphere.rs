@@ -1,6 +1,6 @@
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect};
-use crate::{Point3, K_EPSILON};
+use crate::{Point3, K_EPSILON, Point2};
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
 /// which is transformed by a transformation.
@@ -46,6 +46,7 @@ impl Intersect for Sphere {
                 normal: local_hit_point.coords,
                 local_hit_point,
                 shape: (),
+                uv: Point2::origin()
             });
         }
 
@@ -58,6 +59,7 @@ impl Intersect for Sphere {
                 normal: local_hit_point.coords,
                 local_hit_point,
                 shape: (),
+                uv: Point2::origin()
             });
         }
 
