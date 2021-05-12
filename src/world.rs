@@ -44,7 +44,7 @@ impl World {
                 // safety: since shape is in the world, this reference will at least be valid within
                 // this function.
                 shape: unsafe { hit.shape.as_ref() },
-                uv: hit.uv
+                uv: hit.uv,
             };
 
             p(hit)

@@ -44,7 +44,7 @@ impl Intersect for SmoothTriangle {
                 normal,
                 local_hit_point: hit.local_hit_point,
                 shape: (),
-                uv: hit.uv
+                uv: hit.uv,
             }
         })
     }
@@ -167,19 +167,15 @@ impl Triangle {
         let vt1 = self.mesh.texture_coordinates[self.idx1];
         let vt2 = self.mesh.texture_coordinates[self.idx2];
 
-        let u = beta * vt0.x
-            + gamma * vt1.x
-            + (1. - beta - gamma) * vt2.x;
-        let v = beta * vt0.y
-            + gamma * vt1.y
-            + (1. - beta - gamma) * vt2.y;
+        let u = beta * vt0.x + gamma * vt1.x + (1. - beta - gamma) * vt2.x;
+        let v = beta * vt0.y + gamma * vt1.y + (1. - beta - gamma) * vt2.y;
 
         Some(TriangleHit {
             t,
             local_hit_point,
             beta,
             gamma,
-            uv: Point2::new(u,v)
+            uv: Point2::new(u, v),
         })
     }
 

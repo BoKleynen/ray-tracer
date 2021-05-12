@@ -1,6 +1,6 @@
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect};
-use crate::{Point3, Vector, K_EPSILON, Point2};
+use crate::{Point2, Point3, Vector, K_EPSILON};
 
 /// A three-dimensional cuboid bounded by a corner and it's mirror with respect
 /// to the origin.
@@ -140,7 +140,7 @@ impl Intersect for Cuboid {
                     normal: face_in.normal(),
                     local_hit_point: ray.origin() + t0 * ray.direction(),
                     shape: (),
-                    uv: Point2::origin()
+                    uv: Point2::origin(),
                 })
             } else {
                 Some(Hit {
@@ -148,7 +148,7 @@ impl Intersect for Cuboid {
                     normal: face_out.normal(),
                     local_hit_point: ray.origin() + t1 * ray.direction(),
                     shape: (),
-                    uv: Point2::origin()
+                    uv: Point2::origin(),
                 })
             }
         } else {

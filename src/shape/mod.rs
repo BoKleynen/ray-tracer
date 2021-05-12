@@ -1,6 +1,6 @@
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
-use crate::{Point3, Vector, Point2};
+use crate::{Point2, Point3, Vector};
 use std::ptr::NonNull;
 
 pub use aabb::{Aabb, Union};

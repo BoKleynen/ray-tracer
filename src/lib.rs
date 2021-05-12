@@ -11,6 +11,7 @@ pub mod renderer;
 pub mod sampler;
 pub mod shade_rec;
 pub mod shape;
+pub mod texture;
 pub mod world;
 
 pub use accel::bvh;

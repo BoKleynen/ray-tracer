@@ -35,7 +35,7 @@ impl<'a, S: Intersect> Bvh<'a, S> {
         // safety: shapes will be read only from here on an therefore wont move.
         let shapes = unsafe { Pin::new_unchecked(shapes.into_boxed_slice()) };
 
-        // Initializing the `shapes` field
+        // Initializing the `shapes` field.
         unsafe {
             addr_of_mut!((*ptr).shapes).write(shapes);
         }

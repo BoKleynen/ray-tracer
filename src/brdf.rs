@@ -1,7 +1,8 @@
-use std::f64;
+use std::f64::consts::FRAC_1_PI;
 
 use crate::film::Rgb;
 use crate::shade_rec::ShadeRec;
+use crate::texture::Texture;
 use crate::Vector;
 
 pub trait Brdf {
@@ -28,7 +29,7 @@ impl Lambertian {
 
 impl Brdf for Lambertian {
     fn f(&self, _sr: &ShadeRec, _wi: &Vector, _wo: &Vector) -> Rgb {
-        self.cd * (self.kd * f64::consts::FRAC_1_PI)
+        self.cd * (self.kd * FRAC_1_PI)
     }
 
     fn sample_f(&self, _sr: &ShadeRec, _wo: &Vector) -> (Rgb, Vector) {
@@ -37,5 +38,24 @@ impl Brdf for Lambertian {
 
     fn rho(&self, _sr: &ShadeRec, _wo: &Vector) -> Rgb {
         self.cd * self.kd
+    }
+}
+
+pub struct SvLambertian {
+    kd: f64,
+    texture: Box<dyn Texture + Sync + Send>,
+}
+
+impl Brdf for SvLambertian {
+    fn f(&self, sr: &ShadeRec, _wi: &Vector, _wo: &Vector) -> Rgb {
+        self.texture.get_color(sr) * self.kd * FRAC_1_PI
+    }
+
+    fn sample_f(&self, _sr: &ShadeRec, _wo: &Vector) -> (Rgb, Vector) {
+        unimplemented!()
+    }
+
+    fn rho(&self, sr: &ShadeRec, _wo: &Vector) -> Rgb {
+        self.texture.get_color(sr) * self.kd
     }
 }
