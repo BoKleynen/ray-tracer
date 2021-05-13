@@ -17,14 +17,13 @@ impl World {
         self.geometric_objects.intersect(&ray).map(|hit| {
             // safety: since shape is in the world, this reference will at least be valid within
             // this function.
-            let shape = unsafe { hit.shape.as_ref() };
 
             ShadeRec {
                 hit_point: ray.origin() + hit.t * ray.direction(),
                 local_hit_point: hit.local_hit_point,
+                uv: hit.uv,
                 normal: hit.normal,
-                material: shape.material(),
-                depth: 0,
+                shape: hit.shape,
                 direction: Vector::default(),
                 world: self,
             }
@@ -43,6 +42,7 @@ impl World {
                 // safety: since shape is in the world, this reference will at least be valid within
                 // this function.
                 shape: unsafe { hit.shape.as_ref() },
+                uv: hit.uv,
             };
 
             p(hit)

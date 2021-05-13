@@ -11,24 +11,24 @@ use cg_practicum::renderer::{
 use cg_practicum::sampler::{JitteredSampler, RegularSampler, Unsampled};
 use cg_practicum::shape::{GeometricObject, Rectangle};
 use cg_practicum::world::WorldBuilder;
-use cg_practicum::{Point, Vector};
+use cg_practicum::{Point3, Vector};
 use std::error::Error;
 use std::time::Instant;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
 
-    let camera = CameraBuilder::new(Point::new(0., 0., 7.))
+    let camera = CameraBuilder::new(Point3::new(0., 0., 7.))
         .x_res(1920)
         .y_res(1080)
-        .destination(Point::new(0., 0., 0.))
+        .destination(Point3::new(0., 0., 0.))
         .up(Vector::new(0., 1., 0.))
         .fov(120.)
         .build()
         .ok_or("invalid camera configuration")?;
 
     let rectangle = Rectangle::new(
-        Point::new(1., 5., -1.),
+        Point3::new(1., 5., -1.),
         Vector::new(0., 0., 2.),
         Vector::new(-2., 0., 0.),
     );
@@ -47,7 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     let plane = GeometricObject::plane(
         Vector::new(0., 1., 0.),
-        Point::new(0., -4., 0.),
+        Point3::new(0., -4., 0.),
         Transformation::identity(),
         material2,
     );

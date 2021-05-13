@@ -8,14 +8,14 @@ use cg_practicum::renderer::{DirectIllumination, Renderer};
 use cg_practicum::sampler::{JitteredSampler, Unsampled};
 use cg_practicum::shape::GeometricObject;
 use cg_practicum::world::WorldBuilder;
-use cg_practicum::{Point, Vector};
+use cg_practicum::{Point3, Vector};
 use std::error::Error;
 use std::time::Instant;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
 
-    let camera = CameraBuilder::new(Point::new(0., 0., 4.))
+    let camera = CameraBuilder::new(Point3::new(0., 0., 4.))
         .x_res(1080)
         .y_res(1080)
         .look_at(Vector::new(0., 0., -1.))
@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid camera configuration")?;
 
-    let light = PointLight::white(1., Point::new(0., 2., -1.));
+    let light = PointLight::white(1., Point3::new(0., 2., -1.));
 
     let white_material = Material::Matte {
         ambient_brdf: Lambertian::new(0.15, Rgb::new(238. / 255., 235. / 255., 227. / 255.)),
@@ -45,40 +45,40 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let back_plane = GeometricObject::plane(
         Vector::new(0., 0., 1.),
-        Point::new(0., 0., -5.),
+        Point3::new(0., 0., -5.),
         Transformation::identity(),
         white_material.clone(),
     );
     let bottom_plane = GeometricObject::plane(
         Vector::new(0., 1., 0.),
-        Point::new(0., -5., 0.),
+        Point3::new(0., -5., 0.),
         Transformation::identity(),
         white_material.clone(),
     );
     let top_plane = GeometricObject::plane(
         Vector::new(0., -1., 0.),
-        Point::new(0., 5., 0.),
+        Point3::new(0., 5., 0.),
         Transformation::identity(),
         white_material.clone(),
     );
     let left_plane = GeometricObject::plane(
         Vector::new(1., 0., 0.),
-        Point::new(-5., 0., 0.),
+        Point3::new(-5., 0., 0.),
         Transformation::identity(),
         red_material,
     );
     let right_plane = GeometricObject::plane(
         Vector::new(-1., 0., 0.),
-        Point::new(5., 0., 0.),
+        Point3::new(5., 0., 0.),
         Transformation::identity(),
         green_material,
     );
 
     let t2 = Transformation::rotate_y(-40.).then(&Transformation::translate(1.75, -3.5, -2.5));
-    let cube = GeometricObject::cuboid(Point::new(1.5, 1.5, 1.5), t2, blue_material.clone());
+    let cube = GeometricObject::cuboid(Point3::new(1.5, 1.5, 1.5), t2, blue_material.clone());
 
     let t3 = Transformation::rotate_y(35.).then(&Transformation::translate(-2.5, -3., -4.));
-    let cuboid = GeometricObject::cuboid(Point::new(1.25, 3.5, 1.25), t3, white_material.clone());
+    let cuboid = GeometricObject::cuboid(Point3::new(1.25, 3.5, 1.25), t3, white_material.clone());
 
     let world = WorldBuilder::default()
         .background(Rgb::black())

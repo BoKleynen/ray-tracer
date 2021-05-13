@@ -1,4 +1,4 @@
-use crate::{Point, Vector};
+use crate::{Point3, Vector};
 use nalgebra as na;
 use nalgebra::{Affine3, Matrix4, Rotation3, Translation3, Unit};
 
@@ -106,7 +106,7 @@ impl Transformable for Vector {
     }
 }
 
-impl Transformable for Point {
+impl Transformable for Point3 {
     fn transform(&self, matrix: &Affine3<f64>) -> Self {
         matrix * self
     }

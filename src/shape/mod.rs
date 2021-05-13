@@ -1,6 +1,6 @@
 use crate::material::Material;
 use crate::math::{Ray, Transformation};
-use crate::{Point, Vector};
+use crate::{Point2, Point3, Vector};
 use std::ptr::NonNull;
 
 pub use aabb::{Aabb, Union};
@@ -10,6 +10,7 @@ pub use obj::{FlatTriangle, Obj, SmoothTriangle};
 pub use plane::Plane;
 pub use rectangle::Rectangle;
 pub use sphere::Sphere;
+use std::ops::Deref;
 pub use transformed::Transformed;
 
 mod aabb;
@@ -25,6 +26,16 @@ pub trait Bounded {
     fn bbox(&self) -> Aabb;
 }
 
+impl<T, S> Bounded for T
+where
+    S: Bounded + ?Sized,
+    T: Deref<Target = S>,
+{
+    fn bbox(&self) -> Aabb {
+        (**self).bbox()
+    }
+}
+
 pub trait Intersect: Bounded {
     type Intersection;
 
@@ -34,6 +45,26 @@ pub trait Intersect: Bounded {
 
     fn hit(&self, ray: &Ray) -> bool {
         self.intersect(ray).is_some()
+    }
+}
+
+impl<T, S> Intersect for T
+where
+    S: Intersect + ?Sized,
+    T: Deref<Target = S>,
+{
+    type Intersection = S::Intersection;
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
+        (**self).intersect(ray)
+    }
+
+    fn count_intersection_tests(&self, ray: &Ray) -> usize {
+        (**self).count_intersection_tests(ray)
+    }
+
+    fn hit(&self, ray: &Ray) -> bool {
+        (**self).hit(ray)
     }
 }
 
@@ -63,6 +94,7 @@ impl Intersect for GeometricObject {
             normal: hit.normal,
             local_hit_point: hit.local_hit_point,
             shape: self.into(),
+            uv: hit.uv,
         })
     }
 
@@ -84,8 +116,8 @@ impl GeometricObject {
         self.shape.as_ref()
     }
 
-    pub fn material(&self) -> Material {
-        self.material.clone()
+    pub fn material(&self) -> &Material {
+        &self.material
     }
 
     pub fn sphere(transformation: Transformation, material: Material) -> Self {
@@ -93,14 +125,14 @@ impl GeometricObject {
         Self::new(shape, material)
     }
 
-    pub fn cuboid(corner: Point, transformation: Transformation, material: Material) -> Self {
+    pub fn cuboid(corner: Point3, transformation: Transformation, material: Material) -> Self {
         let shape = Box::new(Transformed::cuboid(corner, transformation));
         Self::new(shape, material)
     }
 
     pub fn plane(
         normal: Vector,
-        point: Point,
+        point: Point3,
         transformation: Transformation,
         material: Material,
     ) -> Self {
@@ -114,32 +146,10 @@ impl GeometricObject {
     }
 }
 
-impl<T: Bounded + ?Sized> Bounded for Box<T> {
-    #[inline]
-    fn bbox(&self) -> Aabb {
-        (**self).bbox()
-    }
-}
-
-impl<S: Intersect + ?Sized> Intersect for Box<S> {
-    type Intersection = S::Intersection;
-
-    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
-        (**self).intersect(ray)
-    }
-
-    fn count_intersection_tests(&self, ray: &Ray) -> usize {
-        (**self).count_intersection_tests(ray)
-    }
-
-    fn hit(&self, ray: &Ray) -> bool {
-        (**self).hit(ray)
-    }
-}
-
 pub struct Hit<S> {
     pub t: f64,
     pub normal: Vector,
-    pub local_hit_point: Point,
+    pub local_hit_point: Point3,
     pub shape: S,
+    pub uv: Point2,
 }

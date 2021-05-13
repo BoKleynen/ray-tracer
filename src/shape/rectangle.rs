@@ -3,18 +3,18 @@ use nalgebra::Unit;
 use crate::math::Ray;
 use crate::sampler::Sample;
 use crate::shape::{Aabb, Bounded, Hit, Intersect};
-use crate::{Point, Vector, K_EPSILON};
+use crate::{Point2, Point3, Vector, K_EPSILON};
 
 #[derive(Clone)]
 pub struct Rectangle {
-    p: Point,
+    p: Point3,
     a: Vector,
     b: Vector,
     normal: Unit<Vector>,
 }
 
 impl Rectangle {
-    pub fn new(p: Point, a: Vector, b: Vector) -> Self {
+    pub fn new(p: Point3, a: Vector, b: Vector) -> Self {
         let normal = Unit::new_normalize(a.cross(&b));
         Self { p, a, b, normal }
     }
@@ -23,11 +23,11 @@ impl Rectangle {
         self.a.cross(&self.b).norm()
     }
 
-    pub fn sample(&self, sample: &Sample) -> Point {
+    pub fn sample(&self, sample: &Sample) -> Point3 {
         self.p + sample.0 * self.a + sample.1 * self.b
     }
 
-    pub fn normal_at(&self, _p: &Point) -> Unit<Vector> {
+    pub fn normal_at(&self, _p: &Point3) -> Unit<Vector> {
         self.normal
     }
 }
@@ -69,6 +69,7 @@ impl Intersect for Rectangle {
             normal: *self.normal,
             local_hit_point: q,
             shape: (),
+            uv: Point2::origin(),
         })
     }
 

@@ -1,6 +1,6 @@
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect};
-use crate::{Point, K_EPSILON};
+use crate::{Point2, Point3, K_EPSILON};
 
 /// Represents a three-dimensional unit sphere, centered at the origin,
 /// which is transformed by a transformation.
@@ -14,7 +14,7 @@ impl Sphere {
 
 impl Bounded for Sphere {
     fn bbox(&self) -> Aabb {
-        Aabb::new(Point::new(-1., -1., -1.), Point::new(1., 1., 1.))
+        Aabb::new(Point3::new(-1., -1., -1.), Point3::new(1., 1., 1.))
     }
 }
 
@@ -46,6 +46,7 @@ impl Intersect for Sphere {
                 normal: local_hit_point.coords,
                 local_hit_point,
                 shape: (),
+                uv: Point2::origin(),
             });
         }
 
@@ -58,6 +59,7 @@ impl Intersect for Sphere {
                 normal: local_hit_point.coords,
                 local_hit_point,
                 shape: (),
+                uv: Point2::origin(),
             });
         }
 

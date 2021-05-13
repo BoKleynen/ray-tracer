@@ -1,27 +1,27 @@
 use crate::math::Ray;
 use crate::shape::Bounded;
-use crate::{Point, Vector, K_EPSILON};
+use crate::{Point3, Vector, K_EPSILON};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Aabb {
-    pub(crate) p0: Point,
-    pub(crate) p1: Point,
+    pub(crate) p0: Point3,
+    pub(crate) p1: Point3,
 }
 
 impl Default for Aabb {
     fn default() -> Self {
-        let p0 = Point::new(f64::MAX, f64::MAX, f64::MAX);
-        let p1 = Point::new(f64::MIN, f64::MIN, f64::MIN);
+        let p0 = Point3::new(f64::MAX, f64::MAX, f64::MAX);
+        let p1 = Point3::new(f64::MIN, f64::MIN, f64::MIN);
 
         Self { p0, p1 }
     }
 }
 
 impl Aabb {
-    pub fn new(p0: Point, p1: Point) -> Self {
-        assert!(p0.x < p1.x);
-        assert!(p0.y < p1.y);
-        assert!(p0.z < p1.z);
+    pub fn new(p0: Point3, p1: Point3) -> Self {
+        assert!(p0.x <= p1.x);
+        assert!(p0.y <= p1.y);
+        assert!(p0.z <= p1.z);
 
         Self { p0, p1 }
     }
@@ -59,8 +59,8 @@ impl Aabb {
             .unwrap();
 
         Aabb::new(
-            Point::new(min_x, min_y, min_z),
-            Point::new(max_x, max_y, max_z),
+            Point3::new(min_x, min_y, min_z),
+            Point3::new(max_x, max_y, max_z),
         )
     }
 
@@ -100,7 +100,7 @@ impl Aabb {
         // find smallest exiting t value
         let t1 = tx_max.min(ty_max).min(tz_max);
 
-        if t0 < t1 && t1 > K_EPSILON {
+        if t0 <= t1 && t1 > K_EPSILON {
             if t0 > K_EPSILON {
                 Some(t0)
             } else {
@@ -111,7 +111,7 @@ impl Aabb {
         }
     }
 
-    pub fn vertices(&self) -> Vec<Point> {
+    pub fn vertices(&self) -> Vec<Point3> {
         let x0 = self.p0.x;
         let y0 = self.p0.y;
         let z0 = self.p0.z;
@@ -120,18 +120,18 @@ impl Aabb {
         let z1 = self.p1.z;
 
         vec![
-            Point::new(x0, y0, z0),
-            Point::new(x0, y0, z1),
-            Point::new(x0, y1, z0),
-            Point::new(x0, y1, z1),
-            Point::new(x1, y0, z0),
-            Point::new(x1, y0, z1),
-            Point::new(x1, y1, z0),
-            Point::new(x1, y1, z1),
+            Point3::new(x0, y0, z0),
+            Point3::new(x0, y0, z1),
+            Point3::new(x0, y1, z0),
+            Point3::new(x0, y1, z1),
+            Point3::new(x1, y0, z0),
+            Point3::new(x1, y0, z1),
+            Point3::new(x1, y1, z0),
+            Point3::new(x1, y1, z1),
         ]
     }
 
-    pub fn centroid(&self) -> Point {
+    pub fn centroid(&self) -> Point3 {
         self.p0 + 0.5 * (self.p1 - self.p0)
     }
 
@@ -140,7 +140,7 @@ impl Aabb {
         2. * (diag.x * diag.y + diag.x * diag.z + diag.y * diag.z)
     }
 
-    pub fn offset(&self, p: Point) -> Vector {
+    pub fn offset(&self, p: Point3) -> Vector {
         let mut res = p - self.p0;
         res.x /= self.p1.x - self.p0.x;
         res.y /= self.p1.y - self.p0.y;
@@ -153,10 +153,10 @@ pub trait Union<T> {
     fn union(&self, other: T) -> Self;
 }
 
-impl Union<Point> for Aabb {
-    fn union(&self, p: Point) -> Self {
-        let p0 = Point::new(self.p0.x.min(p.x), self.p0.y.min(p.y), self.p0.z.min(p.z));
-        let p1 = Point::new(self.p1.x.max(p.x), self.p1.y.max(p.y), self.p1.z.max(p.z));
+impl Union<Point3> for Aabb {
+    fn union(&self, p: Point3) -> Self {
+        let p0 = Point3::new(self.p0.x.min(p.x), self.p0.y.min(p.y), self.p0.z.min(p.z));
+        let p1 = Point3::new(self.p1.x.max(p.x), self.p1.y.max(p.y), self.p1.z.max(p.z));
 
         Self { p0, p1 }
     }
@@ -164,12 +164,12 @@ impl Union<Point> for Aabb {
 
 impl Union<Aabb> for Aabb {
     fn union(&self, bbox: Aabb) -> Self {
-        let p0 = Point::new(
+        let p0 = Point3::new(
             self.p0.x.min(bbox.p0.x),
             self.p0.y.min(bbox.p0.y),
             self.p0.z.min(bbox.p0.z),
         );
-        let p1 = Point::new(
+        let p1 = Point3::new(
             self.p1.x.max(bbox.p1.x),
             self.p1.y.max(bbox.p1.y),
             self.p1.z.max(bbox.p1.z),

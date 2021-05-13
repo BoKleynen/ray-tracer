@@ -1,13 +1,22 @@
-use crate::material::Material;
+use crate::shape::GeometricObject;
 use crate::world::World;
-use crate::{Point, Vector};
+use crate::{Point2, Point3, Vector};
+use std::ptr::NonNull;
 
 pub struct ShadeRec<'a> {
-    pub hit_point: Point,
-    pub local_hit_point: Point,
+    pub hit_point: Point3,
+    pub local_hit_point: Point3,
+    pub uv: Point2,
     pub normal: Vector,
-    pub material: Material,
-    pub depth: u32,
     pub direction: Vector,
     pub world: &'a World,
+    pub(crate) shape: NonNull<GeometricObject>,
+}
+
+impl<'a> ShadeRec<'a> {
+    pub fn shape(&self) -> &GeometricObject {
+        // safety: shapes are contained withing a world, so this reference will
+        // at leas live as long as 'a.
+        unsafe { self.shape.as_ref() }
+    }
 }

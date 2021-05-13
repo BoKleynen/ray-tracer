@@ -1,4 +1,4 @@
-use crate::brdf::Lambertian;
+use crate::brdf::{Lambertian, SvLambertian};
 use crate::film::Rgb;
 
 #[derive(Debug, Clone, Copy)]
@@ -16,7 +16,6 @@ impl Emissive {
     }
 }
 
-#[derive(Debug, Clone)]
 pub enum Material {
     // Perfect diffuse reflection
     Matte {
@@ -24,4 +23,8 @@ pub enum Material {
         diffuse_brdf: Lambertian,
     },
     Emissive(Emissive),
+    SvMatte {
+        ambient_brdf: SvLambertian,
+        diffuse_brdf: SvLambertian,
+    },
 }
