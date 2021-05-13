@@ -1,6 +1,5 @@
 #[cfg(feature = "bvh")]
-use crate::accel::bvh::Bvh;
-use crate::accel::bvh::SplittingHeuristic;
+use crate::accel::bvh::{Bvh, SplittingHeuristic};
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect};
 
@@ -11,7 +10,7 @@ pub struct Compound<S> {
 }
 
 #[cfg(not(any(feature = "bvh")))]
-impl<S: Shape> Compound<S> {
+impl<S: Bounded> Compound<S> {
     pub fn new(shapes: Vec<S>) -> Self {
         assert!(shapes.len() > 1);
 
@@ -22,11 +21,18 @@ impl<S: Shape> Compound<S> {
 }
 
 #[cfg(not(any(feature = "bvh")))]
-impl<S: Shape> Shape for Compound<S> {
-    fn intersect(&self, ray: &Ray) -> Option<Hit> {
-        if self.bbox.intersect(ray).is_none() {
-            return None;
-        }
+impl<S: Bounded> Bounded for Compound<S> {
+    fn bbox(&self) -> Aabb {
+        self.bbox
+    }
+}
+
+#[cfg(not(any(feature = "bvh")))]
+impl<S: Intersect> Intersect for Compound<S> {
+    type Intersection = S::Intersection;
+
+    fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
+        self.bbox.intersect(ray)?;
 
         self.shapes
             .iter()
@@ -45,9 +51,17 @@ impl<S: Shape> Shape for Compound<S> {
             .map(|shape| shape.count_intersection_tests(ray))
             .sum::<usize>()
     }
+}
 
-    fn bbox(&self) -> Aabb {
-        self.bbox
+#[cfg(not(any(feature = "bvh")))]
+impl<S: Intersect> Compound<S> {
+    pub fn intersect_any_where<P>(&self, ray: &Ray, p: P) -> bool
+    where
+        P: Fn(Hit<S::Intersection>) -> bool,
+    {
+        self.shapes
+            .iter()
+            .any(|shape| shape.intersect(ray).map_or(false, |hit| p(hit)))
     }
 }
 
@@ -87,6 +101,7 @@ impl<S: Intersect> Intersect for Compound<S> {
     }
 }
 
+#[cfg(feature = "bvh")]
 impl<S: Intersect> Compound<S> {
     pub fn intersect_any_where<F>(&self, ray: &Ray, f: F) -> bool
     where
