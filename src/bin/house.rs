@@ -20,7 +20,7 @@ use std::time::Instant;
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
 
-    let camera = CameraBuilder::new(Point3::new(-4., 1., 1.))
+    let camera = CameraBuilder::new(Point3::new(-4., 3., 3.))
         .x_res(1920)
         .y_res(1080)
         .destination(Point3::new(0., 1., 0.))
