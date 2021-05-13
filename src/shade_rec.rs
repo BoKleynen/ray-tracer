@@ -1,6 +1,6 @@
+use crate::shape::GeometricObject;
 use crate::world::World;
 use crate::{Point2, Point3, Vector};
-use crate::shape::GeometricObject;
 use std::ptr::NonNull;
 
 pub struct ShadeRec<'a> {
@@ -10,7 +10,7 @@ pub struct ShadeRec<'a> {
     pub normal: Vector,
     pub direction: Vector,
     pub world: &'a World,
-    pub(crate) shape: NonNull<GeometricObject>
+    pub(crate) shape: NonNull<GeometricObject>,
 }
 
 impl<'a> ShadeRec<'a> {

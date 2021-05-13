@@ -3,7 +3,7 @@ use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
 use crate::shade_rec::ShadeRec;
 use crate::shape::{Compound, GeometricObject, Hit, Intersect};
-use crate::{Point2, Vector};
+use crate::Vector;
 
 pub struct World {
     geometric_objects: Compound<GeometricObject>,

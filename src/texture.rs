@@ -1,6 +1,6 @@
 use image::io::Reader as ImageReader;
-use image::{ImageError, Pixel};
 use image::GenericImageView;
+use image::{ImageError, Pixel};
 
 use crate::film::Rgb;
 use crate::shade_rec::ShadeRec;
@@ -28,15 +28,17 @@ pub struct ImageTexture {
 
 impl Texture for ImageTexture {
     fn get_color(&self, sr: &ShadeRec) -> Rgb {
-
         let (u, v) = match &self.mapping {
             Some(mapping) => {
                 mapping.get_texel_coordinates(sr.local_hit_point, self.hres, self.vres)
             }
-            None => ((self.hres as f64 * sr.uv.x).round() as u32, (self.vres as f64 * sr.uv.y).round() as u32),
+            None => (
+                (self.hres as f64 * sr.uv.x).round() as u32 % self.hres,
+                (self.vres as f64 * sr.uv.y).round() as u32 % self.vres,
+            ),
         };
 
-        let index = v + self.hres * (self.vres - u - 1);
+        let index = u + self.hres * (self.vres - v - 1);
         *self.image.get(index as usize).unwrap()
     }
 }

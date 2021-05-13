@@ -88,7 +88,10 @@ impl DirectIllumination {
                 ambient_radiance + direct_diffuse_radiance
             }
             Material::Emissive(emissive) => emissive.ce * emissive.ls,
-            Material::SvMatte { ambient_brdf, diffuse_brdf } => {
+            Material::SvMatte {
+                ambient_brdf,
+                diffuse_brdf,
+            } => {
                 let wo = -ray.direction();
                 let ambient_radiance =
                     ambient_brdf.rho(sr, &wo) * sr.world.ambient_light().radiance();

@@ -85,9 +85,9 @@ impl Intersect for FlatTriangle {
 
 struct Triangle {
     mesh: Arc<Mesh>,
-    idx0: usize,
-    idx1: usize,
-    idx2: usize,
+    v: (usize, usize, usize),
+    vt: (usize, usize, usize),
+    n: (usize, usize, usize),
     normal: Unit<Vector>,
 }
 
@@ -113,9 +113,9 @@ impl Bounded for Triangle {
 
 impl Triangle {
     fn intersect(&self, ray: &Ray) -> Option<TriangleHit> {
-        let v0 = self.mesh.vertexes[self.idx0];
-        let v1 = self.mesh.vertexes[self.idx1];
-        let v2 = self.mesh.vertexes[self.idx2];
+        let v0 = self.v0();
+        let v1 = self.v1();
+        let v2 = self.v2();
 
         let a = v0.x - v1.x;
         let b = v0.x - v2.x;
@@ -163,12 +163,12 @@ impl Triangle {
         }
 
         let local_hit_point = ray.origin() + t * ray.direction();
-        let vt0 = self.mesh.texture_coordinates[self.idx0];
-        let vt1 = self.mesh.texture_coordinates[self.idx1];
-        let vt2 = self.mesh.texture_coordinates[self.idx2];
+        let vt0 = self.mesh.texture_coordinates[self.vt.0];
+        let vt1 = self.mesh.texture_coordinates[self.vt.1];
+        let vt2 = self.mesh.texture_coordinates[self.vt.2];
 
-        let u = beta * vt0.x + gamma * vt1.x + (1. - beta - gamma) * vt2.x;
-        let v = beta * vt0.y + gamma * vt1.y + (1. - beta - gamma) * vt2.y;
+        let u = beta * vt1.x + gamma * vt2.x + (1. - beta - gamma) * vt0.x;
+        let v = beta * vt1.y + gamma * vt2.y + (1. - beta - gamma) * vt0.y;
 
         Some(TriangleHit {
             t,
@@ -180,27 +180,27 @@ impl Triangle {
     }
 
     fn n0(&self) -> Unit<Vector> {
-        self.mesh.normals[self.idx0]
+        self.mesh.normals[self.n.0]
     }
 
     fn n1(&self) -> Unit<Vector> {
-        self.mesh.normals[self.idx1]
+        self.mesh.normals[self.n.1]
     }
 
     fn n2(&self) -> Unit<Vector> {
-        self.mesh.normals[self.idx2]
+        self.mesh.normals[self.n.2]
     }
 
     fn v0(&self) -> Point3 {
-        self.mesh.vertexes[self.idx0]
+        self.mesh.vertexes[self.v.0]
     }
 
     fn v1(&self) -> Point3 {
-        self.mesh.vertexes[self.idx1]
+        self.mesh.vertexes[self.v.1]
     }
 
     fn v2(&self) -> Point3 {
-        self.mesh.vertexes[self.idx2]
+        self.mesh.vertexes[self.v.2]
     }
 }
 
@@ -300,64 +300,35 @@ impl Obj {
     }
 
     fn triangles(self) -> Vec<Triangle> {
-        let mut normals = vec![Vec::new(); self.vertexes.len()];
-        let mut texture_coordinates = vec![Vec::new(); self.vertexes.len()];
-        self.triangles.iter().for_each(|ObjTriangle(a, b, c)| {
-            if let Some(ns) = normals.get_mut(a.vertex_idx) {
-                ns.push(self.vertex_normals[a.normal_idx])
-            }
-            if let Some(ns) = normals.get_mut(b.vertex_idx) {
-                ns.push(self.vertex_normals[b.normal_idx])
-            }
-            if let Some(ns) = normals.get_mut(c.vertex_idx) {
-                ns.push(self.vertex_normals[c.normal_idx])
-            }
-
-            if let Some(vts) = texture_coordinates.get_mut(a.vertex_idx) {
-                vts.push(self.texture_coordinates[a.texture_idx])
-            }
-            if let Some(vts) = texture_coordinates.get_mut(b.vertex_idx) {
-                vts.push(self.texture_coordinates[b.texture_idx])
-            }
-            if let Some(vts) = texture_coordinates.get_mut(c.vertex_idx) {
-                vts.push(self.texture_coordinates[c.texture_idx])
-            }
-        });
-        let normals = normals
+        let normals = self
+            .vertex_normals
             .iter()
-            .map(|ns| Unit::new_normalize(ns.iter().sum::<Vector>() / ns.len() as f64))
+            .map(|n| Unit::new_normalize(*n))
             .collect();
-        let texture_coordinates = texture_coordinates
-            .iter()
-            .map(|vts| {
-                Point2::new(
-                    vts.iter().map(|vt| vt.x).sum(),
-                    vts.iter().map(|vt| vt.y).sum(),
-                ) / vts.len() as f64
-            })
-            .collect();
-
         let mesh = Arc::new(Mesh {
             vertexes: self.vertexes,
             normals,
-            texture_coordinates,
+            texture_coordinates: self.texture_coordinates,
         });
 
         self.triangles
             .iter()
             .map(|ObjTriangle(a, b, c)| {
-                let n0 = mesh.normals[a.vertex_idx];
-                let n1 = mesh.normals[b.vertex_idx];
-                let n2 = mesh.normals[c.vertex_idx];
+                let n0 = mesh.normals[a.normal_idx];
+                let n1 = mesh.normals[b.normal_idx];
+                let n2 = mesh.normals[c.normal_idx];
 
                 let normal = Unit::new_normalize((*n0 + *n1 + *n2) / 3.);
+                let n = (a.normal_idx, b.normal_idx, c.normal_idx);
+                let v = (a.vertex_idx, b.vertex_idx, c.vertex_idx);
+                let vt = (a.texture_idx, b.texture_idx, c.texture_idx);
 
                 Triangle {
                     mesh: mesh.clone(),
-                    idx0: a.vertex_idx,
-                    idx1: b.vertex_idx,
-                    idx2: c.vertex_idx,
                     normal,
+                    n,
+                    v,
+                    vt,
                 }
             })
             .collect()
