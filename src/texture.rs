@@ -57,6 +57,7 @@ impl ImageTexture {
                     INV_MAX_VALUE * green as f64,
                     INV_MAX_VALUE * blue as f64,
                 )
+                .pow(2.2)
             })
             .collect();
 
