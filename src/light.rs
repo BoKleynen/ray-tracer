@@ -6,7 +6,7 @@ use crate::math::Ray;
 use crate::sampler::{Sampler, UniformSampler};
 use crate::shade_rec::ShadeRec;
 use crate::shape::{GeometricObject, Rectangle};
-use crate::{Point3, Vector, K_EPSILON};
+use crate::{Point3, Vector};
 
 pub struct AmbientLight {
     ls: f64,
@@ -67,9 +67,8 @@ impl<'a> LightSample<'a> {
     }
 
     pub fn visible(&self, ray: &Ray, sr: &ShadeRec) -> bool {
-        !sr.world.hit_any_object_where(ray, |hit| {
-            hit.t < (self.location - ray.origin()).norm() - K_EPSILON
-        })
+        !sr.world
+            .hit_any_object_where(ray, |hit| hit.t < (self.location - ray.origin()).norm())
     }
 }
 

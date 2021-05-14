@@ -10,17 +10,19 @@ Computer Graphics: Project (academic year 2020-2021)
 """
 
 [dependencies]
-clap = "3.0.0-beta.2"
-rayon = "1.5"
-image = "0.23"
-nalgebra = "0.26"
-itertools = "0.10"
 chrono = "0.4"
-rand = "0.8"
+clap = "3.0.0-beta.2"
+image = "0.23"
 indicatif = { version = "0.16", features = ["rayon"] }
+itertools = "0.10"
+nalgebra = "0.26"
+rand = "0.8"
+rand_chacha = "0.3"
+rand_distr = "0.4"
+rayon = "1.5"
 
 [profile.release]
-lto = true
+#lto = true
 
 [features]
 default = ["bvh"]

@@ -1,3 +1,4 @@
+use crate::bvh::SplittingHeuristic;
 use crate::film::Rgb;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
@@ -71,6 +72,7 @@ pub struct WorldBuilder {
     lights: Vec<Box<dyn Light>>,
     ambient_light: Option<AmbientLight>,
     background_color: Option<Rgb>,
+    splitting_heuristic: Option<SplittingHeuristic>,
 }
 
 impl WorldBuilder {
@@ -98,12 +100,21 @@ impl WorldBuilder {
         self
     }
 
+    pub fn splitting_heuristic(mut self, splitting_heuristic: SplittingHeuristic) -> Self {
+        self.splitting_heuristic = Some(splitting_heuristic);
+        self
+    }
+
     pub fn build(self) -> Option<World> {
         let mut geometric_objects = self.geometric_objects;
         geometric_objects.extend(
             self.lights
                 .iter()
                 .filter_map(|light| light.geometric_object()),
+        );
+        let geometric_objects = Compound::new_with_splitting_heuristic(
+            geometric_objects,
+            self.splitting_heuristic.unwrap_or_default(),
         );
         let lights = self.lights;
         let ambient_light = self
@@ -112,7 +123,7 @@ impl WorldBuilder {
         let background_color = self.background_color.unwrap_or_else(Rgb::black);
 
         let world = World {
-            geometric_objects: Compound::new(geometric_objects),
+            geometric_objects,
             ambient_light,
             lights,
             background_color,
@@ -124,16 +135,18 @@ impl WorldBuilder {
 
 impl Default for WorldBuilder {
     fn default() -> Self {
-        let shapes = Vec::new();
+        let geometric_objects = Vec::new();
         let lights = Vec::new();
         let ambient_light = None;
         let background_color = None;
+        let splitting_heuristic = None;
 
         Self {
-            geometric_objects: shapes,
+            geometric_objects,
             lights,
             ambient_light,
             background_color,
+            splitting_heuristic,
         }
     }
 }
