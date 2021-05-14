@@ -1,4 +1,5 @@
 use cg_practicum::brdf::Lambertian;
+use cg_practicum::bvh::SplittingHeuristic::*;
 use cg_practicum::camera::CameraBuilder;
 use cg_practicum::film::Rgb;
 use cg_practicum::light::PointLight;
@@ -14,7 +15,7 @@ use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use rand_distr::Uniform;
 use std::error::Error;
-use std::time::Instant;
+use std::f64::consts::FRAC_1_PI;
 
 const SEEDS: [[u8; 32]; 10] = [
     [
@@ -58,12 +59,21 @@ const SEEDS: [[u8; 32]; 10] = [
         25, 150, 178, 220, 152, 98, 221, 31, 132, 20, 83, 220,
     ],
 ];
+const SPHERE_AMOUNTS: [u32; 10] = [
+    100, 500, 1000, 5000, 10_000, 50_000, 100_000, 500_000, 1_000_000, 5_000_000,
+];
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let splitting_heuristics = [
+        SurfaceAreaHeuristic(12),
+        ObjectMedianSplit,
+        SpaceMedianSplit,
+        SpaceAverageSplit,
+    ];
     let camera = CameraBuilder::new(Point3::new(0., 0., 0.))
         .x_res(640)
         .y_res(640)
-        .look_at(Vector::new(0., 0., -1.))
+        .destination(Point3::new(0., 0., -1.))
         .up(Vector::new(0., 1., 0.))
         .fov(90.)
         .build()
@@ -72,34 +82,47 @@ fn main() -> Result<(), Box<dyn Error>> {
     let sampler = Unsampled::default();
     let tracer = FalseColorIntersectionTests::default();
 
-    for (n, seed) in SEEDS.iter().enumerate().take(1) {
-        let spheres = generate_spheres(*seed);
-        let world = WorldBuilder::default()
-            .background(Rgb::black())
-            .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
-            .geometric_objects(spheres)
-            .build()
-            .ok_or("invalid world configuration")?;
+    for &splitting_heuristic in splitting_heuristics.iter() {
+        println!("####### Splitting heuristic: {:?}", splitting_heuristic);
 
-        let intersection_tests = tracer
-            .render_scene(&world, &camera, &sampler)
-            .iter()
-            .sum::<usize>();
+        for &nb_spheres in SPHERE_AMOUNTS.iter() {
+            for (n, seed) in SEEDS.iter().enumerate() {
+                let spheres = generate_uniform_spheres(nb_spheres, *seed);
+                let world = WorldBuilder::default()
+                    .background(Rgb::black())
+                    .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
+                    .geometric_objects(spheres)
+                    .splitting_heuristic(splitting_heuristic)
+                    .build()
+                    .ok_or("invalid world configuration")?;
 
-        println!("seed {}: {} intersection tests", n, intersection_tests);
+                let intersection_tests = tracer
+                    .render_scene(&world, &camera, &sampler)
+                    .iter()
+                    .sum::<usize>();
+
+                println!("seed {}: {} intersection tests", n, intersection_tests);
+            }
+        }
     }
 
     Ok(())
 }
 
 /// Generate random spheres within the unit cube centered around the origin
-fn generate_spheres(seed: <ChaCha8Rng as SeedableRng>::Seed) -> Vec<GeometricObject> {
+fn generate_uniform_spheres(
+    nb_spheres: u32,
+    seed: <ChaCha8Rng as SeedableRng>::Seed,
+) -> Vec<GeometricObject> {
+    const EXPECTED_VOLUME: f64 = 0.025;
+    let min_radius = (1. / 52. * FRAC_1_PI * EXPECTED_VOLUME / nb_spheres as f64).powf(1. / 3.);
+
     let mut rng = ChaCha8Rng::from_seed(seed);
-    let radius_distribution = Uniform::new(0.01, 0.05);
+    let radius_distribution = Uniform::new(min_radius, 5. * min_radius);
     let position_distribution = Uniform::new_inclusive(-0.5, 0.5);
     let color_distribution = Uniform::new_inclusive(0., 1.);
 
-    (0..2000)
+    (0..nb_spheres)
         .map(|_| {
             let radius = rng.sample(radius_distribution);
             let transformation =
