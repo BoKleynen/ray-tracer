@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let start = Instant::now();
 
-    let buffer = tracer.render_scene(&world, camera, sampler);
+    let buffer = tracer.render_scene(&world, &camera, &sampler);
     // tracer.render_scene(&world, camera, sampler)?;
 
     let duration = start.elapsed();

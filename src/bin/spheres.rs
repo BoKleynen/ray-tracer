@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let sampler = Unsampled::default();
     let sampler = JitteredSampler::new(16);
     let tracer = DirectIllumination::default();
-    let buffer = tracer.render_scene(&world, camera, sampler);
+    let buffer = tracer.render_scene(&world, &camera, &sampler);
 
     buffer.to_rgba_image(1., 2.2).save("renders/spheres.png")?;
 
