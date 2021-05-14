@@ -21,7 +21,7 @@ impl FrameBuffer {
         }
     }
 
-    pub fn buffer(&mut self) -> &mut [Pixel] {
+    pub fn buffer_mut(&mut self) -> &mut [Pixel] {
         &mut self.buffer
     }
 

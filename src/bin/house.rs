@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let duration = start.elapsed();
     println!("done building world: {:?}", duration);
 
-    let sampler = JitteredSampler::new(32);
+    let sampler = JitteredSampler::new(16);
     // let tracer = FalseColorIntersectionTests::default();
     let tracer = DirectIllumination::default();
 
