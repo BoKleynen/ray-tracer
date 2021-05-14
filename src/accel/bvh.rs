@@ -5,10 +5,11 @@ use std::ptr::{addr_of, addr_of_mut};
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect, Union};
 use crate::Point3;
-use itertools::Itertools;
+use std::cmp::Ordering::{Greater, Less};
 use NodeKind::*;
 use SplittingHeuristic::*;
 
+#[derive(Debug, Copy, Clone)]
 pub enum SplittingHeuristic {
     SpaceMedianSplit,
     ObjectMedianSplit,
@@ -180,12 +181,9 @@ impl<'a, S: Intersect> Node<'a, S> {
 
                     (i, cost)
                 })
-                .fold1(|(min_bucket, min_cost), (bucket, cost)| {
-                    if cost < min_cost {
-                        (bucket, cost)
-                    } else {
-                        (min_bucket, min_cost)
-                    }
+                .min_by(|(_, c1), (_, c2)| {
+                    c1.partial_cmp(&c2)
+                        .unwrap_or_else(|| if c1.is_nan() { Greater } else { Less })
                 })
                 .unwrap();
 
