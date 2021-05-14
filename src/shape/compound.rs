@@ -73,10 +73,17 @@ pub struct Compound<S: 'static> {
 #[cfg(feature = "bvh")]
 impl<S: Intersect> Compound<S> {
     pub fn new(shapes: Vec<S>) -> Self {
+        Self::new_with_splitting_heuristic(shapes, SplittingHeuristic::default())
+    }
+
+    pub fn new_with_splitting_heuristic(
+        shapes: Vec<S>,
+        splitting_heuristic: SplittingHeuristic,
+    ) -> Self {
         assert!(!shapes.is_empty());
 
         Self {
-            bvh: Bvh::new(shapes, SplittingHeuristic::default()),
+            bvh: Bvh::new(shapes, splitting_heuristic),
         }
     }
 }
