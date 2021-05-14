@@ -5,6 +5,7 @@ use std::ptr::{addr_of, addr_of_mut};
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect, Union};
 use crate::Point3;
+use itertools::Itertools;
 use NodeKind::*;
 use SplittingHeuristic::*;
 
@@ -12,12 +13,12 @@ pub enum SplittingHeuristic {
     SpaceMedianSplit,
     ObjectMedianSplit,
     SpaceAverageSplit,
-    SurfaceAreaHeuristic,
+    SurfaceAreaHeuristic(usize),
 }
 
 impl Default for SplittingHeuristic {
     fn default() -> Self {
-        SpaceAverageSplit
+        SurfaceAreaHeuristic(12)
     }
 }
 
@@ -63,7 +64,9 @@ impl<'a, S: Intersect> Bvh<'a, S> {
                 SpaceMedianSplit => Node::space_median_split(shape_data, 0),
                 ObjectMedianSplit => Node::object_median_split(shape_data, 0),
                 SpaceAverageSplit => Node::space_average_split(shape_data, 0),
-                SurfaceAreaHeuristic => Node::surface_area_heuristic(shape_data, 0),
+                SurfaceAreaHeuristic(nb_buckets) => {
+                    Node::surface_area_heuristic(shape_data, nb_buckets, 0)
+                }
             }
         };
 
@@ -127,9 +130,11 @@ struct Node<'a, S> {
 }
 
 impl<'a, S: Intersect> Node<'a, S> {
-    fn surface_area_heuristic(shapes: Vec<ShapeData<'a, S>>, axis: usize) -> Self {
-        const NB_BUCKETS: usize = 12;
-
+    fn surface_area_heuristic(
+        shapes: Vec<ShapeData<'a, S>>,
+        nb_buckets: usize,
+        axis: usize,
+    ) -> Self {
         let bbox = Aabb::from_multiple(&shapes);
 
         if shapes.len() <= 2 {
@@ -140,31 +145,31 @@ impl<'a, S: Intersect> Node<'a, S> {
             }
         } else {
             let split_axis_size = bbox.p1[axis] - bbox.p0[axis];
-            let mut buckets: [BucketInfo; NB_BUCKETS] = Default::default();
+            let mut buckets = vec![BucketInfo::default(); nb_buckets];
             shapes.iter().for_each(|shape| {
                 let b =
-                    NB_BUCKETS as f64 * (shape.centroid[axis] - bbox.p0[axis]) / split_axis_size;
+                    nb_buckets as f64 * (shape.centroid[axis] - bbox.p0[axis]) / split_axis_size;
                 let b = b.floor() as usize;
 
                 buckets[b].count += 1;
                 buckets[b].bbox = buckets[b].bbox.union(shape.bbox);
             });
 
-            let (min_bucket, min_cost) = (0..NB_BUCKETS)
+            let (min_bucket, min_cost) = (0..nb_buckets - 1)
                 .map(|i| {
-                    let left_count = buckets[..i]
+                    let left_count = buckets[..=i]
                         .iter()
                         .map(|bucket| bucket.count)
                         .sum::<usize>();
-                    let left_bbox = buckets[..i]
+                    let left_bbox = buckets[..=i]
                         .iter()
                         .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
 
-                    let right_count = buckets[i..]
+                    let right_count = buckets[i + 1..]
                         .iter()
                         .map(|bucket| bucket.count)
                         .sum::<usize>();
-                    let right_bbox = buckets[i..]
+                    let right_bbox = buckets[i + 1..]
                         .iter()
                         .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
 
@@ -175,13 +180,19 @@ impl<'a, S: Intersect> Node<'a, S> {
 
                     (i, cost)
                 })
-                .min_by(|(_, c1), (_, c2)| c1.partial_cmp(&c2).unwrap())
+                .fold1(|(min_bucket, min_cost), (bucket, cost)| {
+                    if cost < min_cost {
+                        (bucket, cost)
+                    } else {
+                        (min_bucket, min_cost)
+                    }
+                })
                 .unwrap();
 
             let leaf_cost = shapes.len() as f64;
             if min_cost < leaf_cost {
                 let (left, right): (Vec<_>, Vec<_>) = shapes.into_iter().partition(|shape| {
-                    let b = NB_BUCKETS as f64 * (shape.centroid[axis] - bbox.p0[axis])
+                    let b = nb_buckets as f64 * (shape.centroid[axis] - bbox.p0[axis])
                         / split_axis_size;
                     let b = b.floor() as usize;
 
@@ -206,8 +217,12 @@ impl<'a, S: Intersect> Node<'a, S> {
                     Self {
                         bbox,
                         node_kind: Internal {
-                            left: Box::new(Self::surface_area_heuristic(left, next_axis)),
-                            right: Box::new(Self::surface_area_heuristic(right, next_axis)),
+                            left: Box::new(Self::surface_area_heuristic(
+                                left, nb_buckets, next_axis,
+                            )),
+                            right: Box::new(Self::surface_area_heuristic(
+                                right, nb_buckets, next_axis,
+                            )),
                         },
                     }
                 }
