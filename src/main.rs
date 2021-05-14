@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .geometric_object(GeometricObject::cuboid(
             Point3::new(1., 1., 1.),
             Transformation::translate(0., 0., -1.),
-            material2.clone(),
+            material2,
         ))
         .light(Box::new(light))
         .light(Box::new(light2))
