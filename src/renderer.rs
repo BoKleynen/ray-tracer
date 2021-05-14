@@ -1,3 +1,4 @@
+use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 
 use crate::brdf::Brdf;
@@ -33,8 +34,9 @@ impl Renderer for DirectIllumination {
         let mut buffer = FrameBuffer::new(x_res, y_res);
 
         buffer
-            .buffer()
+            .buffer_mut()
             .par_chunks_exact_mut(x_res)
+            .progress()
             .enumerate()
             .for_each(|(r, row)| {
                 row.iter_mut().enumerate().for_each(|(c, pixel)| {
@@ -135,8 +137,9 @@ impl Renderer for FalseColorNormals {
         let (x_res, y_res) = camera.resolution();
         let mut buffer = FrameBuffer::new(x_res, y_res);
         buffer
-            .buffer()
+            .buffer_mut()
             .par_chunks_mut(x_res)
+            .progress()
             .enumerate()
             .for_each(|(r, row)| {
                 row.iter_mut().enumerate().for_each(|(c, pixel)| {
@@ -190,6 +193,7 @@ impl Renderer for FalseColorIntersectionTests {
 
         intersection_counts
             .par_chunks_mut(x_res)
+            .progress()
             .enumerate()
             .for_each(|(r, row)| {
                 row.iter_mut().enumerate().for_each(|(c, nb_intersects)| {
