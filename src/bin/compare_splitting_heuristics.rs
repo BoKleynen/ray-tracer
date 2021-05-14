@@ -14,8 +14,11 @@ use itertools::Itertools;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use rand_distr::Uniform;
+use serde::Serialize;
 use std::error::Error;
 use std::f64::consts::FRAC_1_PI;
+use std::fs::File;
+use indicatif::ProgressIterator;
 
 const SEEDS: [[u8; 32]; 10] = [
     [
@@ -82,29 +85,54 @@ fn main() -> Result<(), Box<dyn Error>> {
     let sampler = Unsampled::default();
     let tracer = FalseColorIntersectionTests::default();
 
-    for &splitting_heuristic in splitting_heuristics.iter() {
-        println!("####### Splitting heuristic: {:?}", splitting_heuristic);
+    let results = splitting_heuristics
+        .iter()
+        .map(|&splitting_heuristic| {
+            println!("####### Splitting heuristic: {:?}", splitting_heuristic);
 
-        for &nb_spheres in SPHERE_AMOUNTS.iter() {
-            for (n, seed) in SEEDS.iter().enumerate() {
-                let spheres = generate_uniform_spheres(nb_spheres, *seed);
-                let world = WorldBuilder::default()
-                    .background(Rgb::black())
-                    .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
-                    .geometric_objects(spheres)
-                    .splitting_heuristic(splitting_heuristic)
-                    .build()
-                    .ok_or("invalid world configuration")?;
+            let experiments = SPHERE_AMOUNTS
+                .iter()
+                .progress()
+                .map(|&nb_spheres| {
+                    let intersection_tests = SEEDS
+                        .iter()
+                        .progress()
+                        .map(|&seed| {
+                            let spheres = generate_uniform_spheres(nb_spheres, seed);
+                            let world = WorldBuilder::default()
+                                .background(Rgb::black())
+                                .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
+                                .geometric_objects(spheres)
+                                .splitting_heuristic(splitting_heuristic)
+                                .build()
+                                .ok_or("invalid world configuration")
+                                .unwrap();
 
-                let intersection_tests = tracer
-                    .render_scene(&world, &camera, &sampler)
-                    .iter()
-                    .sum::<usize>();
+                            tracer
+                                .render_scene(&world, &camera, &sampler)
+                                .iter()
+                                .sum::<usize>()
+                        })
+                        .collect();
 
-                println!("seed {}: {} intersection tests", n, intersection_tests);
+                    ExperimentInstance {
+                        nb_spheres,
+                        intersection_tests,
+                    }
+                })
+                .collect();
+
+            Experiment {
+                splitting_heuristic: format!("{:?}", splitting_heuristic),
+                experiments,
             }
-        }
-    }
+        })
+        .collect::<Vec<_>>();
+
+    serde_json::to_writer_pretty(
+        &File::create("experiments/compare_splitting_heuristics.json")?,
+        &results,
+    )?;
 
     Ok(())
 }
@@ -144,4 +172,16 @@ fn generate_uniform_spheres(
             GeometricObject::sphere(transformation, material)
         })
         .collect_vec()
+}
+
+#[derive(Serialize)]
+struct Experiment {
+    splitting_heuristic: String,
+    experiments: Vec<ExperimentInstance>,
+}
+
+#[derive(Serialize)]
+struct ExperimentInstance {
+    nb_spheres: u32,
+    intersection_tests: Vec<usize>,
 }
