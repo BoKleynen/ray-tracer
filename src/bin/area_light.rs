@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let sampler = JitteredSampler::new(256);
     let tracer = DirectIllumination::default();
-    let buffer = tracer.render_scene(&world, camera, sampler);
+    let buffer = tracer.render_scene(&world, &camera, &sampler);
 
     buffer
         .to_rgba_image(1., 2.2)

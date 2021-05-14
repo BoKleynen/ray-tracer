@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let sampler = Unsampled::default();
     let tracer = DirectIllumination::default();
-    let buffer = tracer.render_scene(&world, camera, sampler);
+    let buffer = tracer.render_scene(&world, &camera, &sampler);
 
     buffer
         .to_rgba_image(cfg.sensitivity, cfg.gamma)
