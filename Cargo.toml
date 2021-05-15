@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2018"
 authors = ["Bo Kleynen <kleynenbo@gmail.com>"]
 repository = "https://github.com/BoKleynen/cg-practicum"
+keywords = ["ray-tracing"]
 readme = "README.md"
 description = """
 Computer Graphics: Project (academic year 2020-2021)
