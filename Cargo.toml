@@ -9,6 +9,11 @@ description = """
 Computer Graphics: Project (academic year 2020-2021)
 """
 
+[workspace]
+members = [
+    "experiments"
+]
+
 [dependencies]
 chrono = "0.4"
 clap = "3.0.0-beta.2"
@@ -17,11 +22,7 @@ indicatif = { version = "0.16", features = ["rayon"] }
 itertools = "0.10"
 nalgebra = "0.26"
 rand = "0.8"
-rand_chacha = "0.3"
-rand_distr = "0.4"
 rayon = "1.5"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
 
 [profile.release]
 lto = true
