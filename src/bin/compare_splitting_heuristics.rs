@@ -94,7 +94,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let experiments = SPHERE_AMOUNTS
                 .iter()
-                .take(10)
                 .progress()
                 .map(|&nb_spheres| {
                     SEEDS
@@ -125,12 +124,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         .collect::<HashMap<_, _>>();
 
     let experiments = ExperimentResults {
-        nb_spheres: SPHERE_AMOUNTS.iter().copied().take(10).collect(),
+        nb_spheres: SPHERE_AMOUNTS.iter().copied().collect(),
         results,
     };
 
     serde_json::to_writer_pretty(
-        &File::create("experiments/results/compare_splitting_heuristics2.json")?,
+        &File::create("experiments/results/compare_splitting_heuristics.json")?,
         &experiments,
     )?;
 
@@ -142,7 +141,7 @@ fn generate_uniform_spheres(
     nb_spheres: u32,
     seed: <ChaCha8Rng as SeedableRng>::Seed,
 ) -> Vec<GeometricObject> {
-    const EXPECTED_VOLUME: f64 = 0.0025;
+    const EXPECTED_VOLUME: f64 = 0.025;
     let min_radius = (1. / 52. * FRAC_1_PI * EXPECTED_VOLUME / nb_spheres as f64).powf(1. / 3.);
 
     let mut rng = ChaCha8Rng::from_seed(seed);
