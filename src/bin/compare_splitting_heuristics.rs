@@ -1,4 +1,5 @@
 use cg_practicum::brdf::Lambertian;
+use cg_practicum::bvh::AxisSelection::*;
 use cg_practicum::bvh::SplittingHeuristic::*;
 use cg_practicum::camera::CameraBuilder;
 use cg_practicum::film::Rgb;
@@ -70,10 +71,10 @@ const SPHERE_AMOUNTS: [u32; 15] = [
 
 fn main() -> Result<(), Box<dyn Error>> {
     let splitting_heuristics = [
-        SurfaceAreaHeuristic(12),
-        ObjectMedianSplit,
-        SpaceMedianSplit,
-        SpaceAverageSplit,
+        SurfaceAreaHeuristic(Alternate(2), 12),
+        ObjectMedianSplit(Alternate(2)),
+        SpaceMedianSplit(Alternate(2)),
+        SpaceAverageSplit(Alternate(2)),
     ];
     let camera = CameraBuilder::new(Point3::new(0., 0., 0.))
         .x_res(640)
@@ -94,6 +95,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let experiments = SPHERE_AMOUNTS
                 .iter()
+                .take(5)
                 .progress()
                 .map(|&nb_spheres| {
                     SEEDS
@@ -129,7 +131,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     serde_json::to_writer_pretty(
-        &File::create("experiments/results/compare_splitting_heuristics.json")?,
+        &File::create("experiments/results/compare_splitting_heuristics3.json")?,
         &experiments,
     )?;
 

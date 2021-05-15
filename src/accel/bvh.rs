@@ -2,6 +2,7 @@ use std::mem::MaybeUninit;
 use std::pin::Pin;
 use std::ptr::{addr_of, addr_of_mut};
 
+use crate::bvh::AxisSelection::*;
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect, Union};
 use crate::Point3;
@@ -11,15 +12,23 @@ use SplittingHeuristic::*;
 
 #[derive(Debug, Copy, Clone)]
 pub enum SplittingHeuristic {
-    SpaceMedianSplit,
-    ObjectMedianSplit,
-    SpaceAverageSplit,
-    SurfaceAreaHeuristic(usize),
+    SpaceMedianSplit(AxisSelection),
+    ObjectMedianSplit(AxisSelection),
+    SpaceAverageSplit(AxisSelection),
+    SurfaceAreaHeuristic(AxisSelection, usize),
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum AxisSelection {
+    Alternate(usize),
+    Longest,
 }
 
 impl Default for SplittingHeuristic {
     fn default() -> Self {
-        SurfaceAreaHeuristic(12)
+        const Z_AXIS: usize = 2;
+
+        SurfaceAreaHeuristic(Alternate(Z_AXIS), 12)
     }
 }
 
@@ -62,11 +71,11 @@ impl<'a, S: Intersect> Bvh<'a, S> {
                 .collect::<Vec<_>>();
 
             match splitting_heuristic {
-                SpaceMedianSplit => Node::space_median_split(shape_data, 0),
-                ObjectMedianSplit => Node::object_median_split(shape_data, 0),
-                SpaceAverageSplit => Node::space_average_split(shape_data, 0),
-                SurfaceAreaHeuristic(nb_buckets) => {
-                    Node::surface_area_heuristic(shape_data, nb_buckets, 0)
+                SpaceMedianSplit(_) => Node::space_median_split(shape_data, 0, 3),
+                ObjectMedianSplit(_) => Node::object_median_split(shape_data, 0),
+                SpaceAverageSplit(_) => Node::space_average_split(shape_data, 0, 3),
+                SurfaceAreaHeuristic(axis_selection, nb_buckets) => {
+                    Node::surface_area_heuristic(shape_data, nb_buckets, axis_selection)
                 }
             }
         };
@@ -131,180 +140,167 @@ struct Node<'a, S> {
 }
 
 impl<'a, S: Intersect> Node<'a, S> {
+    fn leaf(bbox: Aabb, shapes: Vec<ShapeData<'a, S>>) -> Self {
+        let shapes = shapes.iter().map(|s| s.shape).collect();
+        Self {
+            bbox,
+            node_kind: Leaf { shapes },
+        }
+    }
+
     fn surface_area_heuristic(
         shapes: Vec<ShapeData<'a, S>>,
         nb_buckets: usize,
-        axis: usize,
+        axis_selection: AxisSelection,
     ) -> Self {
-        let bbox = Aabb::from_multiple(&shapes);
-
-        if shapes.len() <= 2 {
-            let shapes = shapes.iter().map(|s| s.shape).collect();
-            Self {
-                bbox,
-                node_kind: Leaf { shapes },
+        match axis_selection {
+            Alternate(prev_axis) => {
+                Self::surface_area_heuristic_alternate(shapes, nb_buckets, prev_axis)
             }
+            Longest => todo!(),
+        }
+    }
+
+    fn surface_area_heuristic_inner<F>(
+        shapes: Vec<ShapeData<'a, S>>,
+        nb_buckets: usize,
+        axis: usize,
+        axis_size: f64,
+        bbox: Aabb,
+        recursive: F,
+    ) -> Self
+    where
+        F: Fn(Vec<ShapeData<'a, S>>) -> Self + Copy,
+    {
+        let mut buckets = vec![BucketInfo::default(); nb_buckets];
+        shapes.iter().for_each(|shape| {
+            let b = nb_buckets as f64 * (shape.centroid[axis] - bbox.p0[axis]) / axis_size;
+            let b = b.floor() as usize;
+
+            buckets[b].count += 1;
+            buckets[b].bbox = buckets[b].bbox.union(shape.bbox);
+        });
+
+        let (min_bucket, min_cost) = (0..nb_buckets - 1)
+            .map(|i| {
+                let left_count = buckets[..=i]
+                    .iter()
+                    .map(|bucket| bucket.count)
+                    .sum::<usize>();
+                let left_bbox = buckets[..=i]
+                    .iter()
+                    .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
+
+                let right_count = buckets[i + 1..]
+                    .iter()
+                    .map(|bucket| bucket.count)
+                    .sum::<usize>();
+                let right_bbox = buckets[i + 1..]
+                    .iter()
+                    .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
+
+                let cost = 1.
+                    + (left_count as f64 * left_bbox.surface()
+                        + right_count as f64 * right_bbox.surface())
+                        / bbox.surface();
+
+                (i, cost)
+            })
+            .min_by(|(_, c1), (_, c2)| {
+                c1.partial_cmp(&c2)
+                    .unwrap_or_else(|| if c1.is_nan() { Greater } else { Less })
+            })
+            .unwrap();
+
+        let leaf_cost = shapes.len() as f64;
+        if !(leaf_cost <= min_cost) {
+            Self::leaf(bbox, shapes)
         } else {
-            let split_axis_size = bbox.p1[axis] - bbox.p0[axis];
-            let mut buckets = vec![BucketInfo::default(); nb_buckets];
-            shapes.iter().for_each(|shape| {
-                let b =
-                    nb_buckets as f64 * (shape.centroid[axis] - bbox.p0[axis]) / split_axis_size;
+            let (left, right): (Vec<_>, Vec<_>) = shapes.into_iter().partition(|shape| {
+                let b = nb_buckets as f64 * (shape.centroid[axis] - bbox.p0[axis]) / axis_size;
                 let b = b.floor() as usize;
 
-                buckets[b].count += 1;
-                buckets[b].bbox = buckets[b].bbox.union(shape.bbox);
+                b <= min_bucket
             });
 
-            let (min_bucket, min_cost) = (0..nb_buckets - 1)
-                .map(|i| {
-                    let left_count = buckets[..=i]
-                        .iter()
-                        .map(|bucket| bucket.count)
-                        .sum::<usize>();
-                    let left_bbox = buckets[..=i]
-                        .iter()
-                        .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
-
-                    let right_count = buckets[i + 1..]
-                        .iter()
-                        .map(|bucket| bucket.count)
-                        .sum::<usize>();
-                    let right_bbox = buckets[i + 1..]
-                        .iter()
-                        .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
-
-                    let cost = 1.
-                        + (left_count as f64 * left_bbox.surface()
-                            + right_count as f64 * right_bbox.surface())
-                            / bbox.surface();
-
-                    (i, cost)
-                })
-                .min_by(|(_, c1), (_, c2)| {
-                    c1.partial_cmp(&c2)
-                        .unwrap_or_else(|| if c1.is_nan() { Greater } else { Less })
-                })
-                .unwrap();
-
-            let leaf_cost = shapes.len() as f64;
-            if min_cost < leaf_cost {
-                let (left, right): (Vec<_>, Vec<_>) = shapes.into_iter().partition(|shape| {
-                    let b = nb_buckets as f64 * (shape.centroid[axis] - bbox.p0[axis])
-                        / split_axis_size;
-                    let b = b.floor() as usize;
-
-                    b <= min_bucket
-                });
-
-                if left.is_empty() {
-                    let shapes = right.iter().map(|s| s.shape).collect();
-                    Self {
-                        bbox,
-                        node_kind: Leaf { shapes },
-                    }
-                } else if right.is_empty() {
-                    let shapes = left.iter().map(|s| s.shape).collect();
-                    Self {
-                        bbox,
-                        node_kind: Leaf { shapes },
-                    }
-                } else {
-                    let next_axis = (axis + 1) % 3;
-
-                    Self {
-                        bbox,
-                        node_kind: Internal {
-                            left: Box::new(Self::surface_area_heuristic(
-                                left, nb_buckets, next_axis,
-                            )),
-                            right: Box::new(Self::surface_area_heuristic(
-                                right, nb_buckets, next_axis,
-                            )),
-                        },
-                    }
-                }
-            } else {
-                let shapes = shapes.iter().map(|s| s.shape).collect();
-                Self {
-                    bbox,
-                    node_kind: Leaf { shapes },
-                }
+            Self {
+                bbox,
+                node_kind: Internal {
+                    left: Box::new(recursive(left)),
+                    right: Box::new(recursive(right)),
+                },
             }
         }
     }
 
-    fn space_median_split(shapes: Vec<ShapeData<'a, S>>, axis: usize) -> Self {
+    fn surface_area_heuristic_alternate(
+        shapes: Vec<ShapeData<'a, S>>,
+        nb_buckets: usize,
+        prev_axis: usize,
+    ) -> Self {
+        let bbox = Aabb::from_multiple(&shapes);
+        if shapes.len() <= 2 {
+            Self::leaf(bbox, shapes)
+        } else {
+            let axis = (prev_axis + 1) % 3;
+            let split_axis_size = bbox.p1[axis] - bbox.p0[axis];
+
+            Self::surface_area_heuristic_inner(
+                shapes,
+                nb_buckets,
+                axis,
+                split_axis_size,
+                bbox,
+                |shapes| Self::surface_area_heuristic_alternate(shapes, nb_buckets, axis),
+            )
+        }
+    }
+
+    fn space_median_split(shapes: Vec<ShapeData<'a, S>>, axis: usize, counter: u8) -> Self {
         let bbox = Aabb::from_multiple(&shapes);
 
-        if shapes.len() <= 2 {
-            let shapes = shapes.iter().map(|s| s.shape).collect();
-            Self {
-                bbox,
-                node_kind: Leaf { shapes },
-            }
+        if shapes.len() <= 2 || counter == 0 {
+            Self::leaf(bbox, shapes)
         } else {
+            let next_axis = (axis + 1) % 3;
             let median = bbox.p0[axis] + (bbox.p1[axis] - bbox.p0[axis]) / 2.;
             let (left, right) = Self::split_space(shapes, axis, median);
 
             if left.is_empty() {
-                let shapes = right.iter().map(|s| s.shape).collect();
-                Self {
-                    bbox,
-                    node_kind: Leaf { shapes },
-                }
+                Self::space_median_split(right, next_axis, counter - 1)
             } else if right.is_empty() {
-                let shapes = left.iter().map(|s| s.shape).collect();
-                Self {
-                    bbox,
-                    node_kind: Leaf { shapes },
-                }
+                Self::space_median_split(left, next_axis, counter - 1)
             } else {
-                let next_axis = (axis + 1) % 3;
-
                 Self {
                     bbox,
                     node_kind: Internal {
-                        left: Box::new(Self::space_median_split(left, next_axis)),
-                        right: Box::new(Self::space_median_split(right, next_axis)),
+                        left: Box::new(Self::space_median_split(left, next_axis, 3)),
+                        right: Box::new(Self::space_median_split(right, next_axis, 3)),
                     },
                 }
             }
         }
     }
 
-    fn space_average_split(shapes: Vec<ShapeData<'a, S>>, axis: usize) -> Self {
+    fn space_average_split(shapes: Vec<ShapeData<'a, S>>, axis: usize, counter: u8) -> Self {
         let bbox = Aabb::from_multiple(&shapes);
 
-        if shapes.len() <= 2 {
-            let shapes = shapes.iter().map(|s| s.shape).collect();
-            Self {
-                bbox,
-                node_kind: Leaf { shapes },
-            }
+        if shapes.len() <= 2 || counter == 0 {
+            Self::leaf(bbox, shapes)
         } else {
+            let next_axis = (axis + 1) % 3;
             let (left, right) = Self::split_space_average(shapes, axis);
 
             if left.is_empty() {
-                let shapes = right.iter().map(|s| s.shape).collect();
-                Self {
-                    bbox,
-                    node_kind: Leaf { shapes },
-                }
+                Self::space_average_split(right, next_axis, 3)
             } else if right.is_empty() {
-                let shapes = left.iter().map(|s| s.shape).collect();
-                Self {
-                    bbox,
-                    node_kind: Leaf { shapes },
-                }
+                Self::space_average_split(left, next_axis, 3)
             } else {
-                let next_axis = (axis + 1) % 3;
-
                 Self {
                     bbox,
                     node_kind: Internal {
-                        left: Box::new(Self::space_average_split(left, next_axis)),
-                        right: Box::new(Self::space_average_split(right, next_axis)),
+                        left: Box::new(Self::space_average_split(left, next_axis, 3)),
+                        right: Box::new(Self::space_average_split(right, next_axis, 3)),
                     },
                 }
             }
