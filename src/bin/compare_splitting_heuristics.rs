@@ -10,6 +10,7 @@ use cg_practicum::sampler::Unsampled;
 use cg_practicum::shape::GeometricObject;
 use cg_practicum::world::WorldBuilder;
 use cg_practicum::{Point3, Vector};
+use indicatif::ProgressIterator;
 use itertools::Itertools;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
@@ -18,7 +19,6 @@ use serde::Serialize;
 use std::error::Error;
 use std::f64::consts::FRAC_1_PI;
 use std::fs::File;
-use indicatif::ProgressIterator;
 
 const SEEDS: [[u8; 32]; 10] = [
     [
@@ -62,8 +62,9 @@ const SEEDS: [[u8; 32]; 10] = [
         25, 150, 178, 220, 152, 98, 221, 31, 132, 20, 83, 220,
     ],
 ];
-const SPHERE_AMOUNTS: [u32; 10] = [
-    100, 500, 1000, 5000, 10_000, 50_000, 100_000, 500_000, 1_000_000, 5_000_000,
+const SPHERE_AMOUNTS: [u32; 15] = [
+    100, 500, 1000, 5000, 10_000, 50_000, 100_000, 250_000, 500_000, 750_000, 1_000_000, 2_000_000,
+    3_000_000, 4_000_000, 5_000_000,
 ];
 
 fn main() -> Result<(), Box<dyn Error>> {
