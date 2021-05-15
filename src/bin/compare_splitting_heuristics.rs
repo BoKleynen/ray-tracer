@@ -1,6 +1,7 @@
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::bvh::AxisSelection::*;
 use cg_practicum::bvh::SplittingHeuristic::*;
+use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
 use cg_practicum::camera::CameraBuilder;
 use cg_practicum::film::Rgb;
 use cg_practicum::light::PointLight;
@@ -70,11 +71,23 @@ const SPHERE_AMOUNTS: [u32; 15] = [
 ];
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let splitting_heuristics = [
-        SurfaceAreaHeuristic(Alternate(2), 12),
-        ObjectMedianSplit(Alternate(2)),
-        SpaceMedianSplit(Alternate(2)),
-        SpaceAverageSplit(Alternate(2)),
+    let splitting_configs = [
+        SplittingConfig {
+            splitting_heuristic: SurfaceAreaHeuristic(12),
+            axis_selection: Alternate(Z_AXIS),
+        },
+        SplittingConfig {
+            splitting_heuristic: ObjectMedianSplit,
+            axis_selection: Alternate(Z_AXIS),
+        },
+        SplittingConfig {
+            splitting_heuristic: SpaceMedianSplit,
+            axis_selection: Alternate(Z_AXIS),
+        },
+        SplittingConfig {
+            splitting_heuristic: SpaceAverageSplit,
+            axis_selection: Alternate(Z_AXIS),
+        },
     ];
     let camera = CameraBuilder::new(Point3::new(0., 0., 0.))
         .x_res(640)
@@ -88,10 +101,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let sampler = Unsampled::default();
     let tracer = FalseColorIntersectionTests::default();
 
-    let results = splitting_heuristics
+    let results = splitting_configs
         .iter()
-        .map(|&splitting_heuristic| {
-            println!("####### Splitting heuristic: {:?}", splitting_heuristic);
+        .map(|&splitting_config| {
+            println!("####### Splitting heuristic: {}", splitting_config);
 
             let experiments = SPHERE_AMOUNTS
                 .iter()
@@ -107,7 +120,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 .background(Rgb::black())
                                 .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
                                 .geometric_objects(spheres)
-                                .splitting_heuristic(splitting_heuristic)
+                                .splitting_config(splitting_config)
                                 .build()
                                 .ok_or("invalid world configuration")
                                 .unwrap();
@@ -121,7 +134,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 })
                 .collect();
 
-            (format!("{:?}", splitting_heuristic), experiments)
+            (format!("{}", splitting_config), experiments)
         })
         .collect::<HashMap<_, _>>();
 

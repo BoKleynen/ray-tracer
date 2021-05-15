@@ -1,5 +1,6 @@
 #[cfg(feature = "bvh")]
-use crate::accel::bvh::{Bvh, SplittingHeuristic};
+use crate::accel::bvh::Bvh;
+use crate::bvh::SplittingConfig;
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect};
 
@@ -73,17 +74,14 @@ pub struct Compound<S: 'static> {
 #[cfg(feature = "bvh")]
 impl<S: Intersect> Compound<S> {
     pub fn new(shapes: Vec<S>) -> Self {
-        Self::new_with_splitting_heuristic(shapes, SplittingHeuristic::default())
+        Self::new_with_splitting_heuristic(shapes, SplittingConfig::default())
     }
 
-    pub fn new_with_splitting_heuristic(
-        shapes: Vec<S>,
-        splitting_heuristic: SplittingHeuristic,
-    ) -> Self {
+    pub fn new_with_splitting_heuristic(shapes: Vec<S>, cfg: SplittingConfig) -> Self {
         assert!(!shapes.is_empty());
 
         Self {
-            bvh: Bvh::new(shapes, splitting_heuristic),
+            bvh: Bvh::new(shapes, cfg),
         }
     }
 }

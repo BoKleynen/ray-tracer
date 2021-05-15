@@ -6,16 +6,49 @@ use crate::bvh::AxisSelection::*;
 use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect, Union};
 use crate::Point3;
-use std::cmp::Ordering::{Greater, Less};
+use std::fmt::{self, Display, Formatter};
 use NodeKind::*;
 use SplittingHeuristic::*;
 
+pub const X_AXIS: usize = 0;
+pub const Y_AXIS: usize = 1;
+pub const Z_AXIS: usize = 2;
+
+#[derive(Debug, Copy, Clone, Default)]
+pub struct SplittingConfig {
+    pub splitting_heuristic: SplittingHeuristic,
+    pub axis_selection: AxisSelection,
+}
+
+impl Display for SplittingConfig {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{}, {}", self.axis_selection, self.splitting_heuristic)
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 pub enum SplittingHeuristic {
-    SpaceMedianSplit(AxisSelection),
-    ObjectMedianSplit(AxisSelection),
-    SpaceAverageSplit(AxisSelection),
-    SurfaceAreaHeuristic(AxisSelection, usize),
+    SpaceMedianSplit,
+    ObjectMedianSplit,
+    SpaceAverageSplit,
+    SurfaceAreaHeuristic(usize),
+}
+
+impl Default for SplittingHeuristic {
+    fn default() -> Self {
+        SurfaceAreaHeuristic(12)
+    }
+}
+
+impl Display for SplittingHeuristic {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            SpaceMedianSplit => write!(f, "SpaceMedianSplit"),
+            ObjectMedianSplit => write!(f, "ObjectMedianSplit"),
+            SpaceAverageSplit => write!(f, "SpaceAverageSplit"),
+            SurfaceAreaHeuristic(nb_buckets) => write!(f, "SurfaceAreaHeuristic({})", nb_buckets),
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -24,11 +57,18 @@ pub enum AxisSelection {
     Longest,
 }
 
-impl Default for SplittingHeuristic {
+impl Default for AxisSelection {
     fn default() -> Self {
-        const Z_AXIS: usize = 2;
+        Alternate(X_AXIS)
+    }
+}
 
-        SurfaceAreaHeuristic(Alternate(Z_AXIS), 12)
+impl Display for AxisSelection {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            Alternate(_) => write!(f, "Alternate"),
+            Longest => write!(f, "Longest"),
+        }
     }
 }
 
@@ -39,7 +79,7 @@ pub struct Bvh<'a, S: 'a> {
 }
 
 impl<'a, S: Intersect> Bvh<'a, S> {
-    pub fn new(shapes: Vec<S>, splitting_heuristic: SplittingHeuristic) -> Self {
+    pub fn new(shapes: Vec<S>, cfg: SplittingConfig) -> Self {
         let mut uninit: MaybeUninit<Self> = MaybeUninit::uninit();
         let ptr = uninit.as_mut_ptr();
 
@@ -70,12 +110,12 @@ impl<'a, S: Intersect> Bvh<'a, S> {
                 })
                 .collect::<Vec<_>>();
 
-            match splitting_heuristic {
-                SpaceMedianSplit(_) => Node::space_median_split(shape_data, 0, 3),
-                ObjectMedianSplit(_) => Node::object_median_split(shape_data, 0),
-                SpaceAverageSplit(_) => Node::space_average_split(shape_data, 0, 3),
-                SurfaceAreaHeuristic(axis_selection, nb_buckets) => {
-                    Node::surface_area_heuristic(shape_data, nb_buckets, axis_selection)
+            match cfg.splitting_heuristic {
+                SpaceMedianSplit => Node::space_median_split(shape_data, 0, 3),
+                ObjectMedianSplit => Node::object_median_split(shape_data, 0),
+                SpaceAverageSplit => Node::space_average_split(shape_data, 0, 3),
+                SurfaceAreaHeuristic(nb_buckets) => {
+                    Node::surface_area_heuristic(shape_data, nb_buckets, cfg.axis_selection)
                 }
             }
         };
@@ -157,7 +197,52 @@ impl<'a, S: Intersect> Node<'a, S> {
             Alternate(prev_axis) => {
                 Self::surface_area_heuristic_alternate(shapes, nb_buckets, prev_axis)
             }
-            Longest => todo!(),
+            Longest => Self::surface_area_heuristic_longest(shapes, nb_buckets),
+        }
+    }
+
+    fn surface_area_heuristic_alternate(
+        shapes: Vec<ShapeData<'a, S>>,
+        nb_buckets: usize,
+        prev_axis: usize,
+    ) -> Self {
+        let bbox = Aabb::from_multiple(&shapes);
+        if shapes.len() <= 2 {
+            Self::leaf(bbox, shapes)
+        } else {
+            let axis = (prev_axis + 1) % 3;
+            let split_axis_size = bbox.p1[axis] - bbox.p0[axis];
+
+            Self::surface_area_heuristic_inner(
+                shapes,
+                nb_buckets,
+                axis,
+                split_axis_size,
+                bbox,
+                |shapes| Self::surface_area_heuristic_alternate(shapes, nb_buckets, axis),
+            )
+        }
+    }
+
+    fn surface_area_heuristic_longest(shapes: Vec<ShapeData<'a, S>>, nb_buckets: usize) -> Self {
+        let bbox = Aabb::from_multiple(&shapes);
+        if shapes.len() <= 2 {
+            Self::leaf(bbox, shapes)
+        } else {
+            let (axis, split_axis_size) = [X_AXIS, Y_AXIS, Z_AXIS]
+                .iter()
+                .map(|&axis| (axis, bbox.p1[axis] - bbox.p0[axis]))
+                .min_by(|(_, l1), (_, l2)| l1.partial_cmp(l2).unwrap())
+                .unwrap();
+
+            Self::surface_area_heuristic_inner(
+                shapes,
+                nb_buckets,
+                axis,
+                split_axis_size,
+                bbox,
+                |shapes| Self::surface_area_heuristic_longest(shapes, nb_buckets),
+            )
         }
     }
 
@@ -227,29 +312,6 @@ impl<'a, S: Intersect> Node<'a, S> {
                     right: Box::new(recursive(right)),
                 },
             }
-        }
-    }
-
-    fn surface_area_heuristic_alternate(
-        shapes: Vec<ShapeData<'a, S>>,
-        nb_buckets: usize,
-        prev_axis: usize,
-    ) -> Self {
-        let bbox = Aabb::from_multiple(&shapes);
-        if shapes.len() <= 2 {
-            Self::leaf(bbox, shapes)
-        } else {
-            let axis = (prev_axis + 1) % 3;
-            let split_axis_size = bbox.p1[axis] - bbox.p0[axis];
-
-            Self::surface_area_heuristic_inner(
-                shapes,
-                nb_buckets,
-                axis,
-                split_axis_size,
-                bbox,
-                |shapes| Self::surface_area_heuristic_alternate(shapes, nb_buckets, axis),
-            )
         }
     }
 

@@ -1,4 +1,4 @@
-use crate::bvh::SplittingHeuristic;
+use crate::accel::bvh::SplittingConfig;
 use crate::film::Rgb;
 use crate::light::{AmbientLight, Light};
 use crate::math::Ray;
@@ -72,7 +72,7 @@ pub struct WorldBuilder {
     lights: Vec<Box<dyn Light>>,
     ambient_light: Option<AmbientLight>,
     background_color: Option<Rgb>,
-    splitting_heuristic: Option<SplittingHeuristic>,
+    splitting_splitting_config: Option<SplittingConfig>,
 }
 
 impl WorldBuilder {
@@ -100,8 +100,8 @@ impl WorldBuilder {
         self
     }
 
-    pub fn splitting_heuristic(mut self, splitting_heuristic: SplittingHeuristic) -> Self {
-        self.splitting_heuristic = Some(splitting_heuristic);
+    pub fn splitting_config(mut self, splitting_heuristic: SplittingConfig) -> Self {
+        self.splitting_splitting_config = Some(splitting_heuristic);
         self
     }
 
@@ -114,7 +114,7 @@ impl WorldBuilder {
         );
         let geometric_objects = Compound::new_with_splitting_heuristic(
             geometric_objects,
-            self.splitting_heuristic.unwrap_or_default(),
+            self.splitting_splitting_config.unwrap_or_default(),
         );
         let lights = self.lights;
         let ambient_light = self
@@ -146,7 +146,7 @@ impl Default for WorldBuilder {
             lights,
             ambient_light,
             background_color,
-            splitting_heuristic,
+            splitting_splitting_config: splitting_heuristic,
         }
     }
 }
