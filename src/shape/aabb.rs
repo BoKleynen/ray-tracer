@@ -136,6 +136,10 @@ impl Aabb {
     }
 
     pub fn surface(&self) -> f64 {
+        if self.p1 < self.p0 {
+            return 0.;
+        }
+
         let diag = self.p1 - self.p0;
         2. * (diag.x * diag.y + diag.x * diag.z + diag.y * diag.z)
     }

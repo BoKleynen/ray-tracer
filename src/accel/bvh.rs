@@ -206,14 +206,11 @@ impl<'a, S: Intersect> Node<'a, S> {
 
                 (i, cost)
             })
-            .min_by(|(_, c1), (_, c2)| {
-                c1.partial_cmp(&c2)
-                    .unwrap_or_else(|| if c1.is_nan() { Greater } else { Less })
-            })
+            .min_by(|(_, c1), (_, c2)| c1.partial_cmp(&c2).unwrap())
             .unwrap();
 
         let leaf_cost = shapes.len() as f64;
-        if !(leaf_cost <= min_cost) {
+        if leaf_cost <= min_cost {
             Self::leaf(bbox, shapes)
         } else {
             let (left, right): (Vec<_>, Vec<_>) = shapes.into_iter().partition(|shape| {
