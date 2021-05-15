@@ -1,4 +1,7 @@
+use serde::Serialize;
 use std::collections::HashMap;
+
+pub mod scene_generators;
 
 pub const SEEDS: [[u8; 32]; 10] = [
     [

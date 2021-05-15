@@ -120,7 +120,7 @@ impl WorldBuilder {
         let ambient_light = self
             .ambient_light
             .unwrap_or_else(|| AmbientLight::white(0.25));
-        let background_color = self.background_color.unwrap_or_else(Rgb::black);
+        let background_color = self.background_color.unwrap_or_default();
 
         let world = World {
             geometric_objects,

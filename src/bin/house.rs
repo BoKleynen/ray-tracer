@@ -1,4 +1,4 @@
-#[allow(unused_imports)]
+#![allow(unused_imports)]
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::brdf::SvLambertian;
 use cg_practicum::camera::CameraBuilder;
@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let texture = ImageTexture::new("textures/house_texture.jpg")?;
     let ambient_brdf = SvLambertian::new(0.35, Box::new(texture.clone()));
-    let diffuse_brdf = SvLambertian::new(1., Box::new(texture.clone()));
+    let diffuse_brdf = SvLambertian::new(1., Box::new(texture));
 
     let material = Material::SvMatte {
         ambient_brdf,

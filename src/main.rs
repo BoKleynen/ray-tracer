@@ -1,12 +1,12 @@
 use cg_practicum::brdf::Lambertian;
-use cg_practicum::camera::{Camera, CameraBuilder};
+use cg_practicum::camera::CameraBuilder;
 use cg_practicum::film::Rgb;
 use cg_practicum::light::PointLight;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
 use cg_practicum::renderer::{DirectIllumination, Renderer};
 use cg_practicum::sampler::Unsampled;
-use cg_practicum::shape::{GeometricObject, Obj};
+use cg_practicum::shape::GeometricObject;
 use cg_practicum::world::WorldBuilder;
 use cg_practicum::{Point3, Vector};
 use clap::Clap;
