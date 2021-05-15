@@ -16,6 +16,7 @@ use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use rand_distr::Uniform;
 use serde::Serialize;
+use std::collections::HashMap;
 use std::error::Error;
 use std::f64::consts::FRAC_1_PI;
 use std::fs::File;
@@ -93,9 +94,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let experiments = SPHERE_AMOUNTS
                 .iter()
+                .take(10)
                 .progress()
                 .map(|&nb_spheres| {
-                    let intersection_tests = SEEDS
+                    SEEDS
                         .iter()
                         .progress()
                         .map(|&seed| {
@@ -114,25 +116,22 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 .iter()
                                 .sum::<usize>()
                         })
-                        .collect();
-
-                    ExperimentInstance {
-                        nb_spheres,
-                        intersection_tests,
-                    }
+                        .collect()
                 })
                 .collect();
 
-            Experiment {
-                splitting_heuristic: format!("{:?}", splitting_heuristic),
-                experiments,
-            }
+            (format!("{:?}", splitting_heuristic), experiments)
         })
-        .collect::<Vec<_>>();
+        .collect::<HashMap<_, _>>();
+
+    let experiments = ExperimentResults {
+        nb_spheres: SPHERE_AMOUNTS.iter().copied().take(10).collect(),
+        results,
+    };
 
     serde_json::to_writer_pretty(
-        &File::create("experiments/compare_splitting_heuristics.json")?,
-        &results,
+        &File::create("experiments/results/compare_splitting_heuristics2.json")?,
+        &experiments,
     )?;
 
     Ok(())
@@ -143,7 +142,7 @@ fn generate_uniform_spheres(
     nb_spheres: u32,
     seed: <ChaCha8Rng as SeedableRng>::Seed,
 ) -> Vec<GeometricObject> {
-    const EXPECTED_VOLUME: f64 = 0.025;
+    const EXPECTED_VOLUME: f64 = 0.0025;
     let min_radius = (1. / 52. * FRAC_1_PI * EXPECTED_VOLUME / nb_spheres as f64).powf(1. / 3.);
 
     let mut rng = ChaCha8Rng::from_seed(seed);
@@ -176,13 +175,7 @@ fn generate_uniform_spheres(
 }
 
 #[derive(Serialize)]
-struct Experiment {
-    splitting_heuristic: String,
-    experiments: Vec<ExperimentInstance>,
-}
-
-#[derive(Serialize)]
-struct ExperimentInstance {
-    nb_spheres: u32,
-    intersection_tests: Vec<usize>,
+struct ExperimentResults {
+    nb_spheres: Vec<u32>,
+    results: HashMap<String, Vec<Vec<usize>>>,
 }
