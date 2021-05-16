@@ -4,8 +4,8 @@ use crate::{Point3, Vector, K_EPSILON};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Aabb {
-    pub(crate) p0: Point3,
-    pub(crate) p1: Point3,
+    pub p0: Point3,
+    pub p1: Point3,
 }
 
 impl Default for Aabb {
@@ -142,6 +142,15 @@ impl Aabb {
 
         let diag = self.p1 - self.p0;
         2. * (diag.x * diag.y + diag.x * diag.z + diag.y * diag.z)
+    }
+
+    pub fn volume(&self) -> f64 {
+        if self.p1 < self.p0 {
+            return 0.;
+        }
+
+        let diag = self.p1 - self.p0;
+        diag.x * diag.y * diag.z
     }
 
     pub fn offset(&self, p: Point3) -> Vector {

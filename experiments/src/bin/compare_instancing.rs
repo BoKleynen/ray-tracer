@@ -3,8 +3,8 @@ use cg_practicum::bvh::SplittingHeuristic::SurfaceAreaHeuristic;
 use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
 use cg_practicum::camera::CameraBuilder;
 use cg_practicum::light::PointLight;
-use cg_practicum::renderer::{DirectIllumination, FalseColorIntersectionTests, Renderer};
-use cg_practicum::sampler::{JitteredSampler, Unsampled};
+use cg_practicum::renderer::{FalseColorIntersectionTests, Renderer};
+use cg_practicum::sampler::Unsampled;
 use cg_practicum::world::WorldBuilder;
 use cg_practicum::{Point3, Vector};
 use experiments::scene_generators::*;
@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 
-const BUNNY_AMOUNTS: [u32; 1] = [6];
+const BUNNY_AMOUNTS: [u32; 6] = [1, 2, 5, 10, 15, 20];
 
 fn main() -> Result<(), Box<dyn Error>> {
     let splitting_configs = [SplittingConfig {
@@ -45,10 +45,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .map(|&nb_bunnies| {
                     SEEDS
                         .iter()
-                        .take(1)
                         .progress()
                         .map(|&seed| {
-                            let bunnies = generate_instanced_bunnies(nb_bunnies, seed);
+                            let bunnies = instanced_bunnies_non_overlapping(nb_bunnies, seed);
                             let world = WorldBuilder::default()
                                 .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
                                 .geometric_objects(bunnies)
@@ -56,16 +55,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 .build()
                                 .unwrap();
 
-                            {
-                                let sampler = JitteredSampler::new(16);
-                                let tracer = DirectIllumination::default();
-
-                                tracer
-                                    .render_scene(&world, &camera, &sampler)
-                                    .to_rgba_image(1., 2.2)
-                                    .save("../renders/bunnies.png")
-                                    .unwrap();
-                            }
+                            // {
+                            //     let sampler = JitteredSampler::new(16);
+                            //     let tracer = DirectIllumination::default();
+                            //
+                            //     tracer
+                            //         .render_scene(&world, &camera, &sampler)
+                            //         .to_rgba_image(1., 2.2)
+                            //         .save("../renders/bunnies.png")
+                            //         .unwrap();
+                            // }
 
                             tracer
                                 .render_scene(&world, &camera, &sampler)

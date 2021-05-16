@@ -2,7 +2,7 @@ use cg_practicum::brdf::Lambertian;
 use cg_practicum::film::Rgb;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
-use cg_practicum::shape::{GeometricObject, Obj, Transformed};
+use cg_practicum::shape::{Bounded, GeometricObject, Obj, Transformed};
 use itertools::Itertools;
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
@@ -94,7 +94,7 @@ pub fn generate_instanced_bunnies(
     nb_bunnies: u32,
     seed: <ChaCha8Rng as SeedableRng>::Seed,
 ) -> Vec<GeometricObject> {
-    let mesh = Arc::new(Obj::load("../models/bunny_low.obj").unwrap().smooth());
+    let mesh = Arc::new(Obj::load("../models/bunny.obj").unwrap().smooth());
     let mut rng = ChaCha8Rng::from_seed(seed);
     let position_distribution = Uniform::new_inclusive(-0.5, 0.5);
     let color_distribution = Uniform::new_inclusive(0., 1.);
@@ -124,11 +124,48 @@ pub fn generate_instanced_bunnies(
         .collect_vec()
 }
 
+pub fn instanced_bunnies_non_overlapping(
+    nb_bunnies: u32,
+    seed: <ChaCha8Rng as SeedableRng>::Seed,
+) -> Vec<GeometricObject> {
+    let mesh = Arc::new(Obj::load("../models/bunny.obj").unwrap().smooth());
+    // make sure the bounding boxes don't touch each other.
+    let bunny_width = (mesh.bbox().p1 - mesh.bbox().p0).x * 1.01;
+    let scale = 1. / (bunny_width * nb_bunnies as f64);
+    let bunny_width = bunny_width * scale;
+    let mut rng = ChaCha8Rng::from_seed(seed);
+    let color_distribution = Uniform::new_inclusive(0., 1.);
+
+    (0..nb_bunnies)
+        .map(|i| {
+            let transformation =
+                Transformation::scale(scale, scale, scale).then(&Transformation::translate(
+                    (-0.5 + bunny_width / 2.) + i as f64 * bunny_width,
+                    0.,
+                    -1.,
+                ));
+            let color = Rgb::new(
+                rng.sample(color_distribution),
+                rng.sample(color_distribution),
+                rng.sample(color_distribution),
+            );
+            let material = Material::Matte {
+                ambient_brdf: Lambertian::new(0.15, color),
+                diffuse_brdf: Lambertian::new(0.75, color),
+            };
+
+            let transformed = Transformed::new(mesh.clone(), transformation);
+
+            GeometricObject::new(Box::new(transformed), material)
+        })
+        .collect_vec()
+}
+
 pub fn generate_flattened_bunnies(
     nb_bunnies: u32,
     seed: <ChaCha8Rng as SeedableRng>::Seed,
 ) -> Vec<GeometricObject> {
-    let obj = Obj::load("models/bunny_low.obj").unwrap();
+    let obj = Obj::load("../models/bunny.obj").unwrap();
     let mut rng = ChaCha8Rng::from_seed(seed);
     let position_distribution = Uniform::new_inclusive(-0.5, 0.5);
     let color_distribution = Uniform::new_inclusive(0., 1.);
