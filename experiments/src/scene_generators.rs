@@ -2,12 +2,15 @@ use cg_practicum::brdf::Lambertian;
 use cg_practicum::film::Rgb;
 use cg_practicum::material::Material;
 use cg_practicum::math::Transformation;
-use cg_practicum::shape::GeometricObject;
+use cg_practicum::shape::{GeometricObject, Obj, Transformed};
 use itertools::Itertools;
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use rand_distr::Uniform;
 use std::f64::consts::FRAC_1_PI;
+use std::sync::Arc;
+
+const BUNNY_SCALE: f64 = 0.125;
 
 pub fn generate_equal_spheres_uniform(
     nb_spheres: u32,
@@ -85,4 +88,78 @@ pub fn generate_spheres_skewed(
     _fill: f64,
 ) -> Vec<GeometricObject> {
     todo!()
+}
+
+pub fn generate_instanced_bunnies(
+    nb_bunnies: u32,
+    seed: <ChaCha8Rng as SeedableRng>::Seed,
+) -> Vec<GeometricObject> {
+    let mesh = Arc::new(Obj::load("../models/bunny_low.obj").unwrap().smooth());
+    let mut rng = ChaCha8Rng::from_seed(seed);
+    let position_distribution = Uniform::new_inclusive(-0.5, 0.5);
+    let color_distribution = Uniform::new_inclusive(0., 1.);
+
+    (0..nb_bunnies)
+        .map(|_| {
+            let transformation =
+                Transformation::scale(0.25, 0.25, 0.25).then(&Transformation::translate(
+                    rng.sample(position_distribution),
+                    rng.sample(position_distribution),
+                    rng.sample(position_distribution) - 1.,
+                ));
+            let color = Rgb::new(
+                rng.sample(color_distribution),
+                rng.sample(color_distribution),
+                rng.sample(color_distribution),
+            );
+            let material = Material::Matte {
+                ambient_brdf: Lambertian::new(0.15, color),
+                diffuse_brdf: Lambertian::new(0.75, color),
+            };
+
+            let transformed = Transformed::new(mesh.clone(), transformation);
+
+            GeometricObject::new(Box::new(transformed), material)
+        })
+        .collect_vec()
+}
+
+pub fn generate_flattened_bunnies(
+    nb_bunnies: u32,
+    seed: <ChaCha8Rng as SeedableRng>::Seed,
+) -> Vec<GeometricObject> {
+    let obj = Obj::load("models/bunny_low.obj").unwrap();
+    let mut rng = ChaCha8Rng::from_seed(seed);
+    let position_distribution = Uniform::new_inclusive(-0.5, 0.5);
+    let color_distribution = Uniform::new_inclusive(0., 1.);
+
+    (0..nb_bunnies)
+        .flat_map(|_| {
+            let transformation = Transformation::scale(BUNNY_SCALE, BUNNY_SCALE, BUNNY_SCALE).then(
+                &Transformation::translate(
+                    rng.sample(position_distribution),
+                    rng.sample(position_distribution),
+                    rng.sample(position_distribution) - 1.,
+                ),
+            );
+            let color = Rgb::new(
+                rng.sample(color_distribution),
+                rng.sample(color_distribution),
+                rng.sample(color_distribution),
+            );
+
+            obj.transform(&transformation)
+                .smooth_triangles()
+                .into_iter()
+                .map(|triangle| {
+                    let material = Material::Matte {
+                        ambient_brdf: Lambertian::new(0.15, color),
+                        diffuse_brdf: Lambertian::new(0.75, color),
+                    };
+
+                    GeometricObject::new(Box::new(triangle), material)
+                })
+                .collect_vec()
+        })
+        .collect_vec()
 }

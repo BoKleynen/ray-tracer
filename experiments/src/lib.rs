@@ -46,13 +46,8 @@ pub const SEEDS: [[u8; 32]; 10] = [
     ],
 ];
 
-pub const SPHERE_AMOUNTS: [u32; 15] = [
-    100, 500, 1000, 5000, 10_000, 50_000, 100_000, 250_000, 500_000, 750_000, 1_000_000, 2_000_000,
-    3_000_000, 4_000_000, 5_000_000,
-];
-
 #[derive(Debug, Serialize)]
 pub struct ExperimentResults {
-    pub nb_spheres: Vec<u32>,
+    pub nb_objects: Vec<u32>,
     pub results: HashMap<String, Vec<Vec<usize>>>,
 }

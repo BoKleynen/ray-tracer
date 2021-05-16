@@ -7,12 +7,17 @@ use cg_practicum::renderer::{FalseColorIntersectionTests, Renderer};
 use cg_practicum::sampler::Unsampled;
 use cg_practicum::world::WorldBuilder;
 use cg_practicum::{Point3, Vector};
-use experiments::scene_generators::generate_uniform_spheres_uniform;
-use experiments::{ExperimentResults, SEEDS, SPHERE_AMOUNTS};
+use experiments::scene_generators::*;
+use experiments::{ExperimentResults, SEEDS};
 use indicatif::ProgressIterator;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
+
+pub const SPHERE_AMOUNTS: [u32; 15] = [
+    100, 500, 1000, 5000, 10_000, 50_000, 100_000, 250_000, 500_000, 750_000, 1_000_000, 2_000_000,
+    3_000_000, 4_000_000, 5_000_000,
+];
 
 fn main() -> Result<(), Box<dyn Error>> {
     let splitting_configs = [
@@ -81,12 +86,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         .collect::<HashMap<_, _>>();
 
     let experiments = ExperimentResults {
-        nb_spheres: SPHERE_AMOUNTS.iter().copied().collect(),
+        nb_objects: SPHERE_AMOUNTS.iter().copied().collect(),
         results,
     };
 
     serde_json::to_writer_pretty(
-        &File::create("experiments/results/compare_splitting_heuristics3.json")?,
+        &File::create("results/compare_splitting_heuristics3.json")?,
         &experiments,
     )?;
 
