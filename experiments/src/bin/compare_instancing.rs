@@ -56,6 +56,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 .unwrap();
 
                             // {
+                            //     use cg_practicum::renderer::DirectIllumination;
+                            //     use cg_practicum::sampler::JitteredSampler;
+                            //
                             //     let sampler = JitteredSampler::new(16);
                             //     let tracer = DirectIllumination::default();
                             //

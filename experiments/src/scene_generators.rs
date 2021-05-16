@@ -54,7 +54,7 @@ pub fn generate_uniform_spheres_uniform(
     let min_radius = (1. / 52. * FRAC_1_PI * fill / nb_spheres as f64).powf(1. / 3.);
 
     let mut rng = ChaCha8Rng::from_seed(seed);
-    let radius_distribution = Uniform::new(min_radius, 5. * min_radius);
+    let radius_distribution = Uniform::new_inclusive(min_radius, 5. * min_radius);
     let position_distribution = Uniform::new_inclusive(-0.5, 0.5);
     let color_distribution = Uniform::new_inclusive(0., 1.);
 
@@ -90,7 +90,7 @@ pub fn generate_spheres_skewed(
     todo!()
 }
 
-pub fn generate_instanced_bunnies(
+pub fn instanced_bunnies(
     nb_bunnies: u32,
     seed: <ChaCha8Rng as SeedableRng>::Seed,
 ) -> Vec<GeometricObject> {
@@ -161,7 +161,7 @@ pub fn instanced_bunnies_non_overlapping(
         .collect_vec()
 }
 
-pub fn generate_flattened_bunnies(
+pub fn flattened_bunnies(
     nb_bunnies: u32,
     seed: <ChaCha8Rng as SeedableRng>::Seed,
 ) -> Vec<GeometricObject> {

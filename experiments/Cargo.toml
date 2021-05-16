@@ -11,6 +11,8 @@ This crate contains some experiments designed to analyse the performance of the 
 cg-practicum = { path = ".." }
 indicatif = { version = "0.16", features = ["rayon"] }
 itertools = "0.10"
+jemalloc-ctl = "0.3"
+jemallocator = "0.3"
 rand = "0.8"
 rand_chacha = "0.3"
 rand_distr = "0.4"
