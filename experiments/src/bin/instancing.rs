@@ -7,7 +7,7 @@ use cg_practicum::renderer::{FalseColorIntersectionTests, Renderer};
 use cg_practicum::sampler::Unsampled;
 use cg_practicum::world::WorldBuilder;
 use cg_practicum::{Point3, Vector};
-use experiments::scene_generators::*;
+use experiments::generator::*;
 use experiments::{ExperimentResults, SEEDS};
 use indicatif::ProgressIterator;
 use std::collections::HashMap;

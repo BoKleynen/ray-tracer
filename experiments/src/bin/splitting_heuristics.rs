@@ -7,7 +7,7 @@ use cg_practicum::renderer::{FalseColorIntersectionTests, Renderer};
 use cg_practicum::sampler::Unsampled;
 use cg_practicum::world::WorldBuilder;
 use cg_practicum::{Point3, Vector};
-use experiments::scene_generators::*;
+use experiments::generator::*;
 use experiments::{ExperimentResults, SEEDS};
 use indicatif::ProgressIterator;
 use std::collections::HashMap;
@@ -33,10 +33,26 @@ fn main() -> Result<(), Box<dyn Error>> {
             splitting_heuristic: SpaceMedianSplit,
             axis_selection: Alternate(Z_AXIS),
         },
+        // SplittingConfig {
+        //     splitting_heuristic: SpaceAverageSplit,
+        //     axis_selection: Alternate(Z_AXIS),
+        // },
         SplittingConfig {
-            splitting_heuristic: SpaceAverageSplit,
-            axis_selection: Alternate(Z_AXIS),
+            splitting_heuristic: SurfaceAreaHeuristic(12),
+            axis_selection: Longest,
         },
+        SplittingConfig {
+            splitting_heuristic: ObjectMedianSplit,
+            axis_selection: Longest,
+        },
+        SplittingConfig {
+            splitting_heuristic: SpaceMedianSplit,
+            axis_selection: Longest,
+        },
+        // SplittingConfig {
+        //     splitting_heuristic: SpaceAverageSplit,
+        //     axis_selection: Longest,
+        // },
     ];
     let camera = CameraBuilder::new(Point3::new(0., 0., 0.))
         .x_res(640)
@@ -63,7 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .iter()
                         .progress()
                         .map(|&seed| {
-                            let spheres = generate_uniform_spheres_uniform(nb_spheres, seed, 0.025);
+                            let spheres = equal_spheres_uniform(nb_spheres, seed, 0.025);
                             let world = WorldBuilder::default()
                                 .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
                                 .geometric_objects(spheres)
@@ -91,7 +107,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     serde_json::to_writer_pretty(
-        &File::create("results/compare_splitting_heuristics3.json")?,
+        &File::create("results/splitting_heuristics_equal_spheres_uniform_position.json")?,
         &experiments,
     )?;
 

@@ -4,7 +4,7 @@ use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
 use cg_practicum::light::PointLight;
 use cg_practicum::world::WorldBuilder;
 use cg_practicum::Point3;
-use experiments::scene_generators::*;
+use experiments::generator::*;
 use experiments::{ExperimentResults, SEEDS};
 use indicatif::ProgressIterator;
 use jemalloc_ctl::{epoch, stats};
@@ -16,7 +16,7 @@ use std::fs::File;
 #[global_allocator]
 static ALLOC: Jemalloc = Jemalloc;
 
-const BUNNY_AMOUNTS: [u32; 6] = [1, 2, 5, 10, 15, 20];
+const BUNNY_AMOUNTS: [u32; 8] = [1, 2, 5, 10, 15, 20, 30, 40];
 
 fn main() -> Result<(), Box<dyn Error>> {
     let e = epoch::mib().unwrap();

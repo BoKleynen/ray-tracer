@@ -107,7 +107,7 @@ impl<'a, S: Intersect> Bvh<'a, S> {
                         shape,
                     }
                 })
-                .collect::<Vec<_>>();
+                .collect();
 
             match cfg.splitting_heuristic {
                 SpaceMedianSplit => Node::space_median_split(shape_data, 0, 3),

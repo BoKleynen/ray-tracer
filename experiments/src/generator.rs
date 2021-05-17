@@ -6,13 +6,13 @@ use cg_practicum::shape::{Bounded, GeometricObject, Obj, Transformed};
 use itertools::Itertools;
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
-use rand_distr::Uniform;
+use rand_distr::{Beta, Normal, Uniform};
 use std::f64::consts::FRAC_1_PI;
 use std::sync::Arc;
 
 const BUNNY_SCALE: f64 = 0.125;
 
-pub fn generate_equal_spheres_uniform(
+pub fn equal_spheres_uniform(
     nb_spheres: u32,
     seed: <ChaCha8Rng as SeedableRng>::Seed,
     fill: f64,
@@ -43,10 +43,10 @@ pub fn generate_equal_spheres_uniform(
 
             GeometricObject::sphere(transformation, material)
         })
-        .collect_vec()
+        .collect()
 }
 
-pub fn generate_uniform_spheres_uniform(
+pub fn uniform_spheres_uniform(
     nb_spheres: u32,
     seed: <ChaCha8Rng as SeedableRng>::Seed,
     fill: f64,
@@ -79,15 +79,120 @@ pub fn generate_uniform_spheres_uniform(
 
             GeometricObject::sphere(transformation, material)
         })
+        .collect()
+}
+
+pub fn equal_spheres_normal_yz(
+    nb_spheres: u32,
+    seed: <ChaCha8Rng as SeedableRng>::Seed,
+    fill: f64,
+) -> Vec<GeometricObject> {
+    let radius = (0.75 * FRAC_1_PI * fill / nb_spheres as f64).powf(1. / 3.);
+
+    let mut rng = ChaCha8Rng::from_seed(seed);
+    let position_distribution = Uniform::new_inclusive(-0.5, 0.5);
+    let normal = Normal::new(0., 0.25).unwrap();
+    let color_distribution = Uniform::new_inclusive(0., 1.);
+
+    (0..nb_spheres)
+        .map(|_| {
+            let transformation =
+                Transformation::scale(radius, radius, radius).then(&Transformation::translate(
+                    rng.sample(position_distribution),
+                    // force values to lie within the unit cube.
+                    // I am however unsure about the mathematical implications of this.
+                    (&mut rng)
+                        .sample_iter(&normal)
+                        .find(|x| (-0.5..=0.5).contains(x))
+                        .unwrap(),
+                    (&mut rng)
+                        .sample_iter(&normal)
+                        .find(|x| (-0.5..=0.5).contains(x))
+                        .unwrap()
+                        - 1.,
+                ));
+            let color = Rgb::new(
+                rng.sample(color_distribution),
+                rng.sample(color_distribution),
+                rng.sample(color_distribution),
+            );
+            let material = Material::Matte {
+                ambient_brdf: Lambertian::new(0.15, color),
+                diffuse_brdf: Lambertian::new(0.75, color),
+            };
+
+            GeometricObject::sphere(transformation, material)
+        })
         .collect_vec()
 }
 
-pub fn generate_spheres_skewed(
-    _nb_spheres: u32,
-    _seed: <ChaCha8Rng as SeedableRng>::Seed,
-    _fill: f64,
+pub fn equal_spheres_beta_corners(
+    nb_spheres: u32,
+    seed: <ChaCha8Rng as SeedableRng>::Seed,
+    fill: f64,
 ) -> Vec<GeometricObject> {
-    todo!()
+    let radius = (0.75 * FRAC_1_PI * fill / nb_spheres as f64).powf(1. / 3.);
+
+    let mut rng = ChaCha8Rng::from_seed(seed);
+    let position_distribution = Beta::new(0.35, 0.35).unwrap();
+    let color_distribution = Uniform::new_inclusive(0., 1.);
+
+    (0..nb_spheres)
+        .map(|_| {
+            let transformation =
+                Transformation::scale(radius, radius, radius).then(&Transformation::translate(
+                    rng.sample(position_distribution) - 0.5,
+                    rng.sample(position_distribution) - 0.5,
+                    rng.sample(position_distribution) - 1.5,
+                ));
+            let color = Rgb::new(
+                rng.sample(color_distribution),
+                rng.sample(color_distribution),
+                rng.sample(color_distribution),
+            );
+            let material = Material::Matte {
+                ambient_brdf: Lambertian::new(0.15, color),
+                diffuse_brdf: Lambertian::new(0.75, color),
+            };
+
+            GeometricObject::sphere(transformation, material)
+        })
+        .collect_vec()
+}
+
+pub fn equal_spheres_beta_x(
+    nb_spheres: u32,
+    seed: <ChaCha8Rng as SeedableRng>::Seed,
+    fill: f64,
+) -> Vec<GeometricObject> {
+    let radius = (0.75 * FRAC_1_PI * fill / nb_spheres as f64).powf(1. / 3.);
+
+    let mut rng = ChaCha8Rng::from_seed(seed);
+    let beta = Beta::new(1.5, 2.5).unwrap();
+    let uniform = Uniform::new_inclusive(-0.5, 0.5);
+    let color_distribution = Uniform::new_inclusive(0., 1.);
+
+    (0..nb_spheres)
+        .map(|_| {
+            let transformation =
+                Transformation::scale(radius, radius, radius).then(&Transformation::translate(
+                    rng.sample(beta) - 0.5,
+                    rng.sample(uniform),
+                    rng.sample(uniform) - 1.,
+                ));
+            let color = Rgb::new(
+                rng.sample(color_distribution),
+                rng.sample(color_distribution),
+                rng.sample(color_distribution),
+            );
+            let material = Material::Matte {
+                ambient_brdf: Lambertian::new(0.15, color),
+                diffuse_brdf: Lambertian::new(0.75, color),
+            };
+
+            GeometricObject::sphere(transformation, material)
+        })
+        .collect_vec()
 }
 
 pub fn instanced_bunnies(
