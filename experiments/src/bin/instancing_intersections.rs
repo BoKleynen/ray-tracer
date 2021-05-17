@@ -3,29 +3,36 @@ use cg_practicum::bvh::SplittingHeuristic::SurfaceAreaHeuristic;
 use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
 use cg_practicum::light::PointLight;
 use cg_practicum::world::WorldBuilder;
-use cg_practicum::Point3;
+use cg_practicum::{Point3, Vector};
 use experiments::generator::*;
 use experiments::{ExperimentResults, SEEDS};
 use indicatif::ProgressIterator;
-use jemalloc_ctl::{epoch, stats};
-use jemallocator::Jemalloc;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
-
-#[global_allocator]
-static ALLOC: Jemalloc = Jemalloc;
+use cg_practicum::camera::CameraBuilder;
+use cg_practicum::sampler::Unsampled;
+use cg_practicum::renderer::{FalseColorIntersectionTests, Renderer};
 
 const BUNNY_AMOUNTS: [u32; 8] = [1, 2, 5, 10, 15, 20, 30, 40];
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let e = epoch::mib().unwrap();
-    let allocated = stats::allocated::mib().unwrap();
-
     let splitting_configs = [SplittingConfig {
         splitting_heuristic: SurfaceAreaHeuristic(12),
         axis_selection: Alternate(Z_AXIS),
     }];
+
+    let camera = CameraBuilder::new(Point3::new(0., 0., 0.))
+        .x_res(640)
+        .y_res(640)
+        .destination(Point3::new(0., 0., -1.))
+        .up(Vector::new(0., 1., 0.))
+        .fov(90.)
+        .build()
+        .ok_or("invalid camera configuration")
+        .unwrap();
+    let sampler = Unsampled::default();
+    let tracer = FalseColorIntersectionTests::default();
 
     let results = splitting_configs
         .iter()
@@ -40,21 +47,18 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .iter()
                         .progress()
                         .map(|&seed| {
-                            e.advance().unwrap();
-                            let start = allocated.read().unwrap();
-
-                            let bunnies = instanced_bunnies_uniform(nb_bunnies, seed);
-                            let _world = WorldBuilder::default()
+                            let bunnies = flattened_bunnies_uniform(nb_bunnies, seed);
+                            let world = WorldBuilder::default()
                                 .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
                                 .geometric_objects(bunnies)
                                 .splitting_config(splitting_config)
                                 .build()
                                 .unwrap();
 
-                            e.advance().unwrap();
-                            let end = allocated.read().unwrap();
-
-                            end - start
+                            tracer
+                                .render_scene(&world, &camera, &sampler)
+                                .iter()
+                                .sum::<usize>()
                         })
                         .collect()
                 })
@@ -70,7 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     serde_json::to_writer_pretty(
-        &File::create("results/instanced_memory.json")?,
+        &File::create("results/flattened_intersections.json")?,
         &experiments,
     )?;
 

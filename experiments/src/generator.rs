@@ -10,7 +10,7 @@ use rand_distr::{Beta, Normal, Uniform};
 use std::f64::consts::FRAC_1_PI;
 use std::sync::Arc;
 
-const BUNNY_SCALE: f64 = 0.75;
+const BUNNY_SCALE: f64 = 0.125;
 
 pub fn equal_spheres_uniform(
     nb_spheres: u32,
@@ -207,7 +207,7 @@ pub fn instanced_bunnies_uniform(
     (0..nb_bunnies)
         .map(|_| {
             let transformation =
-                Transformation::scale(0.25, 0.25, 0.25).then(&Transformation::translate(
+                Transformation::scale(BUNNY_SCALE, BUNNY_SCALE, BUNNY_SCALE).then(&Transformation::translate(
                     rng.sample(position_distribution),
                     rng.sample(position_distribution),
                     rng.sample(position_distribution) - 1.,
