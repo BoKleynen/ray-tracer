@@ -14,7 +14,7 @@ use cg_practicum::camera::CameraBuilder;
 use cg_practicum::sampler::Unsampled;
 use cg_practicum::renderer::{FalseColorIntersectionTests, Renderer};
 
-const BUNNY_AMOUNTS: [u32; 8] = [1, 2, 5, 10, 15, 20, 30, 40];
+const BUNNY_AMOUNTS: [u32; 15] = [1, 2, 5, 10, 15, 20, 30, 40, 50, 75, 100, 125, 150, 200, 250];
 
 fn main() -> Result<(), Box<dyn Error>> {
     let splitting_configs = [SplittingConfig {
@@ -74,7 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     serde_json::to_writer_pretty(
-        &File::create("results/flattened_intersections.json")?,
+        &File::create("results/flattened_intersections_small.json")?,
         &experiments,
     )?;
 

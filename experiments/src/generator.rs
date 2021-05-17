@@ -10,7 +10,7 @@ use rand_distr::{Beta, Normal, Uniform};
 use std::f64::consts::FRAC_1_PI;
 use std::sync::Arc;
 
-const BUNNY_SCALE: f64 = 0.125;
+const BUNNY_SCALE: f64 = 0.04;
 
 pub fn equal_spheres_uniform(
     nb_spheres: u32,

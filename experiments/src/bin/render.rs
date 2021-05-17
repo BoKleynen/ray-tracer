@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid camera configuration")
         .unwrap();
-    let objects = instanced_bunnies_uniform(20, SEEDS[0]);
+    let objects = instanced_bunnies_uniform(200, SEEDS[0]);
     let world = WorldBuilder::default()
         .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
         .geometric_objects(objects)
