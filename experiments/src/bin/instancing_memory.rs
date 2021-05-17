@@ -12,6 +12,9 @@ use jemallocator::Jemalloc;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
+use cg_practicum::shape::GeometricObject;
+use rand::SeedableRng;
+use rand_chacha::ChaCha8Rng;
 
 #[global_allocator]
 static ALLOC: Jemalloc = Jemalloc;
@@ -43,7 +46,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                             e.advance().unwrap();
                             let start = allocated.read().unwrap();
 
-                            let bunnies = flattened_bunnies(nb_bunnies, seed);
+                            let bunnies = flattened_bunnies_uniform(nb_bunnies, seed);
                             let _world = WorldBuilder::default()
                                 .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
                                 .geometric_objects(bunnies)
@@ -70,7 +73,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     serde_json::to_writer_pretty(
-        &File::create("results/instancing_memory.json")?,
+        &File::create("results/flattened_memory.json")?,
         &experiments,
     )?;
 
