@@ -46,7 +46,7 @@ pub fn equal_spheres_uniform(
         .collect()
 }
 
-pub fn uniform_spheres_uniform(
+pub fn uniform_spheres_uniform_position(
     nb_spheres: u32,
     seed: <ChaCha8Rng as SeedableRng>::Seed,
     fill: f64,
