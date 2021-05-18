@@ -1,6 +1,6 @@
 #![allow(unused_imports)]
 use cg_practicum::bvh::AxisSelection::{Alternate, Longest};
-use cg_practicum::bvh::SplittingHeuristic::SurfaceAreaHeuristic;
+use cg_practicum::bvh::SplittingHeuristic::{SurfaceAreaHeuristic, SpaceMedianSplit};
 use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
 use cg_practicum::camera::CameraBuilder;
 use cg_practicum::light::PointLight;
@@ -40,12 +40,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         .unwrap();
     let sampler = JitteredSampler::new(16);
     let tracer = DirectIllumination::default();
+    // let sampler = Unsampled::default();
+    // let tracer = FalseColorIntersectionTests::default();
     let start = Instant::now();
     let buffer = tracer.render_scene(&world, &camera, &sampler);
     let duration = start.elapsed();
     println!("render time: {:?}", duration);
 
-    // File::create("../renders/intersection_tests.txt")?.write_all(
+    // File::create("../renders/intersection_tests2.txt")?.write_all(
     //     buffer
     //         .iter()
     //         .map(|count| count.to_string())
@@ -55,7 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     buffer
         .to_rgba_image(1., 2.2)
-        .save("../renders/spheres.png")?;
+        .save("../renders/instanced_bunnies.png")?;
 
     Ok(())
 }
