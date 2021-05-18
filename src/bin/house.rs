@@ -16,6 +16,9 @@ use cg_practicum::world::WorldBuilder;
 use cg_practicum::{Point3, Vector};
 use std::error::Error;
 use std::time::Instant;
+use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
+use cg_practicum::bvh::SplittingHeuristic::SpaceMedianSplit;
+use cg_practicum::bvh::AxisSelection::Alternate;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
@@ -31,7 +34,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let light1 = PointLight::white(1., Point3::new(-4., -4., 4.));
 
-    let texture = ImageTexture::new("textures/house_texture.jpg")?;
+    let texture = ImageTexture::new("models/house_texture.jpg")?;
     let ambient_brdf = SvLambertian::new(0.35, Box::new(texture.clone()));
     let diffuse_brdf = SvLambertian::new(1., Box::new(texture));
 
@@ -45,6 +48,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let world = WorldBuilder::default()
         .light(Box::new(light1))
         .background(Rgb::black())
+        .splitting_config(SplittingConfig {
+            splitting_heuristic: SpaceMedianSplit,
+            axis_selection: Alternate(Z_AXIS)
+        })
         .geometric_object(GeometricObject::triangle_mesh(
             object,
             Transformation::identity(),

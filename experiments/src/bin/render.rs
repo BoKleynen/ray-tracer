@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()
         .ok_or("invalid camera configuration")
         .unwrap();
-    let objects = instanced_bunnies_uniform(200, SEEDS[0]);
+    let objects = equal_spheres_uniform_yz(5000, SEEDS[0], 0.025);
     let world = WorldBuilder::default()
         .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
         .geometric_objects(objects)
@@ -57,7 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     buffer
         .to_rgba_image(1., 2.2)
-        .save("../renders/instanced_bunnies.png")?;
+        .save("../renders/uniform_spheres_uniform_position_yz.png")?;
 
     Ok(())
 }

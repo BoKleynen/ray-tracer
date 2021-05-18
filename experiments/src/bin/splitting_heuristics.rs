@@ -22,7 +22,7 @@ pub const SPHERE_AMOUNTS: [u32; 15] = [
 fn main() -> Result<(), Box<dyn Error>> {
     let splitting_configs = [
         SplittingConfig {
-            splitting_heuristic: SurfaceAreaHeuristic(13),
+            splitting_heuristic: SurfaceAreaHeuristic(12),
             axis_selection: Alternate(Z_AXIS),
         },
         SplittingConfig {
@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         //     axis_selection: Alternate(Z_AXIS),
         // },
         SplittingConfig {
-            splitting_heuristic: SurfaceAreaHeuristic(13),
+            splitting_heuristic: SurfaceAreaHeuristic(12),
             axis_selection: Longest,
         },
         SplittingConfig {
@@ -79,7 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .iter()
                         .progress()
                         .map(|&seed| {
-                            let spheres = equal_spheres_beta_corners(nb_spheres, seed, 0.025);
+                            let spheres = equal_spheres_uniform_yz(nb_spheres, seed, 0.025);
                             let world = WorldBuilder::default()
                                 .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
                                 .geometric_objects(spheres)
@@ -107,7 +107,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     serde_json::to_writer_pretty(
-        &File::create("results/splitting_heuristics_equal_spheres_beta_corners2.json")?,
+        &File::create("results/splitting_heuristics_equal_spheres_uniform_yz.json")?,
         &experiments,
     )?;
 
