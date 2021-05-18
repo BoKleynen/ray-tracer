@@ -79,7 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .iter()
                         .progress()
                         .map(|&seed| {
-                            let spheres = equal_spheres_beta_corners(nb_spheres, seed, 0.025);
+                            let spheres = equal_spheres_beta_x(nb_spheres, seed, 0.025);
                             let world = WorldBuilder::default()
                                 .light(Box::new(PointLight::white(1., Point3::new(0., 1., 3.))))
                                 .geometric_objects(spheres)
@@ -107,7 +107,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     serde_json::to_writer_pretty(
-        &File::create("results/splitting_heuristics_equal_spheres_beta_corners.json")?,
+        &File::create("results/splitting_heuristics_equal_spheres_beta_x.json")?,
         &experiments,
     )?;
 
