@@ -13,7 +13,7 @@ use crate::world::World;
 pub trait Renderer {
     type Output;
 
-    fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> Self::Output
+    fn render_scene<C, S>(&self, world: &World, camera: &C, sampler: &S) -> Self::Output
     where
         C: Camera + Sync,
         S: Sampler + Sync;
@@ -25,7 +25,7 @@ pub struct DirectIllumination {}
 impl Renderer for DirectIllumination {
     type Output = FrameBuffer;
 
-    fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> Self::Output
+    fn render_scene<C, S>(&self, world: &World, camera: &C, sampler: &S) -> Self::Output
     where
         C: Camera + Sync,
         S: Sampler + Sync,
@@ -129,7 +129,7 @@ pub struct FalseColorNormals {}
 impl Renderer for FalseColorNormals {
     type Output = FrameBuffer;
 
-    fn render_scene<C, S>(&self, world: &World, camera: C, sampler: S) -> Self::Output
+    fn render_scene<C, S>(&self, world: &World, camera: &C, sampler: &S) -> Self::Output
     where
         C: Camera + Sync,
         S: Sampler + Sync,
@@ -183,7 +183,7 @@ impl Renderer for FalseColorIntersectionTests {
     type Output = Vec<usize>;
 
     // I don't think using sample points makes a lot of sense for this
-    fn render_scene<C, S>(&self, world: &World, camera: C, _sampler: S) -> Self::Output
+    fn render_scene<C, S>(&self, world: &World, camera: &C, _sampler: &S) -> Self::Output
     where
         C: Camera + Sync,
         S: Sampler + Sync,

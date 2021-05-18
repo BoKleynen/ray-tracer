@@ -1,4 +1,5 @@
 #![allow(clippy::many_single_char_names)]
+#![warn(clippy::dbg_macro, clippy::default_trait_access)]
 
 mod accel;
 pub mod brdf;

@@ -4,7 +4,7 @@ use std::io::Read;
 use std::mem;
 use std::sync::Arc;
 
-use crate::math::Ray;
+use crate::math::{Ray, Transformation};
 use crate::shape::aabb::Aabb;
 use crate::shape::compound::Compound;
 use crate::shape::{Bounded, Hit, Intersect};
@@ -18,6 +18,7 @@ pub struct Mesh {
 }
 
 #[repr(transparent)]
+#[derive(Clone)]
 pub struct SmoothTriangle {
     inner: Triangle,
 }
@@ -83,6 +84,7 @@ impl Intersect for FlatTriangle {
     }
 }
 
+#[derive(Clone)]
 struct Triangle {
     mesh: Arc<Mesh>,
     v: (usize, usize, usize),
@@ -212,6 +214,7 @@ struct TriangleHit {
     uv: Point2,
 }
 
+#[derive(Clone)]
 pub struct Obj {
     vertexes: Vec<Point3>,
     texture_coordinates: Vec<Point2>,
@@ -275,7 +278,7 @@ impl Obj {
         Compound::new(self.flat_triangles())
     }
 
-    fn smooth_triangles(self) -> Vec<SmoothTriangle> {
+    pub fn smooth_triangles(self) -> Vec<SmoothTriangle> {
         // safety: SmoothTriangle is a different transparent representation of Triangle
         unsafe {
             let mut triangles = mem::ManuallyDrop::new(self.triangles());
@@ -287,7 +290,7 @@ impl Obj {
         }
     }
 
-    fn flat_triangles(self) -> Vec<FlatTriangle> {
+    pub fn flat_triangles(self) -> Vec<FlatTriangle> {
         // safety: FlatTriangle is a different transparent representation of Triangle
         unsafe {
             let mut triangles = mem::ManuallyDrop::new(self.triangles());
@@ -297,6 +300,30 @@ impl Obj {
                 triangles.capacity(),
             )
         }
+    }
+
+    /// Returns a new instance of this Obj for which `transformation` has been applied to all
+    /// vertexes.
+    pub fn transform(&self, transformation: &Transformation) -> Self {
+        let mut obj = self.clone();
+        obj.vertexes = obj
+            .vertexes
+            .iter()
+            .map(|p| transformation.apply(p))
+            .collect();
+        obj.vertex_normals = obj
+            .vertex_normals
+            .iter()
+            .map(|n| {
+                transformation
+                    .inverse()
+                    .matrix()
+                    .transpose()
+                    .transform_vector(n)
+                    .normalize()
+            })
+            .collect();
+        obj
     }
 
     fn triangles(self) -> Vec<Triangle> {
@@ -335,8 +362,10 @@ impl Obj {
     }
 }
 
+#[derive(Clone)]
 struct ObjTriangle(ObjTriangleCorner, ObjTriangleCorner, ObjTriangleCorner);
 
+#[derive(Clone)]
 struct ObjTriangleCorner {
     vertex_idx: usize,
     texture_idx: usize,

@@ -63,6 +63,12 @@ impl Rgb {
     }
 }
 
+impl Default for Rgb {
+    fn default() -> Self {
+        Rgb::black()
+    }
+}
+
 impl Add for Rgb {
     type Output = Rgb;
 

@@ -1,4 +1,4 @@
-#[allow(unused_imports)]
+#![allow(unused_imports)]
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::camera::CameraBuilder;
 use cg_practicum::film::Rgb;
@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let sampler = Unsampled::default();
     let sampler = JitteredSampler::new(16);
     let tracer = DirectIllumination::default();
-    let buffer = tracer.render_scene(&world, camera, sampler);
+    let buffer = tracer.render_scene(&world, &camera, &sampler);
 
     buffer.to_rgba_image(1., 2.2).save("renders/spheres.png")?;
 

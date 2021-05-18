@@ -2,8 +2,7 @@ use crate::math::Ray;
 use crate::shape::{Aabb, Bounded, Hit, Intersect};
 use crate::{Point2, Point3, K_EPSILON};
 
-/// Represents a three-dimensional unit sphere, centered at the origin,
-/// which is transformed by a transformation.
+/// Represents a three-dimensional unit sphere, centered at the origin.
 pub struct Sphere {}
 
 impl Sphere {
