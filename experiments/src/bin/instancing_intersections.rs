@@ -1,7 +1,10 @@
 use cg_practicum::bvh::AxisSelection::Alternate;
 use cg_practicum::bvh::SplittingHeuristic::SurfaceAreaHeuristic;
 use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
+use cg_practicum::camera::CameraBuilder;
 use cg_practicum::light::PointLight;
+use cg_practicum::renderer::{FalseColorIntersectionTests, Renderer};
+use cg_practicum::sampler::Unsampled;
 use cg_practicum::world::WorldBuilder;
 use cg_practicum::{Point3, Vector};
 use experiments::generator::*;
@@ -10,9 +13,6 @@ use indicatif::ProgressIterator;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
-use cg_practicum::camera::CameraBuilder;
-use cg_practicum::sampler::Unsampled;
-use cg_practicum::renderer::{FalseColorIntersectionTests, Renderer};
 
 const BUNNY_AMOUNTS: [u32; 15] = [1, 2, 5, 10, 15, 20, 30, 40, 50, 75, 100, 125, 150, 200, 250];
 

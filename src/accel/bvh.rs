@@ -330,7 +330,7 @@ impl<'a, S: Intersect> Node<'a, S> {
         let mut buckets = vec![BucketInfo::default(); nb_buckets];
         shapes.iter().for_each(|shape| {
             let b = nb_buckets as f64 * (shape.centroid[axis] - bbox.p0[axis]) / axis_size;
-            let b = b.floor() as usize;
+            let b = (b.floor() as usize).min(nb_buckets - 1);
 
             buckets[b].count += 1;
             buckets[b].bbox = buckets[b].bbox.union(shape.bbox);
@@ -439,30 +439,30 @@ impl<'a, S: Intersect> Node<'a, S> {
         }
     }
 
-    fn space_average_split(shapes: Vec<ShapeData<'a, S>>, axis: usize, counter: u8) -> Self {
-        let bbox = Aabb::from_multiple(&shapes);
-
-        if shapes.len() <= 2 || counter == 0 {
-            Self::leaf(bbox, shapes)
-        } else {
-            let next_axis = (axis + 1) % 3;
-            let (left, right) = Self::split_space_average(shapes, axis);
-
-            if left.is_empty() {
-                Self::space_average_split(right, next_axis, 3)
-            } else if right.is_empty() {
-                Self::space_average_split(left, next_axis, 3)
-            } else {
-                Self {
-                    bbox,
-                    node_kind: Internal {
-                        left: Box::new(Self::space_average_split(left, next_axis, 3)),
-                        right: Box::new(Self::space_average_split(right, next_axis, 3)),
-                    },
-                }
-            }
-        }
-    }
+    // fn space_average_split(shapes: Vec<ShapeData<'a, S>>, axis: usize, counter: u8) -> Self {
+    //     let bbox = Aabb::from_multiple(&shapes);
+    //
+    //     if shapes.len() <= 2 || counter == 0 {
+    //         Self::leaf(bbox, shapes)
+    //     } else {
+    //         let next_axis = (axis + 1) % 3;
+    //         let (left, right) = Self::split_space_average(shapes, axis);
+    //
+    //         if left.is_empty() {
+    //             Self::space_average_split(right, next_axis, 3)
+    //         } else if right.is_empty() {
+    //             Self::space_average_split(left, next_axis, 3)
+    //         } else {
+    //             Self {
+    //                 bbox,
+    //                 node_kind: Internal {
+    //                     left: Box::new(Self::space_average_split(left, next_axis, 3)),
+    //                     right: Box::new(Self::space_average_split(right, next_axis, 3)),
+    //                 },
+    //             }
+    //         }
+    //     }
+    // }
 
     fn object_median_split(mut shapes: Vec<ShapeData<'a, S>>, axis_selection: AxisSelection) -> Self {
         Self::object_median_split_rec(&mut shapes, axis_selection)
@@ -614,18 +614,18 @@ impl<'a, S: Intersect> Node<'a, S> {
         }
     }
 
-    fn split_space_average(
-        shapes: Vec<ShapeData<'a, S>>,
-        axis: usize,
-    ) -> (Vec<ShapeData<'a, S>>, Vec<ShapeData<'a, S>>) {
-        let split = shapes
-            .iter()
-            .map(|sample| sample.centroid[axis])
-            .sum::<f64>()
-            / shapes.len() as f64;
-
-        Self::split_space(shapes, axis, split)
-    }
+    // fn split_space_average(
+    //     shapes: Vec<ShapeData<'a, S>>,
+    //     axis: usize,
+    // ) -> (Vec<ShapeData<'a, S>>, Vec<ShapeData<'a, S>>) {
+    //     let split = shapes
+    //         .iter()
+    //         .map(|sample| sample.centroid[axis])
+    //         .sum::<f64>()
+    //         / shapes.len() as f64;
+    //
+    //     Self::split_space(shapes, axis, split)
+    // }
 
     fn split_space(
         shapes: Vec<ShapeData<'a, S>>,
