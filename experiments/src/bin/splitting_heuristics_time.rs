@@ -62,58 +62,61 @@ fn main() -> Result<(), Box<dyn Error>> {
         },
     ];
 
-    GENERATORS.iter().progress().for_each(|(description, generator)| {
-        let results = splitting_configs
-            .iter()
-            .progress()
-            .map(|&splitting_config| {
-                let experiments = SPHERE_AMOUNTS
-                    .iter()
-                    .map(|&nb_spheres| {
-                        SEEDS
-                            .iter()
-                            .progress()
-                            .flat_map(|&seed| {
-                                (0..10).map(move |_| {
-                                    let spheres = generator(nb_spheres, seed, 0.025);
-                                    let start = Instant::now();
-                                    WorldBuilder::default()
-                                        .light(Box::new(PointLight::white(
-                                            1.,
-                                            Point3::new(0., 1., 3.),
-                                        )))
-                                        .geometric_objects(spheres)
-                                        .splitting_config(splitting_config)
-                                        .build()
-                                        .ok_or("invalid world configuration")
-                                        .unwrap();
+    GENERATORS
+        .iter()
+        .progress()
+        .for_each(|(description, generator)| {
+            let results = splitting_configs
+                .iter()
+                .progress()
+                .map(|&splitting_config| {
+                    let experiments = SPHERE_AMOUNTS
+                        .iter()
+                        .map(|&nb_spheres| {
+                            SEEDS
+                                .iter()
+                                .progress()
+                                .flat_map(|&seed| {
+                                    (0..10).map(move |_| {
+                                        let spheres = generator(nb_spheres, seed, 0.025);
+                                        let start = Instant::now();
+                                        WorldBuilder::default()
+                                            .light(Box::new(PointLight::white(
+                                                1.,
+                                                Point3::new(0., 1., 3.),
+                                            )))
+                                            .geometric_objects(spheres)
+                                            .splitting_config(splitting_config)
+                                            .build()
+                                            .ok_or("invalid world configuration")
+                                            .unwrap();
 
-                                    start.elapsed()
+                                        start.elapsed()
+                                    })
                                 })
-                            })
-                            .collect()
-                    })
-                    .collect();
+                                .collect()
+                        })
+                        .collect();
 
-                (format!("{}", splitting_config), experiments)
-            })
-            .collect::<HashMap<_, _>>();
+                    (format!("{}", splitting_config), experiments)
+                })
+                .collect::<HashMap<_, _>>();
 
-        let experiments = ExperimentResults {
-            nb_objects: SPHERE_AMOUNTS.iter().copied().collect(),
-            results,
-        };
+            let experiments = ExperimentResults {
+                nb_objects: SPHERE_AMOUNTS.iter().copied().collect(),
+                results,
+            };
 
-        serde_json::to_writer_pretty(
-            &File::create(format!(
-                "results/splitting_heuristics_{}_time.json",
-                description
-            ))
-            .unwrap(),
-            &experiments,
-        )
-        .unwrap();
-    });
+            serde_json::to_writer_pretty(
+                &File::create(format!(
+                    "results/splitting_heuristics_{}_time.json",
+                    description
+                ))
+                .unwrap(),
+                &experiments,
+            )
+            .unwrap();
+        });
 
     Ok(())
 }
