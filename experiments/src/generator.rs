@@ -241,12 +241,13 @@ pub fn instanced_bunnies_uniform(
 
     (0..nb_bunnies)
         .map(|_| {
-            let transformation =
-                Transformation::scale(BUNNY_SCALE, BUNNY_SCALE, BUNNY_SCALE).then(&Transformation::translate(
+            let transformation = Transformation::scale(BUNNY_SCALE, BUNNY_SCALE, BUNNY_SCALE).then(
+                &Transformation::translate(
                     rng.sample(position_distribution),
                     rng.sample(position_distribution),
                     rng.sample(position_distribution) - 1.,
-                ));
+                ),
+            );
             let color = Rgb::new(
                 rng.sample(color_distribution),
                 rng.sample(color_distribution),

@@ -1,6 +1,6 @@
 #![allow(unused_imports)]
 use cg_practicum::bvh::AxisSelection::{Alternate, Longest};
-use cg_practicum::bvh::SplittingHeuristic::{SurfaceAreaHeuristic, SpaceMedianSplit};
+use cg_practicum::bvh::SplittingHeuristic::{SpaceMedianSplit, SurfaceAreaHeuristic};
 use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
 use cg_practicum::camera::CameraBuilder;
 use cg_practicum::light::PointLight;
@@ -8,13 +8,13 @@ use cg_practicum::renderer::{DirectIllumination, FalseColorIntersectionTests, Re
 use cg_practicum::sampler::{JitteredSampler, Unsampled};
 use cg_practicum::world::WorldBuilder;
 use cg_practicum::{Point3, Vector};
+use experiments::generator::*;
 use experiments::{generator, SEEDS};
 use itertools::Itertools;
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use std::time::Instant;
-use experiments::generator::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let splitting_config = SplittingConfig {

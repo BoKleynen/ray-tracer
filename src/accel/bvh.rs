@@ -113,7 +113,7 @@ impl<'a, S: Intersect> Bvh<'a, S> {
                 .collect();
 
             match cfg.splitting_heuristic {
-                SpaceMedianSplit => Node::space_median_split(shape_data, 3, cfg.axis_selection),
+                SpaceMedianSplit => Node::space_median_split(shape_data, cfg.axis_selection),
                 ObjectMedianSplit => Node::object_median_split(shape_data, cfg.axis_selection),
                 SpaceAverageSplit => unimplemented!(),
                 SurfaceAreaHeuristic(nb_buckets) => {
@@ -213,16 +213,41 @@ impl<'a, S: Intersect> Node<'a, S> {
             Self::leaf(bbox, shapes)
         } else {
             let axis = (prev_axis + 1) % 3;
-            let split_axis_size = bbox.p1[axis] - bbox.p0[axis];
+            let axis_size = bbox.p1[axis] - bbox.p0[axis];
 
-            Self::surface_area_heuristic_inner(
-                shapes,
-                nb_buckets,
-                axis,
-                split_axis_size,
-                bbox,
-                |shapes| Self::surface_area_heuristic_alternate(shapes, nb_buckets, axis),
-            )
+            let mut buckets = vec![BucketInfo::default(); nb_buckets];
+            shapes.iter().for_each(|shape| {
+                let b = nb_buckets as f64 * (shape.centroid[axis] - bbox.p0[axis]) / axis_size;
+                let b = (b.floor() as usize).min(nb_buckets - 1);
+
+                buckets[b].count += 1;
+                buckets[b].bbox = buckets[b].bbox.union(shape.bbox);
+            });
+
+            let (min_bucket, min_cost) = min_bucket(&buckets, bbox);
+            let leaf_cost = shapes.len() as f64;
+            if leaf_cost <= min_cost {
+                Self::leaf(bbox, shapes)
+            } else {
+                let (left, right): (Vec<_>, Vec<_>) = shapes.into_iter().partition(|shape| {
+                    let b = nb_buckets as f64 * (shape.centroid[axis] - bbox.p0[axis]) / axis_size;
+                    let b = b.floor() as usize;
+
+                    b <= min_bucket
+                });
+
+                Self {
+                    bbox,
+                    node_kind: Internal {
+                        left: Box::new(Self::surface_area_heuristic_alternate(
+                            left, nb_buckets, axis,
+                        )),
+                        right: Box::new(Self::surface_area_heuristic_alternate(
+                            right, nb_buckets, axis,
+                        )),
+                    },
+                }
+            }
         }
     }
 
@@ -235,13 +260,9 @@ impl<'a, S: Intersect> Node<'a, S> {
         if shapes.len() <= 2 || directions.is_empty() {
             Self::leaf(bbox, shapes)
         } else {
-            let mut buckets = vec![BucketInfo::default(); nb_buckets];
-            let (axis, axis_size) = directions
-                .iter()
-                .map(|&axis| (axis, bbox.p1[axis] - bbox.p0[axis]))
-                .max_by(|(_, l1), (_, l2)| l1.partial_cmp(l2).unwrap())
-                .unwrap();
+            let (axis, axis_size) = bbox.longest_axis_of(directions);
 
+            let mut buckets = vec![BucketInfo::default(); nb_buckets];
             shapes.iter().for_each(|shape| {
                 let b = nb_buckets as f64 * (shape.centroid[axis] - bbox.p0[axis]) / axis_size;
                 let b = b.floor() as usize;
@@ -250,33 +271,7 @@ impl<'a, S: Intersect> Node<'a, S> {
                 buckets[b].bbox = buckets[b].bbox.union(shape.bbox);
             });
 
-            let (min_bucket, min_cost) = (0..nb_buckets - 1)
-                .map(|i| {
-                    let left_count = buckets[..=i]
-                        .iter()
-                        .map(|bucket| bucket.count)
-                        .sum::<usize>();
-                    let left_bbox = buckets[..=i]
-                        .iter()
-                        .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
-
-                    let right_count = buckets[i + 1..]
-                        .iter()
-                        .map(|bucket| bucket.count)
-                        .sum::<usize>();
-                    let right_bbox = buckets[i + 1..]
-                        .iter()
-                        .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
-
-                    let cost = 1.
-                        + (left_count as f64 * left_bbox.surface()
-                            + right_count as f64 * right_bbox.surface())
-                            / bbox.surface();
-
-                    (i, cost)
-                })
-                .min_by(|(_, c1), (_, c2)| c1.partial_cmp(&c2).unwrap())
-                .unwrap();
+            let (min_bucket, min_cost) = min_bucket(&buckets, bbox);
 
             let leaf_cost = shapes.len() as f64;
             if leaf_cost <= min_cost {
@@ -316,204 +311,175 @@ impl<'a, S: Intersect> Node<'a, S> {
         }
     }
 
-    fn surface_area_heuristic_inner<F>(
+    fn space_median_split(shapes: Vec<ShapeData<'a, S>>, axis_selection: AxisSelection) -> Self {
+        match axis_selection {
+            Alternate(prev_axis) => Self::space_median_split_alternate(shapes, 3, prev_axis),
+            Longest => Self::space_median_split_longest(shapes, &DIRECTIONS),
+        }
+    }
+
+    fn space_median_split_alternate(
         shapes: Vec<ShapeData<'a, S>>,
-        nb_buckets: usize,
-        axis: usize,
-        axis_size: f64,
-        bbox: Aabb,
-        recursive: F,
-    ) -> Self
-    where
-        F: Fn(Vec<ShapeData<'a, S>>) -> Self + Copy,
-    {
-        let mut buckets = vec![BucketInfo::default(); nb_buckets];
-        shapes.iter().for_each(|shape| {
-            let b = nb_buckets as f64 * (shape.centroid[axis] - bbox.p0[axis]) / axis_size;
-            let b = b.floor() as usize;
-
-            buckets[b].count += 1;
-            buckets[b].bbox = buckets[b].bbox.union(shape.bbox);
-        });
-
-        let (min_bucket, min_cost) = (0..nb_buckets - 1)
-            .map(|i| {
-                let left_count = buckets[..=i]
-                    .iter()
-                    .map(|bucket| bucket.count)
-                    .sum::<usize>();
-                let left_bbox = buckets[..=i]
-                    .iter()
-                    .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
-
-                let right_count = buckets[i + 1..]
-                    .iter()
-                    .map(|bucket| bucket.count)
-                    .sum::<usize>();
-                let right_bbox = buckets[i + 1..]
-                    .iter()
-                    .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
-
-                let cost = 1.
-                    + (left_count as f64 * left_bbox.surface()
-                        + right_count as f64 * right_bbox.surface())
-                        / bbox.surface();
-
-                (i, cost)
-            })
-            .min_by(|(_, c1), (_, c2)| c1.partial_cmp(&c2).unwrap())
-            .unwrap();
-
-        let leaf_cost = shapes.len() as f64;
-        if leaf_cost <= min_cost {
-            Self::leaf(bbox, shapes)
-        } else {
-            let (left, right): (Vec<_>, Vec<_>) = shapes.into_iter().partition(|shape| {
-                let b = nb_buckets as f64 * (shape.centroid[axis] - bbox.p0[axis]) / axis_size;
-                let b = b.floor() as usize;
-
-                b <= min_bucket
-            });
-
-            Self {
-                bbox,
-                node_kind: Internal {
-                    left: Box::new(recursive(left)),
-                    right: Box::new(recursive(right)),
-                },
-            }
-        }
-    }
-
-    fn space_median_split(shapes: Vec<ShapeData<'a, S>>, counter: u8, axis_selection: AxisSelection) -> Self {
+        counter: u8,
+        prev_axis: usize,
+    ) -> Self {
         let bbox = Aabb::from_multiple(&shapes);
 
         if shapes.len() <= 2 || counter == 0 {
             Self::leaf(bbox, shapes)
         } else {
-            match axis_selection {
-                Alternate(prev_exis) => {
-                    let axis = (prev_exis + 1) % 3;
-                    let median = bbox.p0[axis] + (bbox.p1[axis] - bbox.p0[axis]) / 2.;
-                    let (left, right) = Self::split_space(shapes, axis, median);
-
-                    if left.is_empty() {
-                        Self::space_median_split(right, counter - 1, Alternate(axis))
-                    } else if right.is_empty() {
-                        Self::space_median_split(left, counter - 1, Alternate(axis))
-                    } else {
-                        Self {
-                            bbox,
-                            node_kind: Internal {
-                                left: Box::new(Self::space_median_split(left, 3, Alternate(axis))),
-                                right: Box::new(Self::space_median_split(right, 3, Alternate(axis))),
-                            },
-                        }
-                    }
-                }
-                Longest => {
-                    let (axis, _) = DIRECTIONS
-                        .iter()
-                        .map(|&axis| (axis, bbox.p1[axis] - bbox.p0[axis]))
-                        .max_by(|(_, l1), (_, l2)| l1.partial_cmp(l2).unwrap())
-                        .unwrap();
-
-                    let median = bbox.p0[axis] + (bbox.p1[axis] - bbox.p0[axis]) / 2.;
-                    let (left, right) = Self::split_space(shapes, axis, median);
-
-                    if left.is_empty() {
-                        Self::space_median_split(right, 0, Longest)
-                    } else if right.is_empty() {
-                        Self::space_median_split(left, 0, Longest)
-                    } else {
-                        Self {
-                            bbox,
-                            node_kind: Internal {
-                                left: Box::new(Self::space_median_split(left, 1, Longest)),
-                                right: Box::new(Self::space_median_split(right, 1, Longest)),
-                            },
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    fn space_average_split(shapes: Vec<ShapeData<'a, S>>, axis: usize, counter: u8) -> Self {
-        let bbox = Aabb::from_multiple(&shapes);
-
-        if shapes.len() <= 2 || counter == 0 {
-            Self::leaf(bbox, shapes)
-        } else {
-            let next_axis = (axis + 1) % 3;
-            let (left, right) = Self::split_space_average(shapes, axis);
+            let axis = (prev_axis + 1) % 3;
+            let median = bbox.p0[axis] + (bbox.p1[axis] - bbox.p0[axis]) / 2.;
+            let (left, right) = Self::split_space(shapes, axis, median);
 
             if left.is_empty() {
-                Self::space_average_split(right, next_axis, 3)
+                Self::space_median_split_alternate(right, counter - 1, axis)
             } else if right.is_empty() {
-                Self::space_average_split(left, next_axis, 3)
+                Self::space_median_split_alternate(left, counter - 1, axis)
             } else {
                 Self {
                     bbox,
                     node_kind: Internal {
-                        left: Box::new(Self::space_average_split(left, next_axis, 3)),
-                        right: Box::new(Self::space_average_split(right, next_axis, 3)),
+                        left: Box::new(Self::space_median_split_alternate(left, 3, axis)),
+                        right: Box::new(Self::space_median_split_alternate(right, 3, axis)),
                     },
                 }
             }
         }
     }
 
-    fn object_median_split(mut shapes: Vec<ShapeData<'a, S>>, axis_selection: AxisSelection) -> Self {
-        Self::object_median_split_rec(&mut shapes, axis_selection)
-    }
-
-    fn object_median_split_rec(shapes: &mut [ShapeData<'a, S>], axis_selection: AxisSelection) -> Self {
+    fn space_median_split_longest(shapes: Vec<ShapeData<'a, S>>, directions: &[usize]) -> Self {
         let bbox = Aabb::from_multiple(&shapes);
 
-        if shapes.len() <= 2 {
+        if shapes.len() <= 2 || directions.is_empty() {
+            Self::leaf(bbox, shapes)
+        } else {
+            let (axis, _) = bbox.longest_axis();
+            let median = bbox.p0[axis] + (bbox.p1[axis] - bbox.p0[axis]) / 2.;
+            let (left, right) = Self::split_space(shapes, axis, median);
+
+            if left.is_empty() {
+                Self::space_median_split_longest(
+                    right,
+                    &directions
+                        .iter()
+                        .copied()
+                        .filter(|&dir| dir != axis)
+                        .collect_vec(),
+                )
+            } else if right.is_empty() {
+                Self::space_median_split_longest(
+                    left,
+                    &directions
+                        .iter()
+                        .copied()
+                        .filter(|&dir| dir != axis)
+                        .collect_vec(),
+                )
+            } else {
+                Self {
+                    bbox,
+                    // TODO: can it be possible again to split along an axis along which
+                    //  that couldn't be split before
+                    node_kind: Internal {
+                        left: Box::new(Self::space_median_split_longest(left, directions)),
+                        right: Box::new(Self::space_median_split_longest(right, directions)),
+                    },
+                }
+            }
+        }
+    }
+
+    // fn space_average_split(shapes: Vec<ShapeData<'a, S>>, axis: usize, counter: u8) -> Self {
+    //     let bbox = Aabb::from_multiple(&shapes);
+    //
+    //     if shapes.len() <= 2 || counter == 0 {
+    //         Self::leaf(bbox, shapes)
+    //     } else {
+    //         let next_axis = (axis + 1) % 3;
+    //         let (left, right) = Self::split_space_average(shapes, axis);
+    //
+    //         if left.is_empty() {
+    //             Self::space_average_split(right, next_axis, 3)
+    //         } else if right.is_empty() {
+    //             Self::space_average_split(left, next_axis, 3)
+    //         } else {
+    //             Self {
+    //                 bbox,
+    //                 node_kind: Internal {
+    //                     left: Box::new(Self::space_average_split(left, next_axis, 3)),
+    //                     right: Box::new(Self::space_average_split(right, next_axis, 3)),
+    //                 },
+    //             }
+    //         }
+    //     }
+    // }
+
+    fn object_median_split(
+        mut shapes: Vec<ShapeData<'a, S>>,
+        axis_selection: AxisSelection,
+    ) -> Self {
+        match axis_selection {
+            Alternate(prev_axis) => Self::object_median_split_alternate(&mut shapes, 3, prev_axis),
+            Longest => Self::object_median_split_longest(&mut shapes, &DIRECTIONS),
+        }
+    }
+
+    fn object_median_split_alternate(
+        shapes: &mut [ShapeData<'a, S>],
+        counter: u8,
+        prev_axis: usize,
+    ) -> Self {
+        let bbox = Aabb::from_multiple(&shapes);
+
+        if shapes.len() <= 2 || counter == 0 {
             let shapes = shapes.iter().map(|s| s.shape).collect();
             Self {
                 bbox,
                 node_kind: Leaf { shapes },
             }
         } else {
-            match axis_selection {
-                Alternate(prev_axis) => {
-                    let axis = (prev_axis + 1) % 3;
-                    shapes
-                        .sort_unstable_by(|a, b| a.centroid[axis].partial_cmp(&b.centroid[axis]).unwrap());
+            let axis = (prev_axis + 1) % 3;
+            shapes.sort_by(|a, b| a.centroid[axis].partial_cmp(&b.centroid[axis]).unwrap());
 
-                    let (left, right) = shapes.split_at_mut(shapes.len() / 2);
+            let (left, right) = shapes.split_at_mut(shapes.len() / 2);
 
-                    Self {
-                        bbox,
-                        node_kind: Internal {
-                            left: Box::new(Self::object_median_split_rec(left, Alternate(axis))),
-                            right: Box::new(Self::object_median_split_rec(right, Alternate(axis))),
-                        },
-                    }
-                }
-                Longest => {
-                    let (axis, _) = DIRECTIONS
-                        .iter()
-                        .map(|&axis| (axis, bbox.p1[axis] - bbox.p0[axis]))
-                        .max_by(|(_, l1), (_, l2)| l1.partial_cmp(l2).unwrap())
-                        .unwrap();
+            Self {
+                bbox,
+                node_kind: Internal {
+                    left: Box::new(Self::object_median_split_alternate(left, counter - 1, axis)),
+                    right: Box::new(Self::object_median_split_alternate(
+                        right,
+                        counter - 1,
+                        axis,
+                    )),
+                },
+            }
+        }
+    }
 
-                    shapes
-                        .sort_unstable_by(|a, b| a.centroid[axis].partial_cmp(&b.centroid[axis]).unwrap());
+    fn object_median_split_longest(shapes: &mut [ShapeData<'a, S>], directions: &[usize]) -> Self {
+        let bbox = Aabb::from_multiple(&shapes);
 
-                    let (left, right) = shapes.split_at_mut(shapes.len() / 2);
+        if shapes.len() <= 2 || directions.is_empty() {
+            let shapes = shapes.iter().map(|s| s.shape).collect();
+            Self {
+                bbox,
+                node_kind: Leaf { shapes },
+            }
+        } else {
+            let (axis, _) = bbox.longest_axis();
 
-                    Self {
-                        bbox,
-                        node_kind: Internal {
-                            left: Box::new(Self::object_median_split_rec(left, Alternate(axis))),
-                            right: Box::new(Self::object_median_split_rec(right, Alternate(axis))),
-                        },
-                    }
-                }
+            shapes.sort_by(|a, b| a.centroid[axis].partial_cmp(&b.centroid[axis]).unwrap());
+
+            let (left, right) = shapes.split_at_mut(shapes.len() / 2);
+
+            Self {
+                bbox,
+                node_kind: Internal {
+                    left: Box::new(Self::object_median_split_longest(left, directions)),
+                    right: Box::new(Self::object_median_split_longest(right, directions)),
+                },
             }
         }
     }
@@ -614,18 +580,18 @@ impl<'a, S: Intersect> Node<'a, S> {
         }
     }
 
-    fn split_space_average(
-        shapes: Vec<ShapeData<'a, S>>,
-        axis: usize,
-    ) -> (Vec<ShapeData<'a, S>>, Vec<ShapeData<'a, S>>) {
-        let split = shapes
-            .iter()
-            .map(|sample| sample.centroid[axis])
-            .sum::<f64>()
-            / shapes.len() as f64;
-
-        Self::split_space(shapes, axis, split)
-    }
+    // fn split_space_average(
+    //     shapes: Vec<ShapeData<'a, S>>,
+    //     axis: usize,
+    // ) -> (Vec<ShapeData<'a, S>>, Vec<ShapeData<'a, S>>) {
+    //     let split = shapes
+    //         .iter()
+    //         .map(|sample| sample.centroid[axis])
+    //         .sum::<f64>()
+    //         / shapes.len() as f64;
+    //
+    //     Self::split_space(shapes, axis, split)
+    // }
 
     fn split_space(
         shapes: Vec<ShapeData<'a, S>>,
@@ -642,4 +608,34 @@ impl<'a, S: Intersect> Node<'a, S> {
 struct BucketInfo {
     count: usize,
     bbox: Aabb,
+}
+
+fn min_bucket(buckets: &[BucketInfo], bbox: Aabb) -> (usize, f64) {
+    (0..buckets.len() - 1)
+        .map(|i| {
+            let left_count = buckets[..=i]
+                .iter()
+                .map(|bucket| bucket.count)
+                .sum::<usize>();
+            let left_bbox = buckets[..=i]
+                .iter()
+                .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
+
+            let right_count = buckets[i + 1..]
+                .iter()
+                .map(|bucket| bucket.count)
+                .sum::<usize>();
+            let right_bbox = buckets[i + 1..]
+                .iter()
+                .fold(Aabb::default(), |acc, bucket| acc.union(bucket.bbox));
+
+            let cost = 1.
+                + (left_count as f64 * left_bbox.surface()
+                    + right_count as f64 * right_bbox.surface())
+                    / bbox.surface();
+
+            (i, cost)
+        })
+        .min_by(|(_, c1), (_, c2)| c1.partial_cmp(&c2).unwrap())
+        .unwrap()
 }

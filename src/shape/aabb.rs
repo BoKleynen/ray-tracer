@@ -160,6 +160,23 @@ impl Aabb {
         res.z /= self.p1.z - self.p0.z;
         res
     }
+
+    pub fn longest_axis(&self) -> (usize, f64) {
+        const X_AXIS: usize = 0;
+        const Y_AXIS: usize = 1;
+        const Z_AXIS: usize = 2;
+        const DIRECTIONS: [usize; 3] = [X_AXIS, Y_AXIS, Z_AXIS];
+
+        self.longest_axis_of(&DIRECTIONS)
+    }
+
+    pub fn longest_axis_of(&self, directions: &[usize]) -> (usize, f64) {
+        directions
+            .iter()
+            .map(|&axis| (axis, self.p1[axis] - self.p0[axis]))
+            .max_by(|(_, l1), (_, l2)| l1.partial_cmp(l2).unwrap())
+            .unwrap()
+    }
 }
 
 pub trait Union<T> {

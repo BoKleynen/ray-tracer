@@ -1,6 +1,9 @@
 #![allow(unused_imports)]
 use cg_practicum::brdf::Lambertian;
 use cg_practicum::brdf::SvLambertian;
+use cg_practicum::bvh::AxisSelection::Alternate;
+use cg_practicum::bvh::SplittingHeuristic::SpaceMedianSplit;
+use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
 use cg_practicum::camera::CameraBuilder;
 use cg_practicum::film::Rgb;
 use cg_practicum::light::PointLight;
@@ -16,9 +19,6 @@ use cg_practicum::world::WorldBuilder;
 use cg_practicum::{Point3, Vector};
 use std::error::Error;
 use std::time::Instant;
-use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
-use cg_practicum::bvh::SplittingHeuristic::SpaceMedianSplit;
-use cg_practicum::bvh::AxisSelection::Alternate;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .background(Rgb::black())
         .splitting_config(SplittingConfig {
             splitting_heuristic: SpaceMedianSplit,
-            axis_selection: Alternate(Z_AXIS)
+            axis_selection: Alternate(Z_AXIS),
         })
         .geometric_object(GeometricObject::triangle_mesh(
             object,

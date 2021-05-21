@@ -47,7 +47,7 @@ pub const SEEDS: [[u8; 32]; 10] = [
 ];
 
 #[derive(Debug, Serialize)]
-pub struct ExperimentResults {
+pub struct ExperimentResults<T: Serialize> {
     pub nb_objects: Vec<u32>,
-    pub results: HashMap<String, Vec<Vec<usize>>>,
+    pub results: HashMap<String, Vec<Vec<T>>>,
 }
