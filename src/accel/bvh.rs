@@ -385,7 +385,11 @@ impl<'a, S: Intersect> Node<'a, S> {
         }
     }
 
-    fn space_median_split(shapes: Vec<ShapeData<'a, S>>, counter: u8, axis_selection: AxisSelection) -> Self {
+    fn space_median_split(
+        shapes: Vec<ShapeData<'a, S>>,
+        counter: u8,
+        axis_selection: AxisSelection,
+    ) -> Self {
         let bbox = Aabb::from_multiple(&shapes);
 
         if shapes.len() <= 2 || counter == 0 {
@@ -406,7 +410,11 @@ impl<'a, S: Intersect> Node<'a, S> {
                             bbox,
                             node_kind: Internal {
                                 left: Box::new(Self::space_median_split(left, 3, Alternate(axis))),
-                                right: Box::new(Self::space_median_split(right, 3, Alternate(axis))),
+                                right: Box::new(Self::space_median_split(
+                                    right,
+                                    3,
+                                    Alternate(axis),
+                                )),
                             },
                         }
                     }
@@ -464,11 +472,17 @@ impl<'a, S: Intersect> Node<'a, S> {
     //     }
     // }
 
-    fn object_median_split(mut shapes: Vec<ShapeData<'a, S>>, axis_selection: AxisSelection) -> Self {
+    fn object_median_split(
+        mut shapes: Vec<ShapeData<'a, S>>,
+        axis_selection: AxisSelection,
+    ) -> Self {
         Self::object_median_split_rec(&mut shapes, axis_selection)
     }
 
-    fn object_median_split_rec(shapes: &mut [ShapeData<'a, S>], axis_selection: AxisSelection) -> Self {
+    fn object_median_split_rec(
+        shapes: &mut [ShapeData<'a, S>],
+        axis_selection: AxisSelection,
+    ) -> Self {
         let bbox = Aabb::from_multiple(&shapes);
 
         if shapes.len() <= 2 {
@@ -481,8 +495,9 @@ impl<'a, S: Intersect> Node<'a, S> {
             match axis_selection {
                 Alternate(prev_axis) => {
                     let axis = (prev_axis + 1) % 3;
-                    shapes
-                        .sort_unstable_by(|a, b| a.centroid[axis].partial_cmp(&b.centroid[axis]).unwrap());
+                    shapes.sort_unstable_by(|a, b| {
+                        a.centroid[axis].partial_cmp(&b.centroid[axis]).unwrap()
+                    });
 
                     let (left, right) = shapes.split_at_mut(shapes.len() / 2);
 
@@ -501,8 +516,9 @@ impl<'a, S: Intersect> Node<'a, S> {
                         .max_by(|(_, l1), (_, l2)| l1.partial_cmp(l2).unwrap())
                         .unwrap();
 
-                    shapes
-                        .sort_unstable_by(|a, b| a.centroid[axis].partial_cmp(&b.centroid[axis]).unwrap());
+                    shapes.sort_unstable_by(|a, b| {
+                        a.centroid[axis].partial_cmp(&b.centroid[axis]).unwrap()
+                    });
 
                     let (left, right) = shapes.split_at_mut(shapes.len() / 2);
 
