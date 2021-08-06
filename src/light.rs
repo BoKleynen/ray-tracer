@@ -28,7 +28,7 @@ impl AmbientLight {
     }
 }
 
-pub trait Light: Sync {
+pub trait Light {
     fn average(&self, f: &dyn Fn(LightSample) -> Rgb) -> Rgb;
     fn radiance(&self, sr: &ShadeRec) -> Rgb;
     fn geometric_object(&self) -> Option<GeometricObject> {

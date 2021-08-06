@@ -9,7 +9,7 @@ use crate::Vector;
 pub struct World<'a> {
     geometric_objects: Compound<'a, GeometricObject>,
     ambient_light: AmbientLight,
-    lights: Vec<Box<dyn Light>>,
+    lights: Vec<Box<dyn Light + Sync>>,
     background_color: Rgb,
 }
 
@@ -54,7 +54,7 @@ impl<'a> World<'a> {
         self.geometric_objects.count_intersection_tests(ray)
     }
 
-    pub fn lights(&self) -> &[Box<dyn Light>] {
+    pub fn lights(&self) -> &[Box<dyn Light + Sync>] {
         self.lights.as_slice()
     }
 
@@ -69,7 +69,7 @@ impl<'a> World<'a> {
 
 pub struct WorldBuilder {
     geometric_objects: Vec<GeometricObject>,
-    lights: Vec<Box<dyn Light>>,
+    lights: Vec<Box<dyn Light + Sync>>,
     ambient_light: Option<AmbientLight>,
     background_color: Option<Rgb>,
     splitting_splitting_config: Option<SplittingConfig>,
@@ -90,7 +90,7 @@ impl WorldBuilder {
         self
     }
 
-    pub fn light(mut self, light: Box<dyn Light>) -> Self {
+    pub fn light(mut self, light: Box<dyn Light + Sync>) -> Self {
         self.lights.push(light);
         self
     }
