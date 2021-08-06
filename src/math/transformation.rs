@@ -47,7 +47,7 @@ impl Transformation {
     }
 
     pub fn rotate(axis: &Unit<Vector>, angle: f64) -> Self {
-        let matrix = Rotation3::from_axis_angle(&axis, angle);
+        let matrix = Rotation3::from_axis_angle(axis, angle);
 
         let inverse = na::convert(matrix.inverse());
         let matrix = na::convert(matrix);

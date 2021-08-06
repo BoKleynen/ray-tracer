@@ -270,11 +270,11 @@ impl Obj {
         Some(obj)
     }
 
-    pub fn smooth(self) -> Compound<SmoothTriangle> {
+    pub fn smooth(self) -> Compound<'static, SmoothTriangle> {
         Compound::new(self.smooth_triangles())
     }
 
-    pub fn flat(self) -> Compound<FlatTriangle> {
+    pub fn flat(self) -> Compound<'static, FlatTriangle> {
         Compound::new(self.flat_triangles())
     }
 

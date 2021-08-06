@@ -9,7 +9,7 @@ pub struct ShadeRec<'a> {
     pub uv: Point2,
     pub normal: Vector,
     pub direction: Vector,
-    pub world: &'a World,
+    pub world: &'a World<'a>,
     pub(crate) shape: NonNull<GeometricObject>,
 }
 

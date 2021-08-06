@@ -76,7 +76,7 @@ impl Display for AxisSelection {
 }
 
 #[derive(Debug)]
-pub struct Bvh<'a, S: 'a> {
+pub struct Bvh<'a, S> {
     shapes: Pin<Box<[S]>>,
     root: Node<'a, S>,
 }
@@ -430,7 +430,7 @@ impl<'a, S: Intersect> Node<'a, S> {
         counter: u8,
         prev_axis: usize,
     ) -> Self {
-        let bbox = Aabb::from_multiple(&shapes);
+        let bbox = Aabb::from_multiple(shapes);
 
         if shapes.len() <= 2 || counter == 0 {
             let shapes = shapes.iter().map(|s| s.shape).collect();
@@ -459,7 +459,7 @@ impl<'a, S: Intersect> Node<'a, S> {
     }
 
     fn object_median_split_longest(shapes: &mut [ShapeData<'a, S>], directions: &[usize]) -> Self {
-        let bbox = Aabb::from_multiple(&shapes);
+        let bbox = Aabb::from_multiple(shapes);
 
         if shapes.len() <= 2 || directions.is_empty() {
             let shapes = shapes.iter().map(|s| s.shape).collect();
@@ -488,7 +488,7 @@ impl<'a, S: Intersect> Node<'a, S> {
         match &self.node_kind {
             Leaf { shapes } => shapes
                 .iter()
-                .filter_map(|shape| shape.intersect(&ray))
+                .filter_map(|shape| shape.intersect(ray))
                 .min_by(|x, y| x.t.partial_cmp(&y.t).unwrap()),
             Internal { left, right } => {
                 match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
@@ -636,6 +636,6 @@ fn min_bucket(buckets: &[BucketInfo], bbox: Aabb) -> (usize, f64) {
 
             (i, cost)
         })
-        .min_by(|(_, c1), (_, c2)| c1.partial_cmp(&c2).unwrap())
+        .min_by(|(_, c1), (_, c2)| c1.partial_cmp(c2).unwrap())
         .unwrap()
 }

@@ -79,7 +79,7 @@ impl Transformed<Cuboid> {
     }
 }
 
-impl Transformed<Compound<SmoothTriangle>> {
+impl<'a> Transformed<Compound<'a, SmoothTriangle>> {
     pub fn smooth_mesh(obj: Obj, transformation: Transformation) -> Self {
         let shape = obj.smooth();
         Self::new(shape, transformation)

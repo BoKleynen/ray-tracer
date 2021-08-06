@@ -24,7 +24,7 @@ impl OrthonormalBasis {
     }
 
     pub fn from_vectors(a: &Vector, b: &Vector) -> Option<Self> {
-        let u = Unit::try_new(b.cross(&a), K_EPSILON)?;
+        let u = Unit::try_new(b.cross(a), K_EPSILON)?;
         let w = Unit::new_normalize(*a);
         let v = Unit::new_normalize(w.cross(&u));
 

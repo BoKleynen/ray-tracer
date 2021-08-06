@@ -67,12 +67,12 @@ impl<S: Intersect> Compound<S> {
 }
 
 #[cfg(feature = "bvh")]
-pub struct Compound<S: 'static> {
-    bvh: Bvh<'static, S>,
+pub struct Compound<'a, S> {
+    bvh: Bvh<'a, S>,
 }
 
 #[cfg(feature = "bvh")]
-impl<S: Intersect> Compound<S> {
+impl<'a, S: Intersect> Compound<'a, S> {
     pub fn new(shapes: Vec<S>) -> Self {
         Self::new_with_splitting_heuristic(shapes, SplittingConfig::default())
     }
@@ -87,14 +87,14 @@ impl<S: Intersect> Compound<S> {
 }
 
 #[cfg(feature = "bvh")]
-impl<S: Intersect> Bounded for Compound<S> {
+impl<'a, S: Intersect> Bounded for Compound<'a, S> {
     fn bbox(&self) -> Aabb {
         self.bvh.bbox()
     }
 }
 
 #[cfg(feature = "bvh")]
-impl<S: Intersect> Intersect for Compound<S> {
+impl<'a, S: Intersect> Intersect for Compound<'a, S> {
     type Intersection = S::Intersection;
 
     fn intersect(&self, ray: &Ray) -> Option<Hit<Self::Intersection>> {
@@ -107,7 +107,7 @@ impl<S: Intersect> Intersect for Compound<S> {
 }
 
 #[cfg(feature = "bvh")]
-impl<S: Intersect> Compound<S> {
+impl<'a, S: Intersect> Compound<'a, S> {
     pub fn intersect_any_where<F>(&self, ray: &Ray, f: F) -> bool
     where
         F: Fn(Hit<S::Intersection>) -> bool,

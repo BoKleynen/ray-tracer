@@ -6,16 +6,16 @@ use crate::shade_rec::ShadeRec;
 use crate::shape::{Compound, GeometricObject, Hit, Intersect};
 use crate::Vector;
 
-pub struct World {
-    geometric_objects: Compound<GeometricObject>,
+pub struct World<'a> {
+    geometric_objects: Compound<'a, GeometricObject>,
     ambient_light: AmbientLight,
     lights: Vec<Box<dyn Light>>,
     background_color: Rgb,
 }
 
-impl World {
+impl<'a> World<'a> {
     pub fn hit_objects(&self, ray: &Ray) -> Option<ShadeRec> {
-        self.geometric_objects.intersect(&ray).map(|hit| {
+        self.geometric_objects.intersect(ray).map(|hit| {
             // safety: since shape is in the world, this reference will at least be valid within
             // this function.
 
@@ -105,7 +105,7 @@ impl WorldBuilder {
         self
     }
 
-    pub fn build(self) -> Option<World> {
+    pub fn build(self) -> Option<World<'static>> {
         let mut geometric_objects = self.geometric_objects;
         geometric_objects.extend(
             self.lights
