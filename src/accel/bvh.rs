@@ -561,7 +561,7 @@ impl<'a, S: Intersect> Node<'a, S> {
         match &self.node_kind {
             Leaf { shapes } => shapes
                 .iter()
-                .any(|shape| shape.intersect(ray).map_or(false, |hit| f(hit))),
+                .any(|shape| shape.intersect(ray).map_or(false, f)),
             Internal { left, right } => {
                 match (left.bbox.intersect(ray), right.bbox.intersect(ray)) {
                     (Some(left_t), Some(right_t)) => {

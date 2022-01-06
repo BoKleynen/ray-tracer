@@ -162,14 +162,8 @@ impl Renderer for FalseColorNormals {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct FalseColorIntersectionTests {}
-
-impl Default for FalseColorIntersectionTests {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 impl Renderer for FalseColorIntersectionTests {
     type Output = Vec<usize>;
