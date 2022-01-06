@@ -9,14 +9,8 @@ pub trait Sampler {
     fn average<F: Fn(Sample) -> Rgb>(&self, f: F) -> Rgb;
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct Unsampled {}
-
-impl Default for Unsampled {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 impl Sampler for Unsampled {
     fn average<F: Fn(Sample) -> Rgb>(&self, f: F) -> Rgb {

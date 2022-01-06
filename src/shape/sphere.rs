@@ -3,6 +3,7 @@ use crate::shape::{Aabb, Bounded, Hit, Intersect};
 use crate::{Point2, Point3, K_EPSILON};
 
 /// Represents a three-dimensional unit sphere, centered at the origin.
+#[derive(Debug, Default)]
 pub struct Sphere {}
 
 impl Sphere {
@@ -67,11 +68,5 @@ impl Intersect for Sphere {
 
     fn count_intersection_tests(&self, _ray: &Ray) -> usize {
         1
-    }
-}
-
-impl Default for Sphere {
-    fn default() -> Self {
-        Self {}
     }
 }
