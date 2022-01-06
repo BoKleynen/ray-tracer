@@ -1,3 +1,5 @@
+use analysis::generator::*;
+use analysis::{ExperimentResults, SEEDS};
 use cg_practicum::bvh::AxisSelection::Alternate;
 use cg_practicum::bvh::SplittingHeuristic::SurfaceAreaHeuristic;
 use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
@@ -7,8 +9,6 @@ use cg_practicum::renderer::{FalseColorIntersectionTests, Renderer};
 use cg_practicum::sampler::Unsampled;
 use cg_practicum::world::WorldBuilder;
 use cg_practicum::{Point3, Vector};
-use experiments::generator::*;
-use experiments::{ExperimentResults, SEEDS};
 use indicatif::ProgressIterator;
 use std::collections::HashMap;
 use std::error::Error;

@@ -1,11 +1,11 @@
+use analysis::generator::*;
+use analysis::{ExperimentResults, SEEDS};
 use cg_practicum::bvh::AxisSelection::Alternate;
 use cg_practicum::bvh::SplittingHeuristic::SurfaceAreaHeuristic;
 use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
 use cg_practicum::light::PointLight;
 use cg_practicum::world::WorldBuilder;
 use cg_practicum::Point3;
-use experiments::generator::*;
-use experiments::{ExperimentResults, SEEDS};
 use indicatif::ProgressIterator;
 use jemalloc_ctl::{epoch, stats};
 use jemallocator::Jemalloc;

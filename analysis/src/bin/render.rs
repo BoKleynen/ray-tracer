@@ -1,4 +1,6 @@
 #![allow(unused_imports)]
+use analysis::generator::*;
+use analysis::{generator, SEEDS};
 use cg_practicum::bvh::AxisSelection::{Alternate, Longest};
 use cg_practicum::bvh::SplittingHeuristic::{SpaceMedianSplit, SurfaceAreaHeuristic};
 use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
@@ -8,8 +10,6 @@ use cg_practicum::renderer::{DirectIllumination, FalseColorIntersectionTests, Re
 use cg_practicum::sampler::{JitteredSampler, Unsampled};
 use cg_practicum::world::WorldBuilder;
 use cg_practicum::{Point3, Vector};
-use experiments::generator::*;
-use experiments::{generator, SEEDS};
 use itertools::Itertools;
 use std::error::Error;
 use std::fs::File;

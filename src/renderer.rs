@@ -163,19 +163,11 @@ impl Renderer for FalseColorNormals {
 }
 
 #[derive(Debug)]
-pub struct FalseColorIntersectionTests {
-    path: String,
-}
-
-impl FalseColorIntersectionTests {
-    pub fn new(path: String) -> Self {
-        Self { path }
-    }
-}
+pub struct FalseColorIntersectionTests {}
 
 impl Default for FalseColorIntersectionTests {
     fn default() -> Self {
-        Self::new("renders/intersection_count.txt".to_owned())
+        Self {}
     }
 }
 
