@@ -13,7 +13,6 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
-
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
