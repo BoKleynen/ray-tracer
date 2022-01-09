@@ -1,6 +1,10 @@
+pub mod core;
+
 use nalgebra as na;
 
-type Float = f32;
+const K_EPSILON: Float = 1e-8;
+
+pub type Float = f32;
 
 pub type Point2 = na::Point2<Float>;
 pub type Point3 = na::Point3<Float>;
