@@ -11,6 +11,10 @@ Computer Graphics: Project (academic year 2020-2021)
 """
 
 [dependencies]
+clap = { version = "3.0", features = ["derive"] }
+nalgebra = "0.30"
+tracing = "0.1"
+tracing-subscriber = "0.3"
 
 [profile.release]
 lto = true
