@@ -2,9 +2,11 @@ use std::ops::Deref;
 
 mod aabb;
 mod ray;
+mod transformation;
 
 pub use aabb::Aabb;
 pub use ray::Ray;
+pub use transformation::{Transform, Transformation};
 
 pub trait Bounded {
     fn bbox(&self) -> Aabb;
