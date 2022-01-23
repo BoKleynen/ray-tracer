@@ -1,22 +1,22 @@
 #![allow(unused_imports)]
-use cg_practicum::brdf::Lambertian;
-use cg_practicum::brdf::SvLambertian;
-use cg_practicum::bvh::AxisSelection::Alternate;
-use cg_practicum::bvh::SplittingHeuristic::SpaceMedianSplit;
-use cg_practicum::bvh::{SplittingConfig, Z_AXIS};
-use cg_practicum::camera::CameraBuilder;
-use cg_practicum::film::Rgb;
-use cg_practicum::light::PointLight;
-use cg_practicum::material::Material;
-use cg_practicum::math::Transformation;
-use cg_practicum::renderer::{
+use ray_tracer::brdf::Lambertian;
+use ray_tracer::brdf::SvLambertian;
+use ray_tracer::bvh::AxisSelection::Alternate;
+use ray_tracer::bvh::SplittingHeuristic::SpaceMedianSplit;
+use ray_tracer::bvh::{SplittingConfig, Z_AXIS};
+use ray_tracer::camera::CameraBuilder;
+use ray_tracer::film::Rgb;
+use ray_tracer::light::PointLight;
+use ray_tracer::material::Material;
+use ray_tracer::math::Transformation;
+use ray_tracer::renderer::{
     DirectIllumination, FalseColorIntersectionTests, FalseColorNormals, Renderer,
 };
-use cg_practicum::sampler::JitteredSampler;
-use cg_practicum::shape::{GeometricObject, Obj};
-use cg_practicum::texture::ImageTexture;
-use cg_practicum::world::WorldBuilder;
-use cg_practicum::{Point3, Vector};
+use ray_tracer::sampler::JitteredSampler;
+use ray_tracer::shape::{GeometricObject, Obj};
+use ray_tracer::texture::ImageTexture;
+use ray_tracer::world::WorldBuilder;
+use ray_tracer::{Point3, Vector};
 use std::error::Error;
 use std::time::Instant;
 

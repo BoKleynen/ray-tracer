@@ -1,14 +1,14 @@
-use cg_practicum::brdf::Lambertian;
-use cg_practicum::camera::CameraBuilder;
-use cg_practicum::film::Rgb;
-use cg_practicum::light::PointLight;
-use cg_practicum::material::Material;
-use cg_practicum::math::Transformation;
-use cg_practicum::renderer::{DirectIllumination, Renderer};
-use cg_practicum::sampler::Unsampled;
-use cg_practicum::shape::GeometricObject;
-use cg_practicum::world::WorldBuilder;
-use cg_practicum::{Point3, Vector};
+use ray_tracer::brdf::Lambertian;
+use ray_tracer::camera::CameraBuilder;
+use ray_tracer::film::Rgb;
+use ray_tracer::light::PointLight;
+use ray_tracer::material::Material;
+use ray_tracer::math::Transformation;
+use ray_tracer::renderer::{DirectIllumination, Renderer};
+use ray_tracer::sampler::Unsampled;
+use ray_tracer::shape::GeometricObject;
+use ray_tracer::world::WorldBuilder;
+use ray_tracer::{Point3, Vector};
 use clap::Clap;
 use std::error::Error;
 
