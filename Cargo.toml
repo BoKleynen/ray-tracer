@@ -11,6 +11,7 @@ Computer Graphics: Project (academic year 2020-2021)
 """
 
 [dependencies]
+nalgebra = "0.31"
 
 [profile.release]
 lto = true
