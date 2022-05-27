@@ -1,7 +1,9 @@
 mod aabb;
+mod transformation;
 
-pub use aabb::Aabb;
+pub use aabb::{Aabb, Union};
 use nalgebra::{Point3, Vector3};
+pub use transformation::{Transformable, Transformation};
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy)]
