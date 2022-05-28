@@ -38,13 +38,15 @@ pub struct Ray {
     pub o: Point3<Float>,
     /// The direction of the ray.
     pub d: Vector3<Float>,
+    pub t_max: Float,
 }
 
 impl Default for Ray {
     fn default() -> Self {
         let o = Point3::default();
         let d = Vector3::default();
+        let t_max = Float::MAX;
 
-        Self { o, d }
+        Self { o, d, t_max }
     }
 }

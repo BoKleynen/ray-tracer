@@ -1,100 +1,72 @@
+use nalgebra::{Point3, Unit, vector, Vector3};
+use nalgebra_glm as glm;
+use nalgebra_glm::{TMat4, TVec3};
 use crate::core::{Aabb, Normal3, Ray};
 use crate::Float;
-use nalgebra as na;
-use nalgebra::{
-    vector, Affine3, Matrix4, Point3, Rotation3, Scale3, Similarity3, Translation3, Unit, Vector3,
-};
 
-#[derive(Debug, Clone)]
+
 pub struct Transformation {
-    mat: Affine3<Float>,
-    inv: Affine3<Float>,
+    mat: TMat4<Float>,
+    inv: TMat4<Float>,
 }
 
 impl Default for Transformation {
     fn default() -> Self {
-        let mat = Affine3::default();
-        let inv = Affine3::default();
+        let mat = TMat4::default();
+        let inv = TMat4::default();
 
         Self { mat, inv }
     }
 }
 
 impl Transformation {
-    pub fn new(mat: Affine3<Float>) -> Self {
-        let inv = mat.inverse();
-        Self { mat, inv }
-    }
-
     pub fn translate(x: Float, y: Float, z: Float) -> Self {
-        let translation = Translation3::from(vector![x, y, z]);
-        let mat = na::convert(translation);
-        let inv = na::convert(translation.inverse());
+        let mat = glm::translation(&vector![x, y, z]);
+        let inv = glm::translation(&vector![-x, -y, -z]);
 
         Self { mat, inv }
     }
 
-    pub fn rotate(axis: &Unit<Vector3<Float>>, angle: Float) -> Self {
-        let rot = Rotation3::from_axis_angle(axis, angle);
-        let mat = na::convert(rot);
-        let inv = na::convert(rot.inverse());
+    pub fn rotate(angle: Float, axis: &TVec3<Float>) -> Self {
+        let mat = glm::rotation(angle, axis);
+        let inv = glm::transpose(&mat);
 
         Self { mat, inv }
     }
 
-    pub fn rotate_x(angle: Float) -> Transformation {
-        let x = Unit::new_unchecked(vector![1., 0., 0.]);
-        Self::rotate(&x, angle)
+    pub fn rotate_x(angle: Float) -> Self {
+        Self::rotate(angle, &vector![1., 0., 0.])
     }
 
-    pub fn rotate_y(angle: Float) -> Transformation {
-        let y = Unit::new_unchecked(vector![0., 1., 0.]);
-        Self::rotate(&y, angle)
+    pub fn rotate_y(angle: Float) -> Self {
+        Self::rotate(angle, &vector![0., 1., 0.])
     }
 
-    pub fn rotate_z(angle: Float) -> Transformation {
-        let z = Unit::new_unchecked(vector![0., 0., 1.]);
-        Self::rotate(&z, angle)
+    pub fn rotate_z(angle: Float) -> Self {
+        Self::rotate(angle, &vector![0., 0., 1.])
     }
 
     pub fn scale(x: Float, y: Float, z: Float) -> Self {
-        debug_assert_ne!(x, 0.);
-        debug_assert_ne!(y, 0.);
-        debug_assert_ne!(z, 0.);
-
-        let scale = Scale3::new(x, y, z);
-        let mat = na::convert(scale);
-        // SAFETY: x, y and z are guaranteed to be non-zero
-        let inv = na::convert(unsafe { scale.inverse_unchecked() });
+        let mat = glm::scaling(&vector![x, y, z]);
+        let inv = glm::scaling(&vector![1. / x, 1. / y, 1. / z]);
 
         Self { mat, inv }
     }
 
-    pub fn matrix(&self) -> &Affine3<Float> {
-        &self.mat
-    }
-
-    pub fn inverse(&self) -> &Affine3<Float> {
-        &self.inv
-    }
-
     #[must_use]
-    pub fn invert(self) -> Self {
-        Self {
-            mat: self.inv,
-            inv: self.mat,
-        }
+    pub fn invert(&self) -> Self {
+        let mat = self.inv.clone();
+        let inv = self.mat.clone();
+
+        Self { mat, inv }
     }
 
     #[must_use]
     pub fn then(&self, other: &Self) -> Self {
-        let matrix = other.mat * self.mat;
-        let inverse = self.inv * other.inv;
+        let mat = other.mat * self.mat;
+        let inv = self.inv * other.mat;
 
-        Self {
-            mat: matrix,
-            inv: inverse,
-        }
+        Self { mat, inv }
     }
 
     #[inline]
@@ -115,21 +87,21 @@ pub trait Transformable {
 
 impl Transformable for Point3<Float> {
     fn transform(&self, t: &Transformation) -> Self {
-        t.mat * self
+        t.mat.transform_point(self)
     }
 
     fn transform_inverse(&self, t: &Transformation) -> Self {
-        t.inv * self
+        t.inv.transform_point(self)
     }
 }
 
 impl Transformable for Vector3<Float> {
     fn transform(&self, t: &Transformation) -> Self {
-        t.mat * self
+        t.mat.transform_vector(self)
     }
 
     fn transform_inverse(&self, t: &Transformation) -> Self {
-        t.inv * self
+        t.inv.transform_vector(self)
     }
 }
 
@@ -151,11 +123,11 @@ impl Transformable for Ray {
 
 impl Transformable for Normal3<Float> {
     fn transform(&self, t: &Transformation) -> Self {
-        Normal3(t.inv.matrix().transpose().transform_vector(&self.0))
+        Normal3(glm::transpose(&t.inv).transform_vector(&self.0))
     }
 
     fn transform_inverse(&self, t: &Transformation) -> Self {
-        Normal3(t.mat.matrix().transpose().transform_vector(&self.0))
+        Normal3(glm::transpose(&t.mat).transform_vector(&self.0))
     }
 }
 
@@ -163,14 +135,14 @@ impl Transformable for Aabb {
     fn transform(&self, t: &Transformation) -> Self {
         self.vertices()
             .iter()
-            .map(|p| t.mat * p)
+            .map(|p| t.mat.transform_point(p))
             .fold(Aabb::default(), |bbox, p| bbox.union(p))
     }
 
     fn transform_inverse(&self, t: &Transformation) -> Self {
         self.vertices()
             .iter()
-            .map(|p| t.inv * p)
+            .map(|p| t.inv.transform_point(p))
             .fold(Aabb::default(), |bbox, p| bbox.union(p))
     }
 }

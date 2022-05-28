@@ -1,5 +1,4 @@
-use crate::core::{Aabb, Bounded, Ray, SurfaceInteraction};
-use std::ops::Deref;
+use crate::core::{Bounded, Ray, SurfaceInteraction};
 
 pub trait Shape: Bounded {
     fn intersect(&self, ray: &Ray) -> Option<SurfaceInteraction>;
