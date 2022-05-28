@@ -1,24 +1,25 @@
 use crate::core::{Axis, Ray};
+use crate::Float;
 use nalgebra::{Point3, Vector3};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Aabb {
-    pub p_min: Point3<f64>,
-    pub p_max: Point3<f64>,
+    pub p_min: Point3<Float>,
+    pub p_max: Point3<Float>,
 }
 
 impl Default for Aabb {
     /// default returns an empty box.
     fn default() -> Self {
-        let p_min = Point3::new(f64::MAX, f64::MAX, f64::MAX);
-        let p_max = Point3::new(f64::MIN, f64::MIN, f64::MIN);
+        let p_min = Point3::new(Float::MAX, Float::MAX, Float::MAX);
+        let p_max = Point3::new(Float::MIN, Float::MIN, Float::MIN);
 
         Self { p_min, p_max }
     }
 }
 
-impl From<Point3<f64>> for Aabb {
-    fn from(p: Point3<f64>) -> Self {
+impl From<Point3<Float>> for Aabb {
+    fn from(p: Point3<Float>) -> Self {
         let p_min = p;
         let p_max = p;
 
@@ -27,7 +28,7 @@ impl From<Point3<f64>> for Aabb {
 }
 
 impl Aabb {
-    pub fn new(p1: &Point3<f64>, p2: &Point3<f64>) -> Self {
+    pub fn new(p1: &Point3<Float>, p2: &Point3<Float>) -> Self {
         let p_min = Point3::new(p1.x.min(p2.x), p1.y.min(p2.y), p1.z.min(p2.z));
         let p_max = Point3::new(p1.x.max(p2.x), p1.y.max(p2.y), p1.z.max(p2.z));
 
@@ -38,9 +39,9 @@ impl Aabb {
         self.intersect(ray).is_some()
     }
 
-    pub fn intersect(&self, ray: &Ray) -> Option<(f64, f64)> {
+    pub fn intersect(&self, ray: &Ray) -> Option<(Float, Float)> {
         let mut t0 = 0.;
-        let mut t1 = f64::MAX;
+        let mut t1 = Float::MAX;
 
         for i in 0..3 {
             let inv_ray_dir = 1. / ray.origin[i];
@@ -61,20 +62,20 @@ impl Aabb {
         Some((t0, t1))
     }
 
-    pub fn centroid(&self) -> Point3<f64> {
+    pub fn centroid(&self) -> Point3<Float> {
         self.p_min + 0.5 * (self.p_max - self.p_min)
     }
 
-    pub fn diagonal(&self) -> Vector3<f64> {
+    pub fn diagonal(&self) -> Vector3<Float> {
         self.p_min - self.p_max
     }
 
-    pub fn surface_area(&self) -> f64 {
+    pub fn surface_area(&self) -> Float {
         let diag = self.diagonal();
         2. * (diag.x * diag.y + diag.x * diag.z + diag.y * diag.z)
     }
 
-    pub fn volume(&self) -> f64 {
+    pub fn volume(&self) -> Float {
         let diag = self.diagonal();
         diag.x * diag.y * diag.z
     }
@@ -82,7 +83,7 @@ impl Aabb {
     /// returns the continuous position of a point relative to the corners
     /// of the box, where a point at the minimum corner has offset (0, 0, 0),
     /// a point at the maximum corner has offset (1, 1, 1), and so forth.
-    pub fn offset(&self, p: Point3<f64>) -> Vector3<f64> {
+    pub fn offset(&self, p: Point3<Float>) -> Vector3<Float> {
         let mut res = p - self.p_min;
         res.x /= self.p_max.x - self.p_min.x;
         res.y /= self.p_max.y - self.p_min.y;
@@ -90,11 +91,11 @@ impl Aabb {
         res
     }
 
-    pub fn longest_axis(&self) -> (Axis, f64) {
+    pub fn longest_axis(&self) -> (Axis, Float) {
         self.longest_axis_of(&Axis::all())
     }
 
-    pub fn longest_axis_of(&self, directions: &[Axis]) -> (Axis, f64) {
+    pub fn longest_axis_of(&self, directions: &[Axis]) -> (Axis, Float) {
         directions
             .iter()
             .map(|&axis| (axis, self.p_max[axis as usize] - self.p_min[axis as usize]))
@@ -109,7 +110,7 @@ impl Aabb {
         x && y && z
     }
 
-    pub fn is_inside(&self, p: Point3<f64>) -> bool {
+    pub fn is_inside(&self, p: Point3<Float>) -> bool {
         p.x >= self.p_min.x
             && p.x <= self.p_max.x
             && p.y >= self.p_min.y
@@ -142,7 +143,7 @@ pub trait Union {
     fn union(&self, aabb: &Aabb) -> Aabb;
 }
 
-impl Union for Point3<f64> {
+impl Union for Point3<Float> {
     fn union(&self, bbox: &Aabb) -> Aabb {
         let p_min = Point3::new(
             self.x.min(bbox.p_min.x),

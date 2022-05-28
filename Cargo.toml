@@ -17,3 +17,4 @@ nalgebra = "0.31"
 lto = true
 
 [features]
+float_as_double = []

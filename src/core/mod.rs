@@ -2,8 +2,11 @@ mod aabb;
 mod transformation;
 
 pub use aabb::{Aabb, Union};
-use nalgebra::{Point3, Vector3};
+pub use interaction::SurfaceInteraction;
 pub use transformation::{Transformable, Transformation};
+
+use crate::Float;
+use nalgebra::{Point3, Vector3};
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy)]
@@ -21,6 +24,6 @@ impl Axis {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Ray {
-    pub origin: Point3<f64>,
-    pub direction: Vector3<f64>,
+    pub origin: Point3<Float>,
+    pub direction: Vector3<Float>,
 }

@@ -1,11 +1,12 @@
 use crate::core::Ray;
+use crate::Float;
 use nalgebra as na;
 use nalgebra::{Affine3, Matrix4, Point3, Rotation3, Translation3, Unit, Vector3};
 
 #[derive(Debug, Clone)]
 pub struct Transformation {
-    matrix: Affine3<f64>,
-    inverse: Affine3<f64>,
+    matrix: Affine3<Float>,
+    inverse: Affine3<Float>,
 }
 
 impl Default for Transformation {
@@ -18,19 +19,19 @@ impl Default for Transformation {
 }
 
 impl Transformation {
-    pub fn new(matrix: Affine3<f64>) -> Self {
+    pub fn new(matrix: Affine3<Float>) -> Self {
         let inverse = matrix.inverse();
         Self { matrix, inverse }
     }
 
-    pub fn translate(x: f64, y: f64, z: f64) -> Self {
+    pub fn translate(x: Float, y: Float, z: Float) -> Self {
         let matrix = na::convert(Translation3::from(Vector3::new(x, y, z)));
         let inverse = na::convert(Translation3::from(Vector3::new(-x, -y, -z)));
 
         Self { matrix, inverse }
     }
 
-    pub fn rotate(axis: &Unit<Vector3<f64>>, angle: f64) -> Self {
+    pub fn rotate(axis: &Unit<Vector3<Float>>, angle: Float) -> Self {
         let matrix = Rotation3::from_axis_angle(axis, angle);
 
         let inverse = na::convert(matrix.inverse());
@@ -39,28 +40,28 @@ impl Transformation {
         Self { matrix, inverse }
     }
 
-    pub fn rotate_x(angle: f64) -> Transformation {
+    pub fn rotate_x(angle: Float) -> Transformation {
         let angle = angle.to_radians();
         let x = Unit::new_unchecked(Vector3::new(1., 0., 0.));
 
         Self::rotate(&x, angle)
     }
 
-    pub fn rotate_y(angle: f64) -> Transformation {
+    pub fn rotate_y(angle: Float) -> Transformation {
         let angle = angle.to_radians();
         let y = Unit::new_unchecked(Vector3::new(0., 1., 0.));
 
         Self::rotate(&y, angle)
     }
 
-    pub fn rotate_z(angle: f64) -> Transformation {
+    pub fn rotate_z(angle: Float) -> Transformation {
         let angle = angle.to_radians();
         let z = Unit::new_unchecked(Vector3::new(0., 0., 1.));
 
         Self::rotate(&z, angle)
     }
 
-    pub fn scale(x: f64, y: f64, z: f64) -> Self {
+    pub fn scale(x: Float, y: Float, z: Float) -> Self {
         let matrix = na::convert_unchecked(Matrix4::new_nonuniform_scaling(&Vector3::new(x, y, z)));
         let inverse = na::convert_unchecked(Matrix4::new_nonuniform_scaling(&Vector3::new(
             1. / x,
@@ -71,11 +72,11 @@ impl Transformation {
         Self { matrix, inverse }
     }
 
-    pub fn matrix(&self) -> &Affine3<f64> {
+    pub fn matrix(&self) -> &Affine3<Float> {
         &self.matrix
     }
 
-    pub fn inverse(&self) -> &Affine3<f64> {
+    pub fn inverse(&self) -> &Affine3<Float> {
         &self.inverse
     }
 
@@ -111,7 +112,7 @@ pub trait Transformable {
     fn transform_inverse(&self, t: &Transformation) -> Self;
 }
 
-impl Transformable for Point3<f64> {
+impl Transformable for Point3<Float> {
     fn transform(&self, t: &Transformation) -> Self {
         t.matrix * self
     }
@@ -121,7 +122,7 @@ impl Transformable for Point3<f64> {
     }
 }
 
-impl Transformable for Vector3<f64> {
+impl Transformable for Vector3<Float> {
     fn transform(&self, t: &Transformation) -> Self {
         t.matrix * self
     }
