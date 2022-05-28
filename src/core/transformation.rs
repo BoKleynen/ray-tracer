@@ -134,17 +134,17 @@ impl Transformable for Vector3<Float> {
 
 impl Transformable for Ray {
     fn transform(&self, t: &Transformation) -> Self {
-        let origin = t.apply(&self.origin);
-        let direction = t.apply(&self.direction);
+        let o = t.apply(&self.o);
+        let d = t.apply(&self.d);
 
-        Ray { origin, direction }
+        Ray { o, d }
     }
 
     fn transform_inverse(&self, t: &Transformation) -> Self {
-        let origin = t.apply_inverse(&self.origin);
-        let direction = t.apply_inverse(&self.direction);
+        let o = t.apply_inverse(&self.o);
+        let d = t.apply_inverse(&self.d);
 
-        Ray { origin, direction }
+        Ray { o, d }
     }
 }
 

@@ -1,10 +1,13 @@
 mod aabb;
+mod interaction;
 mod normal;
+mod shape;
 mod transformation;
 
 pub use aabb::{Aabb, Union};
 pub use interaction::SurfaceInteraction;
 pub use normal::Normal3;
+pub use shape::Shape;
 pub use transformation::{Transformable, Transformation};
 
 use crate::Float;
@@ -26,6 +29,17 @@ impl Axis {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Ray {
-    pub origin: Point3<Float>,
-    pub direction: Vector3<Float>,
+    /// The origin of the ray.
+    pub o: Point3<Float>,
+    /// The direction of the ray.
+    pub d: Vector3<Float>,
+}
+
+impl Default for Ray {
+    fn default() -> Self {
+        let o = Point3::default();
+        let d = Vector3::default();
+
+        Self { o, d }
+    }
 }

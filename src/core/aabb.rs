@@ -44,9 +44,9 @@ impl Aabb {
         let mut t1 = Float::MAX;
 
         for i in 0..3 {
-            let inv_ray_dir = 1. / ray.origin[i];
-            let mut t_near = (self.p_min[i] - ray.origin[i]) * inv_ray_dir;
-            let mut t_far = (self.p_max[i] - ray.origin[i]) * inv_ray_dir;
+            let inv_ray_dir = 1. / ray.o[i];
+            let mut t_near = (self.p_min[i] - ray.o[i]) * inv_ray_dir;
+            let mut t_far = (self.p_max[i] - ray.o[i]) * inv_ray_dir;
 
             if t_near > t_far {
                 std::mem::swap(&mut t_near, &mut t_far)
