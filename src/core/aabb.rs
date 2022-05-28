@@ -1,7 +1,7 @@
-use std::ops::Deref;
 use crate::core::{Axis, Ray};
 use crate::Float;
-use nalgebra::{Point3, Vector3};
+use nalgebra::{point, Point3, Vector3};
+use std::ops::Deref;
 
 pub trait Bounded {
     fn bbox(&self) -> Aabb;
@@ -23,8 +23,8 @@ pub struct Aabb {
 impl Default for Aabb {
     /// default returns an empty box.
     fn default() -> Self {
-        let p_min = Point3::new(Float::MAX, Float::MAX, Float::MAX);
-        let p_max = Point3::new(Float::MIN, Float::MIN, Float::MIN);
+        let p_min = point![Float::MAX, Float::MAX, Float::MAX];
+        let p_max = point![Float::MIN, Float::MIN, Float::MIN];
 
         Self { p_min, p_max }
     }
@@ -41,8 +41,8 @@ impl From<Point3<Float>> for Aabb {
 
 impl Aabb {
     pub fn new(p1: &Point3<Float>, p2: &Point3<Float>) -> Self {
-        let p_min = Point3::new(p1.x.min(p2.x), p1.y.min(p2.y), p1.z.min(p2.z));
-        let p_max = Point3::new(p1.x.max(p2.x), p1.y.max(p2.y), p1.z.max(p2.z));
+        let p_min = point![p1.x.min(p2.x), p1.y.min(p2.y), p1.z.min(p2.z)];
+        let p_max = point![p1.x.max(p2.x), p1.y.max(p2.y), p1.z.max(p2.z)];
 
         Self { p_min, p_max }
     }
@@ -132,16 +132,16 @@ impl Aabb {
     }
 
     pub fn intersection(&self, other: &Aabb) -> Aabb {
-        let p_min = Point3::new(
+        let p_min = point![
             self.p_min.x.max(other.p_min.x),
             self.p_min.y.max(other.p_min.y),
-            self.p_min.z.max(other.p_min.z),
-        );
-        let p_max = Point3::new(
+            self.p_min.z.max(other.p_min.z)
+        ];
+        let p_max = point![
             self.p_max.x.min(other.p_max.x),
             self.p_max.y.min(other.p_max.y),
-            self.p_max.z.min(other.p_max.z),
-        );
+            self.p_max.z.min(other.p_max.z)
+        ];
 
         Aabb { p_min, p_max }
     }
@@ -157,16 +157,16 @@ pub trait Union {
 
 impl Union for Point3<Float> {
     fn union(&self, bbox: &Aabb) -> Aabb {
-        let p_min = Point3::new(
+        let p_min = point![
             self.x.min(bbox.p_min.x),
             self.y.min(bbox.p_min.y),
-            self.z.min(bbox.p_min.z),
-        );
-        let p_max = Point3::new(
+            self.z.min(bbox.p_min.z)
+        ];
+        let p_max = point![
             self.x.max(bbox.p_min.x),
             self.y.max(bbox.p_min.y),
-            self.z.max(bbox.p_min.z),
-        );
+            self.z.max(bbox.p_min.z)
+        ];
 
         Aabb { p_min, p_max }
     }
@@ -174,16 +174,16 @@ impl Union for Point3<Float> {
 
 impl Union for Aabb {
     fn union(&self, bbox: &Aabb) -> Aabb {
-        let p_min = Point3::new(
+        let p_min = point![
             self.p_min.x.min(bbox.p_min.x),
             self.p_min.y.min(bbox.p_min.y),
-            self.p_min.z.min(bbox.p_min.z),
-        );
-        let p_max = Point3::new(
+            self.p_min.z.min(bbox.p_min.z)
+        ];
+        let p_max = point![
             self.p_max.x.max(bbox.p_max.x),
             self.p_max.y.max(bbox.p_max.y),
-            self.p_max.z.max(bbox.p_max.z),
-        );
+            self.p_max.z.max(bbox.p_max.z)
+        ];
 
         Aabb { p_min, p_max }
     }

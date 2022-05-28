@@ -8,7 +8,7 @@ mod shape;
 mod transformation;
 
 pub use aabb::{Aabb, Bounded};
-pub use interaction::{SurfaceInteraction, Shading};
+pub use interaction::{Shading, SurfaceInteraction};
 pub use light::{AreaLight, Light};
 pub use material::Material;
 pub use normal::Normal3;
