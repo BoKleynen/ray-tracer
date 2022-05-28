@@ -1,8 +1,10 @@
 mod aabb;
+mod normal;
 mod transformation;
 
 pub use aabb::{Aabb, Union};
 pub use interaction::SurfaceInteraction;
+pub use normal::Normal3;
 pub use transformation::{Transformable, Transformation};
 
 use crate::Float;

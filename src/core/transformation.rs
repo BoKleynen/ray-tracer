@@ -1,4 +1,4 @@
-use crate::core::Ray;
+use crate::core::{Normal3, Ray};
 use crate::Float;
 use nalgebra as na;
 use nalgebra::{Affine3, Matrix4, Point3, Rotation3, Translation3, Unit, Vector3};
@@ -145,5 +145,15 @@ impl Transformable for Ray {
         let direction = t.apply_inverse(&self.direction);
 
         Ray { origin, direction }
+    }
+}
+
+impl Transformable for Normal3<Float> {
+    fn transform(&self, t: &Transformation) -> Self {
+        Normal3(t.inverse.matrix().transpose().transform_vector(&self.0))
+    }
+
+    fn transform_inverse(&self, t: &Transformation) -> Self {
+        Normal3(t.matrix.matrix().transpose().transform_vector(&self.0))
     }
 }
