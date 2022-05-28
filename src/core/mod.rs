@@ -1,11 +1,16 @@
 mod aabb;
 mod interaction;
+mod light;
+mod material;
 mod normal;
+mod primitive;
 mod shape;
 mod transformation;
 
-pub use aabb::{Aabb, Union};
-pub use interaction::SurfaceInteraction;
+pub use aabb::{Aabb, Bounded};
+pub use interaction::{SurfaceInteraction, Shading};
+pub use light::{AreaLight, Light};
+pub use material::Material;
 pub use normal::Normal3;
 pub use shape::Shape;
 pub use transformation::{Transformable, Transformation};

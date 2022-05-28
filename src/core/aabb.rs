@@ -1,6 +1,18 @@
+use std::ops::Deref;
 use crate::core::{Axis, Ray};
 use crate::Float;
 use nalgebra::{Point3, Vector3};
+
+pub trait Bounded {
+    fn bbox(&self) -> Aabb;
+}
+
+impl<T: Deref<Target = impl Bounded>> Bounded for T {
+    #[inline]
+    fn bbox(&self) -> Aabb {
+        (**self).bbox()
+    }
+}
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Aabb {
