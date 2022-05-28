@@ -74,6 +74,26 @@ impl Aabb {
         Some((t0, t1))
     }
 
+    pub fn vertices(&self) -> [Point3<Float>; 8] {
+        let x_min = self.p_min.x;
+        let y_min = self.p_min.y;
+        let z_min = self.p_min.z;
+        let x_max = self.p_max.x;
+        let y_max = self.p_max.y;
+        let z_max = self.p_max.z;
+
+        [
+            point![x_min, y_min, z_min],
+            point![x_min, y_min, z_max],
+            point![x_min, y_max, z_min],
+            point![x_min, y_max, z_max],
+            point![x_max, y_min, z_min],
+            point![x_max, y_min, z_max],
+            point![x_max, y_max, z_min],
+            point![x_max, y_max, z_max],
+        ]
+    }
+
     pub fn centroid(&self) -> Point3<Float> {
         self.p_min + 0.5 * (self.p_max - self.p_min)
     }
