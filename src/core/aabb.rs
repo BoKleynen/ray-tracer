@@ -1,7 +1,8 @@
-use crate::core::{Axis, Ray};
-use crate::Float;
 use nalgebra::{point, Point3, Vector3};
 use std::ops::Deref;
+
+use crate::core::{Axis, Ray};
+use crate::Float;
 
 pub trait Bounded {
     fn bbox(&self) -> Aabb;

@@ -1,10 +1,11 @@
-use crate::core::{Aabb, Bounded, Normal3, Ray, Shape, SurfaceInteraction};
-use crate::util::math;
-use crate::Float;
 use nalgebra as na;
 use nalgebra::{point, vector, Point3, Vector3};
 use nalgebra_glm as glm;
 use num_traits::float::FloatConst;
+
+use crate::core::{Aabb, Bounded, Normal3, Ray, Shape, SurfaceInteraction};
+use crate::util::math;
+use crate::Float;
 
 pub struct Sphere {
     radius: Float,

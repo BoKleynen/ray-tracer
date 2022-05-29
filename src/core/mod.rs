@@ -7,6 +7,10 @@ mod primitive;
 mod shape;
 mod transformation;
 
+use nalgebra::{Point3, Vector3};
+
+use crate::Float;
+
 pub use aabb::{Aabb, Bounded};
 pub use interaction::{Shading, SurfaceInteraction};
 pub use light::{AreaLight, Light};
@@ -14,9 +18,6 @@ pub use material::Material;
 pub use normal::Normal3;
 pub use shape::Shape;
 pub use transformation::{Transformable, Transformation};
-
-use crate::Float;
-use nalgebra::{Point3, Vector3};
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy)]

@@ -1,8 +1,9 @@
-use crate::core::{Aabb, Normal3, Ray};
-use crate::Float;
 use nalgebra::{vector, Point3, Vector3};
 use nalgebra_glm as glm;
 use nalgebra_glm::{TMat4, TVec3};
+
+use crate::core::{Aabb, Normal3, Ray};
+use crate::Float;
 
 pub struct Transformation {
     mat: TMat4<Float>,

@@ -1,5 +1,6 @@
-use crate::core::{Aabb, AreaLight, Bounded, Material, Shape};
 use std::sync::Arc;
+
+use crate::core::{Aabb, AreaLight, Bounded, Material, Shape};
 
 pub trait Primitive: Bounded {}
 

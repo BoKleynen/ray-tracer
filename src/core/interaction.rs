@@ -1,6 +1,7 @@
+use nalgebra::{Point2, Point3, Vector3};
+
 use crate::core::{Normal3, Shape};
 use crate::Float;
-use nalgebra::{Point2, Point3, Vector3};
 
 pub struct Shading {
     pub n: Normal3<Float>,
