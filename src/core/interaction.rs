@@ -10,7 +10,6 @@ pub struct Shading {
 }
 
 pub struct SurfaceInteraction<'a> {
-    pub t_hit: Float,
     pub p: Point3<Float>,
     pub wo: Vector3<Float>,
     pub n: Normal3<Float>,

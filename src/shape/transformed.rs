@@ -14,7 +14,7 @@ impl<S: Bounded> Bounded for Transformed<S> {
 }
 
 impl<S: Shape> Shape for Transformed<S> {
-    fn intersect(&self, ray: &Ray) -> Option<SurfaceInteraction> {
+    fn intersect(&self, ray: &Ray) -> Option<(Float, SurfaceInteraction)> {
         let inv_ray = self.world_to_object.apply_inverse(ray);
         self.shape.intersect(&inv_ray)
     }

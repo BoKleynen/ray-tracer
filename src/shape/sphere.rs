@@ -26,7 +26,7 @@ impl Bounded for Sphere {
 }
 
 impl Shape for Sphere {
-    fn intersect(&self, ray: &Ray) -> Option<SurfaceInteraction> {
+    fn intersect(&self, ray: &Ray) -> Option<(Float, SurfaceInteraction)> {
         let a = glm::magnitude2(&ray.d);
         let b = glm::dot(&ray.o.coords, &ray.d) * 2.;
         let c = glm::magnitude2(&ray.o.coords) - self.radius * self.radius;
@@ -55,7 +55,6 @@ impl Shape for Sphere {
         let [dndu, dndv] = self.dndu_dndv();
 
         let isect = SurfaceInteraction {
-            t_hit,
             p: p_hit,
             wo: -ray.d,
             n: Normal3(Default::default()),
@@ -67,7 +66,7 @@ impl Shape for Sphere {
             shape: self,
         };
 
-        Some(isect)
+        Some((t_hit, isect))
     }
 
     fn intersects(&self, ray: &Ray) -> bool {
