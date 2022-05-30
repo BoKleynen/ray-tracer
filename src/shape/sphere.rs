@@ -16,6 +16,12 @@ pub struct Sphere {
     phi_max: Float,
 }
 
+impl Default for Sphere {
+    fn default() -> Self {
+        Self::new(1., 1., 1., 360.)
+    }
+}
+
 impl Bounded for Sphere {
     fn bbox(&self) -> Aabb {
         Aabb::new(

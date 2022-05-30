@@ -11,7 +11,7 @@ pub trait Bounded {
 impl<T: Deref<Target = impl Bounded>> Bounded for T {
     #[inline]
     fn bbox(&self) -> Aabb {
-        (**self).bbox()
+        self.deref().bbox()
     }
 }
 
