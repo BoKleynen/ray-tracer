@@ -12,7 +12,7 @@ Computer Graphics: Project (academic year 2020-2021)
 
 [dependencies]
 chrono = "0.4"
-clap = "3.0.0-beta.2"
+clap = "3.2.4"
 image = "0.23"
 indicatif = { version = "0.16", features = ["rayon"] }
 itertools = "0.10"
