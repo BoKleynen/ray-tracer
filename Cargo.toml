@@ -16,7 +16,7 @@ clap = "3.0.0-beta.2"
 image = "0.23"
 indicatif = { version = "0.16", features = ["rayon"] }
 itertools = "0.10"
-nalgebra = "0.30"
+nalgebra = "0.31"
 rand = "0.8"
 rayon = "1.5"
 
