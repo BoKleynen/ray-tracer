@@ -360,9 +360,9 @@ dependencies = [
 
 [[package]]
 name = "nalgebra"
-version = "0.30.0"
+version = "0.32.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bae4b7e567aad33abc8fff4910473a24b1172586f9a4bd58cc80291de7189356"
+checksum = "307ed9b18cc2423f29e83f84fd23a8e73628727990181f18641a8b5dc2ab1caa"
 dependencies = [
  "approx",
  "matrixmultiply",
@@ -376,9 +376,9 @@ dependencies = [
 
 [[package]]
 name = "nalgebra-macros"
-version = "0.1.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01fcc0b8149b4632adc89ac3b7b31a12fb6099a0317a4eb2ebff574ef7de7218"
+checksum = "91761aed67d03ad966ef783ae962ef9bbaca728d2dd7ceb7939ec110fffad998"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -657,9 +657,9 @@ checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
 
 [[package]]
 name = "simba"
-version = "0.7.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fa406d0a270fc91831a28f705ba803ad05b971486af492317f1607390245b99"
+checksum = "061507c94fc6ab4ba1c9a0305018408e312e17c041eb63bef8aa726fa33aceae"
 dependencies = [
  "approx",
  "num-complex",
